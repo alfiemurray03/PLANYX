@@ -18,14 +18,14 @@ test('Dedicated authority reporting URLs render the same protected Admin page', 
 });
 
 test('Authority reporting includes an official-source UK police station directory', async () => {
-  const route = await read('src/pages/admin/authority-reporting-route.tsx');
+  const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
   const directory = await read('src/components/admin/PoliceStationDirectory.tsx');
 
-  assert.match(route, /UK police station directory/);
-  assert.match(route, /updateControlledInput\('authority-name'/);
-  assert.match(route, /updateControlledInput\('authority-channel'/);
-  assert.match(route, /Official source:/);
-  assert.match(route, /Checked:/);
+  assert.match(embedded, /UK police station directory/);
+  assert.match(embedded, /setInput\('authority-name'/);
+  assert.match(embedded, /setInput\('authority-channel'/);
+  assert.match(embedded, /Official source:/);
+  assert.match(embedded, /Checked:/);
 
   assert.match(directory, /https:\/\/data\.police\.uk\/api/);
   assert.match(directory, /\/neighbourhoods/);
@@ -57,14 +57,14 @@ test('Police directory covers every UK territorial and specialist force category
 });
 
 test('Station selection remains part of the saved report and PDF fields', async () => {
-  const route = await read('src/pages/admin/authority-reporting-route.tsx');
+  const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
   const reportPage = await read('src/pages/admin/authority-reporting.tsx');
 
   assert.match(reportPage, /id="authority-name"/);
   assert.match(reportPage, /id="authority-channel"/);
-  assert.match(route, /station\.forceName/);
-  assert.match(route, /station\.stationName/);
-  assert.match(route, /station\.address/);
-  assert.match(route, /station\.postcode/);
-  assert.match(route, /station\.sourceUrl/);
+  assert.match(embedded, /station\.forceName/);
+  assert.match(embedded, /station\.stationName/);
+  assert.match(embedded, /station\.address/);
+  assert.match(embedded, /station\.postcode/);
+  assert.match(embedded, /station\.sourceUrl/);
 });
