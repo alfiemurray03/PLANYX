@@ -14,11 +14,13 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  ListRestart,
   Loader2,
   RefreshCw,
   Save,
   ShieldCheck,
   Sparkles,
+  StarOff,
 } from 'lucide-react';
 
 interface SubscriptionPlan {
@@ -113,6 +115,7 @@ export default function AdminPlansPage() {
 
   const dirty = useMemo(() => serialisePlans(plans) !== serialisePlans(savedPlans), [plans, savedPlans]);
   const activePlans = plans.filter(plan => Boolean(plan.is_active)).length;
+  const featuredPlans = plans.filter(plan => Boolean(plan.is_featured)).length;
   const selectedPlan = plans.find(plan => plan.id === selectedPlanId) || plans[0] || null;
   const selectedVerification = selectedPlan ? verification[selectedPlan.id] : undefined;
 
@@ -156,15 +159,21 @@ export default function AdminPlansPage() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  function updatePlan(id: string, change: Partial<SubscriptionPlan>) {
-    setPlans(current => current.map(plan => plan.id === id ? { ...plan, ...change } : plan));
-    setSuccess('');
+  function clearPlanVerification(id?: string) {
     setVerification(current => {
+      if (!id) return {};
       if (!current[id]) return current;
       const next = { ...current };
       delete next[id];
       return next;
     });
+  }
+
+  function updatePlan(id: string, change: Partial<SubscriptionPlan>) {
+    setPlans(current => current.map(plan => plan.id === id ? { ...plan, ...change } : plan));
+    setError('');
+    setSuccess('');
+    clearPlanVerification(id);
   }
 
   function updatePrice(id: string, poundsValue: string) {
@@ -173,10 +182,33 @@ export default function AdminPlansPage() {
     updatePlan(id, { price_pence: pence, price_label: `£${(pence / 100).toFixed(2)}` });
   }
 
+  function prepareBulkChange(
+    message: string,
+    transform: (plan: SubscriptionPlan, index: number) => SubscriptionPlan,
+    confirmation?: string,
+  ) {
+    if (confirmation && !window.confirm(confirmation)) return;
+    setPlans(current => current.map(transform));
+    setVerification({});
+    setError('');
+    setSuccess(`${message} Review the plans, then select Save all to publish the change.`);
+  }
+
+  function restoreSavedChanges() {
+    if (!dirty) return;
+    if (!window.confirm('Discard every unsaved subscription-plan change on this page?')) return;
+    setPlans(savedPlans.map(plan => ({ ...plan })));
+    setVerification({});
+    setError('');
+    setSuccess('All unsaved plan changes were discarded.');
+  }
+
   function validatePlans() {
     for (const plan of plans) {
       if (!plan.id.trim()) return 'Every plan requires a permanent plan ID.';
       if (!plan.plan_name.trim()) return `Enter a plan name for ${plan.id}.`;
+      if (!plan.plan_type.trim()) return `Enter a plan type for ${plan.plan_name}.`;
+      if (!plan.price_label.trim()) return `Enter a public price label for ${plan.plan_name}.`;
       if (!Number.isFinite(Number(plan.price_pence)) || Number(plan.price_pence) < 0) return `${plan.plan_name} has an invalid price.`;
       if (plan.stripe_price_id && !/^price_[A-Za-z0-9]+$/.test(plan.stripe_price_id.trim())) return `${plan.plan_name} has an invalid Stripe Price ID.`;
       if (plan.stripe_product_id && !/^prod_[A-Za-z0-9]+$/.test(plan.stripe_product_id.trim())) return `${plan.plan_name} has an invalid Stripe Product ID.`;
@@ -218,7 +250,7 @@ export default function AdminPlansPage() {
       const saved = data.plans.map(normalisePlan);
       setPlans(saved);
       setSavedPlans(saved);
-      setSuccess(`Saved ${saved.length} subscription plans. The website catalogue and checkout now use these settings.`);
+      setSuccess(`Saved ${saved.length} complete subscription plans. The public pricing page and checkout now use these settings.`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Subscription plan changes could not be saved.');
     } finally {
@@ -267,7 +299,7 @@ export default function AdminPlansPage() {
         <title>Subscription Plans - Planyx Admin Centre</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <AdminLayout title="Subscription Plans" subtitle="Edit public pricing, plan availability and Stripe billing references">
+      <AdminLayout title="Subscription Plans" subtitle="Edit every plan setting, universal availability and Stripe billing references">
         <div className="mx-auto w-full max-w-7xl space-y-4 pb-20">
           <section className="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-r from-white via-blue-50/70 to-violet-50/60 shadow-lg dark:border-blue-500/30 dark:from-slate-950 dark:via-slate-950 dark:to-violet-950/50">
             <div className="h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-violet-600" />
@@ -275,20 +307,50 @@ export default function AdminPlansPage() {
               <div>
                 <div className="flex items-center gap-2 text-blue-700 dark:text-blue-200">
                   <BadgePoundSterling className="h-5 w-5" />
-                  <span className="text-xs font-bold uppercase tracking-[0.14em]">Pricing control</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em]">Complete pricing control</span>
                 </div>
-                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl">Edit one plan at a time</h1>
-                <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">Choose a plan below, edit it in the compact form, then save all changes.</p>
+                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl">Edit every plan without the endless scrolling</h1>
+                <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">Choose any plan, edit all of its customer-facing and Stripe settings, or apply a universal control to the full catalogue.</p>
               </div>
-              <div className="flex gap-2 text-sm">
+              <div className="flex flex-wrap gap-2 text-sm">
                 <span className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">{plans.length} plans</span>
                 <span className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">{activePlans} live</span>
+                <span className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 font-semibold text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">{featuredPlans} featured</span>
               </div>
             </div>
           </section>
 
           {error && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert>}
           {success && <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"><CheckCircle2 className="h-4 w-4" /><AlertDescription>{success}</AlertDescription></Alert>}
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900" aria-labelledby="universal-plan-controls">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <h2 id="universal-plan-controls" className="text-sm font-black text-slate-950 dark:text-white">Universal controls for every plan</h2>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">These prepare bulk changes. Nothing goes live until you select Save all.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" className="gap-2" disabled={loading || saving} onClick={() => prepareBulkChange('Every plan has been marked as active.', plan => ({ ...plan, is_active: true }))}>
+                  <Eye className="h-4 w-4" /> Activate all
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10" disabled={loading || saving} onClick={() => prepareBulkChange('Every plan has been marked as hidden.', plan => ({ ...plan, is_active: false }), 'Disable every subscription plan? Customers will see no active paid plans after you save.') }>
+                  <EyeOff className="h-4 w-4" /> Disable all
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="gap-2" disabled={loading || saving} onClick={() => prepareBulkChange('Every plan has been marked as featured.', plan => ({ ...plan, is_featured: true }))}>
+                  <Sparkles className="h-4 w-4" /> Feature all
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="gap-2" disabled={loading || saving} onClick={() => prepareBulkChange('Featured status has been removed from every plan.', plan => ({ ...plan, is_featured: false }))}>
+                  <StarOff className="h-4 w-4" /> Clear featured
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="gap-2" disabled={loading || saving} onClick={() => prepareBulkChange('Plan display order has been reset.', (plan, index) => ({ ...plan, sort_order: (index + 1) * 10 }))}>
+                  <ListRestart className="h-4 w-4" /> Reset order
+                </Button>
+                <Button type="button" variant="ghost" size="sm" className="gap-2" disabled={!dirty || loading || saving} onClick={restoreSavedChanges}>
+                  <RefreshCw className="h-4 w-4" /> Discard unsaved
+                </Button>
+              </div>
+            </div>
+          </section>
 
           <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="px-1">
@@ -349,7 +411,7 @@ export default function AdminPlansPage() {
                     <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h2 className="text-xl font-black text-slate-950 dark:text-white">Editing {selectedPlan.plan_name}</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Permanent ID: {selectedPlan.id} · Updated {displayUpdatedAt(selectedPlan.updated_at)}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Every stored plan setting is editable below. The permanent ID remains locked to protect checkout and existing subscriptions.</p>
                       </div>
                       <div className="flex flex-wrap gap-4">
                         <div className="flex items-center gap-2"><Label htmlFor={`${selectedPlan.id}-active`} className="text-sm">Live</Label><Switch id={`${selectedPlan.id}-active`} checked={Boolean(selectedPlan.is_active)} onCheckedChange={checked => updatePlan(selectedPlan.id, { is_active: checked })} /></div>
@@ -366,7 +428,7 @@ export default function AdminPlansPage() {
 
                         <div className="grid gap-4 sm:grid-cols-3">
                           <div className="space-y-1.5"><Label htmlFor={`${selectedPlan.id}-price`}>Monthly price (£)</Label><Input id={`${selectedPlan.id}-price`} type="number" min="0" step="0.01" value={Number((selectedPlan.price_pence / 100).toFixed(2))} onChange={event => updatePrice(selectedPlan.id, event.target.value)} /></div>
-                          <div className="space-y-1.5"><Label htmlFor={`${selectedPlan.id}-label`}>Price label</Label><Input id={`${selectedPlan.id}-label`} value={selectedPlan.price_label} onChange={event => updatePlan(selectedPlan.id, { price_label: event.target.value })} /></div>
+                          <div className="space-y-1.5"><Label htmlFor={`${selectedPlan.id}-label`}>Public price label</Label><Input id={`${selectedPlan.id}-label`} value={selectedPlan.price_label} onChange={event => updatePlan(selectedPlan.id, { price_label: event.target.value })} /></div>
                           <div className="space-y-1.5"><Label htmlFor={`${selectedPlan.id}-sort`}>Display order</Label><Input id={`${selectedPlan.id}-sort`} type="number" min="0" step="1" value={selectedPlan.sort_order} onChange={event => updatePlan(selectedPlan.id, { sort_order: Number(event.target.value || 0) })} /></div>
                         </div>
 
@@ -390,6 +452,12 @@ export default function AdminPlansPage() {
                           </div>
                         </div>
 
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300">
+                          <div className="space-y-1.5"><Label htmlFor={`${selectedPlan.id}-permanent-id`}>Permanent internal plan ID</Label><Input id={`${selectedPlan.id}-permanent-id`} value={selectedPlan.id} readOnly aria-readonly="true" className="font-mono text-xs" /></div>
+                          <p className="mt-2">This ID cannot be renamed because customer checkout links, billing records and subscription metadata rely on it.</p>
+                          <p className="mt-2"><strong>Last database update:</strong> {displayUpdatedAt(selectedPlan.updated_at)}</p>
+                        </div>
+
                         {selectedVerification ? (
                           <div className={`rounded-2xl border p-4 text-sm ${selectedVerification.valid ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100' : 'border-red-200 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100'}`}>
                             <p className="font-bold">{selectedVerification.valid ? 'Stripe verification passed' : 'Stripe verification failed'}</p>
@@ -411,7 +479,7 @@ export default function AdminPlansPage() {
           )}
 
           <div className="sticky bottom-3 z-40 flex items-center justify-between gap-3 rounded-2xl border border-slate-300 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
-            <p className="text-sm font-semibold text-slate-950 dark:text-white">{dirty ? 'Unsaved changes' : 'Plans saved'}</p>
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">{dirty ? 'Unsaved changes across the plan catalogue' : 'Every plan is saved'}</p>
             <Button size="sm" onClick={() => void saveAll()} disabled={loading || saving || verifying || !dirty} className="gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save all
             </Button>
