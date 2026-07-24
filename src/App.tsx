@@ -28,6 +28,7 @@ const StandardBusinessHomePage = lazy(() => import('./pages/home'));
 const StandardBusinessPlansPage = lazy(() => import('./pages/plans'));
 const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
 const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
+const AdminAuthorityReportingRoutePage = lazy(() => import('./pages/admin/authority-reporting-route'));
 
 const CookieBanner = lazy(() =>
   import('@/components/CookieBanner').catch((error) => {
@@ -78,6 +79,16 @@ const adminManualsRoute: RouteObject = {
   errorElement,
 };
 
+const adminAuthorityReportingRoutes: RouteObject[] = ['/admin/authority-reporting', '/admin/reports'].map(path => ({
+  path,
+  element: (
+    <Suspense fallback={<SpinnerFallback />}>
+      <AdminAuthorityReportingRoutePage />
+    </Suspense>
+  ),
+  errorElement,
+}));
+
 const routeTree: RouteObject[] = [
   {
     element: rootElement,
@@ -85,6 +96,7 @@ const routeTree: RouteObject[] = [
     children: customerRoutes,
   },
   adminManualsRoute,
+  ...adminAuthorityReportingRoutes,
   ...adminRoutes.map(withErrorPage),
   ...resellerRoutes.map(withErrorPage),
 ];

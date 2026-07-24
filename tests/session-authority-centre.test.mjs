@@ -131,9 +131,11 @@ test('Authority report PDF is a formal internal pack and does not claim to notif
   assert.match(pdf, /doc\.save/);
 });
 
-test('Legacy authority URLs safely redirect into the dedicated Reports centre', async () => {
-  const redirect = await read('functions/admin/authority-reporting.js');
-  assert.match(redirect, /new URL\('\/admin\/reports'/);
-  assert.match(redirect, /destination\.search = url\.search/);
-  assert.match(redirect, /status: 302/);
+test('Dedicated authority URL continues into the protected React page', async () => {
+  const edgeRoute = await read('functions/admin/authority-reporting.js');
+  const app = await read('src/App.tsx');
+  assert.match(edgeRoute, /return context\.next\(\)/);
+  assert.doesNotMatch(edgeRoute, /status:\s*302/);
+  assert.match(app, /'\/admin\/authority-reporting'/);
+  assert.match(app, /AdminAuthorityReportingRoutePage/);
 });
