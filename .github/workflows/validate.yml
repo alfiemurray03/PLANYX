@@ -65,6 +65,7 @@ jobs:
             tests/public-bundle-hygiene.test.mjs \
             tests/admin-pin-visual-style.test.mjs \
             tests/contact-page-status-enforcement.test.mjs \
+            tests/chatbot-conversation-first.test.mjs \
             tests/admin-keyboard-shortcuts.test.mjs \
             tests/admin-support-manuals.test.mjs \
             tests/session-authority-centre.test.mjs 2>&1 | tee targeted-tests.log
