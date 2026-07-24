@@ -70,7 +70,8 @@ jobs:
             tests/admin-support-manuals.test.mjs \
             tests/admin-utility-side-tabs.test.mjs \
             tests/session-authority-centre.test.mjs \
-            tests/authority-reporting-route-stations.test.mjs 2>&1 | tee targeted-tests.log
+            tests/authority-reporting-route-stations.test.mjs \
+            tests/authority-report-user-session-linking.test.mjs 2>&1 | tee targeted-tests.log
 
       - name: Run full repository test baseline
         id: fulltests
