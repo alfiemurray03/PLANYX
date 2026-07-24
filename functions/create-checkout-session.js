@@ -1,4 +1,5 @@
 import { readFeatureFlag } from "./_shared/feature-flags.js";
+import { profileAgeStatus } from "./_shared/age-assurance.js";
 import { getNativeSession, loginRedirect } from "./_shared/oidc.js";
 
 const DEFAULT_PLANS = [
@@ -18,12 +19,12 @@ export async function onRequestGet(context) {
     const planCode = String(url.searchParams.get("plan") || "").trim();
     const accountType = String(url.searchParams.get("accountType") || "").trim();
 
-    if (!planCode) {
-      return redirectTo(getSiteUrl(context.env) + "/pricing/");
-    }
+    if (!planCode) return redirectTo(getSiteUrl(context.env) + "/pricing/");
 
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
+    const ageRedirect = await requireCheckoutAge(context, identity);
+    if (ageRedirect) return ageRedirect;
     return await createCheckoutSession(planCode, accountType, context.env, identity);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_get_failed", message: errorMessage(error) }));
@@ -38,6 +39,8 @@ export async function onRequestPost(context) {
     const accountType = String(formData.get("accountType") || "").trim();
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
+    const ageRedirect = await requireCheckoutAge(context, identity);
+    if (ageRedirect) return ageRedirect;
     return await createCheckoutSession(planCode, accountType, context.env, identity);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_post_failed", message: errorMessage(error) }));
@@ -54,16 +57,23 @@ async function customerIdentity(context) {
   }
 }
 
+async function requireCheckoutAge(context, identity) {
+  if (!context.env?.DB || !identity?.email) return redirectTo(getSiteUrl(context.env) + "/age-check?return_to=%2Fpricing");
+  const status = await profileAgeStatus(context.env.DB, identity.email);
+  if (status.eligible) return null;
+  const code = status.reason === "under-16" ? "under_16_not_eligible" : "age_check_required";
+  return redirectTo(getSiteUrl(context.env) + `/age-check?return_to=%2Fpricing&error=${encodeURIComponent(code)}`);
+}
+
 async function createCheckoutSession(planCode, requestedAccountType, env, identity) {
   const siteUrl = getSiteUrl(env);
-  if (!env || !env.DB) {
-    return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
-  }
+  if (!env || !env.DB) return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
+
+  const ageStatus = await profileAgeStatus(env.DB, identity.email);
+  if (!ageStatus.eligible) return redirectTo(siteUrl + "/age-check?return_to=%2Fpricing");
 
   const paymentsEnabled = await readFeatureFlag(env.DB, "payments", false);
-  if (!paymentsEnabled) {
-    return redirectTo(siteUrl + "/pricing/?payments=disabled");
-  }
+  if (!paymentsEnabled) return redirectTo(siteUrl + "/pricing/?payments=disabled");
 
   const stripeSecret = await getStripeSecret(env);
   if (!stripeSecret) {
@@ -75,13 +85,10 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
 
   const selectedPlan = await env.DB.prepare(`
     SELECT id, plan_name, plan_type, price_label, price_pence, stripe_product_id, stripe_price_id, is_active
-    FROM service_plans
-    WHERE id = ?
+    FROM service_plans WHERE id = ?
   `).bind(planCode).first();
 
-  if (!selectedPlan || Number(selectedPlan.is_active || 0) !== 1) {
-    return redirectTo(siteUrl + "/pricing/?plan=coming-soon");
-  }
+  if (!selectedPlan || Number(selectedPlan.is_active || 0) !== 1) return redirectTo(siteUrl + "/pricing/?plan=coming-soon");
 
   const businessPlan = String(selectedPlan.id || "").startsWith("business_");
   const accountType = businessPlan ? "organisation" : "individual";
@@ -102,9 +109,8 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   params.append("billing_address_collection", "auto");
   params.append("allow_promotion_codes", "true");
   const accountEmail = String(identity.email || "").trim().toLowerCase();
-  const profile = await env.DB.prepare(`
-    SELECT stripe_customer_id FROM profiles WHERE lower(email) = lower(?)
-  `).bind(accountEmail).first().catch(() => null);
+  const profile = await env.DB.prepare(`SELECT stripe_customer_id, age_band, minor_safeguards_enabled
+    FROM profiles WHERE lower(email) = lower(?)`).bind(accountEmail).first().catch(() => null);
   if (profile?.stripe_customer_id) params.append("customer", String(profile.stripe_customer_id));
   else params.append("customer_email", accountEmail);
   params.append("client_reference_id", accountEmail);
@@ -118,25 +124,24 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   params.append("metadata[account_type]", accountType);
   params.append("metadata[catalogue]", businessPlan ? "business" : "standard");
   params.append("metadata[account_email]", accountEmail);
+  params.append("metadata[age_band]", String(profile?.age_band || ageStatus.ageBand || "18+"));
+  params.append("metadata[young_person_safeguards]", Number(profile?.minor_safeguards_enabled || 0) === 1 ? "enabled" : "not_applicable");
   params.append("subscription_data[metadata][service_line]", "Planyx");
   params.append("subscription_data[metadata][plan_code]", selectedPlan.id);
   params.append("subscription_data[metadata][plan_name]", selectedPlan.plan_name || selectedPlan.id);
   params.append("subscription_data[metadata][account_type]", accountType);
   params.append("subscription_data[metadata][catalogue]", businessPlan ? "business" : "standard");
   params.append("subscription_data[metadata][customer_email]", accountEmail);
+  params.append("subscription_data[metadata][age_band]", String(profile?.age_band || ageStatus.ageBand || "18+"));
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
-    headers: {
-      "Authorization": "Bearer " + stripeSecret,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Authorization": "Bearer " + stripeSecret, "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString()
   });
 
   const responseText = await stripeResponse.text();
   let session;
-
   try {
     session = JSON.parse(responseText);
   } catch {
@@ -145,11 +150,7 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   }
 
   if (!stripeResponse.ok || !session?.url) {
-    console.error(JSON.stringify({
-      event: "checkout_stripe_rejected",
-      status: stripeResponse.status,
-      message: session?.error?.message || "Stripe did not return a Checkout URL."
-    }));
+    console.error(JSON.stringify({ event: "checkout_stripe_rejected", status: stripeResponse.status, message: session?.error?.message || "Stripe did not return a Checkout URL." }));
     return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
   }
 
@@ -157,35 +158,18 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
 }
 
 async function syncServicePlans(DB) {
-  await DB.prepare(`
-    CREATE TABLE IF NOT EXISTS service_plans (
-      id TEXT PRIMARY KEY,
-      plan_name TEXT,
-      plan_type TEXT,
-      price_label TEXT,
-      price_pence INTEGER,
-      stripe_price_id TEXT,
-      delivery_time TEXT,
-      revisions TEXT,
-      description TEXT,
-      button_label TEXT,
-      is_active INTEGER DEFAULT 1,
-      is_featured INTEGER DEFAULT 0,
-      sort_order INTEGER DEFAULT 100,
+  await DB.prepare(`CREATE TABLE IF NOT EXISTS service_plans (
+      id TEXT PRIMARY KEY, plan_name TEXT, plan_type TEXT, price_label TEXT, price_pence INTEGER,
+      stripe_price_id TEXT, delivery_time TEXT, revisions TEXT, description TEXT, button_label TEXT,
+      is_active INTEGER DEFAULT 1, is_featured INTEGER DEFAULT 0, sort_order INTEGER DEFAULT 100,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `).run();
-
+    )`).run();
   await safeAlter(DB, `ALTER TABLE service_plans ADD COLUMN stripe_product_id TEXT`);
-
   for (const plan of DEFAULT_PLANS) {
-    await DB.prepare(`
-      INSERT INTO service_plans (
+    await DB.prepare(`INSERT INTO service_plans (
         id, plan_name, plan_type, price_label, price_pence, stripe_product_id, stripe_price_id,
         delivery_time, revisions, description, button_label, is_active, is_featured, sort_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO NOTHING
-    `).bind(...plan).run();
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING`).bind(...plan).run();
   }
 }
 
@@ -195,50 +179,25 @@ async function getStripeSecret(env) {
 }
 
 async function resolveStripePriceId(plan, env, DB, stripeSecret) {
-  // The Admin Centre service_plans record is the live source of truth.
   if (plan.stripe_price_id) return String(plan.stripe_price_id);
-
-  const overrideByPlan = {
-    personal: "stripe_price_personal_override",
-    standard: "stripe_price_standard_override",
-    professional: "stripe_price_professional_override",
-    org_starter: "stripe_price_org_starter_override"
-  };
+  const overrideByPlan = { personal: "stripe_price_personal_override", standard: "stripe_price_standard_override", professional: "stripe_price_professional_override", org_starter: "stripe_price_org_starter_override" };
   const overrideKey = overrideByPlan[plan.id];
   if (DB && overrideKey) {
     const row = await DB.prepare("SELECT value FROM site_settings WHERE key = ?").bind(overrideKey).first().catch(() => null);
     const override = String(row?.value || "").trim();
     if (override) return override;
   }
-
-  const secretByPlan = {
-    personal: "STRIPE_PRICE_EXPLORE",
-    standard: "STRIPE_PRICE_PLAN",
-    professional: "STRIPE_PRICE_COMPLETE",
-    org_starter: "STRIPE_PRICE_TOGETHER"
-  };
+  const secretByPlan = { personal: "STRIPE_PRICE_EXPLORE", standard: "STRIPE_PRICE_PLAN", professional: "STRIPE_PRICE_COMPLETE", org_starter: "STRIPE_PRICE_TOGETHER" };
   const configured = env[secretByPlan[plan.id]];
   if (configured) return String(configured);
-
-  const response = await fetch("https://api.stripe.com/v1/prices?active=true&type=recurring&limit=100&expand[]=data.product", {
-    headers: { "Authorization": "Bearer " + stripeSecret }
-  });
+  const response = await fetch("https://api.stripe.com/v1/prices?active=true&type=recurring&limit=100&expand[]=data.product", { headers: { "Authorization": "Bearer " + stripeSecret } });
   if (!response.ok) return "";
   const catalogue = await response.json();
   const stripeProductNames = {
-    personal: "Planyx – Explore",
-    standard: "Planyx – Plan",
-    professional: "Planyx – Complete",
-    org_starter: "Planyx – Together",
-    business_personal: "Planyx Business – Explore",
-    business_standard: "Planyx Business – Plan",
-    business_professional: "Planyx Business – Complete",
-    business_org_starter: "Planyx Business – Together"
+    personal: "Planyx – Explore", standard: "Planyx – Plan", professional: "Planyx – Complete", org_starter: "Planyx – Together",
+    business_personal: "Planyx Business – Explore", business_standard: "Planyx Business – Plan", business_professional: "Planyx Business – Complete", business_org_starter: "Planyx Business – Together"
   };
-  const acceptedNames = new Set([
-    String(plan.plan_name || "").trim().toLowerCase(),
-    String(stripeProductNames[plan.id] || "").trim().toLowerCase()
-  ]);
+  const acceptedNames = new Set([String(plan.plan_name || "").trim().toLowerCase(), String(stripeProductNames[plan.id] || "").trim().toLowerCase()]);
   const match = (catalogue.data || []).find((price) => {
     const product = price && typeof price.product === "object" ? price.product : null;
     return product && product.active !== false
@@ -247,31 +206,21 @@ async function resolveStripePriceId(plan, env, DB, stripeSecret) {
       && Number(price.unit_amount || 0) === Number(plan.price_pence || 0)
       && price.recurring && price.recurring.interval === "month";
   });
-  return match && match.id ? String(match.id) : "";
+  return match?.id ? String(match.id) : "";
 }
 
 async function safeAlter(DB, sql) {
-  try {
-    await DB.prepare(sql).run();
-  } catch {
-    // Column already exists.
-  }
+  try { await DB.prepare(sql).run(); } catch { /* Column already exists. */ }
 }
 
 function getSiteUrl(env) {
-  return String(env && env.SITE_URL ? env.SITE_URL : "https://planyx.jagroupservices.co.uk").replace(/\/+$/, "");
+  return String(env?.SITE_URL || "https://planyx.jagroupservices.co.uk").replace(/\/+$/, "");
 }
 
 function redirectTo(url) {
-  return new Response("", {
-    status: 303,
-    headers: {
-      "Location": url,
-      "Cache-Control": "no-store"
-    }
-  });
+  return new Response("", { status: 303, headers: { "Location": url, "Cache-Control": "no-store" } });
 }
 
 function errorMessage(error) {
-  return error && error.message ? error.message : String(error);
+  return error?.message ? error.message : String(error);
 }
