@@ -1,0 +1,57 @@
+/* Sliding Admin Centre utility tabs: Support & Manuals and Keyboard Shortcuts. */
+:is(
+  button[aria-label="Open Admin Centre keyboard shortcuts"],
+  a[aria-label="Open Admin Support and Manuals"]
+) {
+  left: 0 !important;
+  max-width: calc(100vw - 1rem);
+  overflow: hidden;
+  white-space: nowrap;
+  flex-direction: row-reverse;
+  border-left-width: 0 !important;
+  border-radius: 0 0.75rem 0.75rem 0 !important;
+  transform: translate3d(calc(-100% + 3rem), 0, 0);
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+  will-change: transform;
+}
+
+:is(
+  button[aria-label="Open Admin Centre keyboard shortcuts"],
+  a[aria-label="Open Admin Support and Manuals"]
+) > span {
+  display: inline !important;
+}
+
+:is(
+  button[aria-label="Open Admin Centre keyboard shortcuts"],
+  a[aria-label="Open Admin Support and Manuals"]
+):is(:hover, :focus, :focus-visible) {
+  transform: translate3d(0, 0, 0);
+  box-shadow: 0 18px 38px rgb(15 23 42 / 0.22);
+}
+
+button[aria-label="Open Admin Centre keyboard shortcuts"] {
+  bottom: 1rem !important;
+}
+
+a[aria-label="Open Admin Support and Manuals"] {
+  bottom: 4rem !important;
+}
+
+@media (max-width: 640px) {
+  :is(
+    button[aria-label="Open Admin Centre keyboard shortcuts"],
+    a[aria-label="Open Admin Support and Manuals"]
+  ) {
+    max-width: calc(100vw - 0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    button[aria-label="Open Admin Centre keyboard shortcuts"],
+    a[aria-label="Open Admin Support and Manuals"]
+  ) {
+    transition: none;
+  }
+}

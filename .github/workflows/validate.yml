@@ -68,6 +68,7 @@ jobs:
             tests/chatbot-conversation-first.test.mjs \
             tests/admin-keyboard-shortcuts.test.mjs \
             tests/admin-support-manuals.test.mjs \
+            tests/admin-utility-side-tabs.test.mjs \
             tests/session-authority-centre.test.mjs 2>&1 | tee targeted-tests.log
 
       - name: Run full repository test baseline

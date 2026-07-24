@@ -12,6 +12,7 @@ import './styles/admin-polish.css';
 import './styles/admin-dark.css';
 import './styles/admin-mobile.css';
 import './styles/admin-pin-gate.css';
+import './styles/admin-utility-side-tabs.css';
 import './styles/chatbot-admin-fixes.css';
 import './styles/pdf-document.css';
 
