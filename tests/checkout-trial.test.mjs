@@ -3,10 +3,14 @@ import assert from 'node:assert/strict';
 import { onRequestGet } from '../functions/create-checkout-session.js';
 
 const PLAN_DETAILS = {
-  personal: ['Explore Plan', 599],
-  standard: ['Plan Plan', 799],
-  professional: ['Complete Plan', 1499],
-  org_starter: ['Together Plan', 3999],
+  personal: ['Explore Plan', 599, 'individual'],
+  standard: ['Plan Plan', 799, 'individual'],
+  professional: ['Complete Plan', 1499, 'individual'],
+  org_starter: ['Together Plan', 3999, 'individual'],
+  business_personal: ['Explore Plan', 599, 'organisation'],
+  business_standard: ['Plan Plan', 799, 'organisation'],
+  business_professional: ['Complete Plan', 1499, 'organisation'],
+  business_org_starter: ['Together Plan', 3999, 'organisation'],
 };
 
 const OIDC_ENV = {
@@ -36,7 +40,16 @@ function database(overrides = {}) {
           const id = this.values[0];
           const details = PLAN_DETAILS[id];
           if (!details || !sql.includes('FROM service_plans')) return null;
-          return { id, plan_name: details[0], plan_type: 'Monthly subscription', price_label: `£${(details[1] / 100).toFixed(2)}`, price_pence: details[1], stripe_price_id: `price_${id}`, is_active: 1 };
+          return {
+            id,
+            plan_name: details[0],
+            plan_type: details[2] === 'organisation' ? 'Business monthly subscription' : 'Standard monthly subscription',
+            price_label: `£${(details[1] / 100).toFixed(2)}`,
+            price_pence: details[1],
+            stripe_product_id: `prod_${id}`,
+            stripe_price_id: `price_${id}`,
+            is_active: 1,
+          };
         },
       };
       return statement;
@@ -44,7 +57,7 @@ function database(overrides = {}) {
   };
 }
 
-test('admin Stripe price override is used by the live Explore checkout', async () => {
+test('Admin-edited service plan Price ID takes priority over a legacy Explore override', async () => {
   const originalFetch = globalThis.fetch;
   let checkoutBody = '';
   globalThis.fetch = async (_url, options) => {
@@ -55,21 +68,21 @@ test('admin Stripe price override is used by the live Explore checkout', async (
     const response = await onRequestGet({
       request: signedInRequest('https://planyx.example/create-checkout-session?plan=personal'),
       env: {
-        DB: database({ toggle_payments: 'true', stripe_price_personal_override: 'price_admin_explore' }),
+        DB: database({ toggle_payments: 'true', stripe_price_personal_override: 'price_legacy_explore' }),
         STRIPE_SECRET_KEY: 'sk_test',
         STRIPE_PRICE_EXPLORE: 'price_secret_explore',
         ...OIDC_ENV,
       },
     });
     assert.equal(response.status, 303);
-    assert.equal(new URLSearchParams(checkoutBody).get('line_items[0][price]'), 'price_admin_explore');
+    assert.equal(new URLSearchParams(checkoutBody).get('line_items[0][price]'), 'price_personal');
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-for (const plan of Object.keys(PLAN_DETAILS)) {
-  test(`${plan} checkout includes a 30-day Stripe trial`, async () => {
+for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
+  test(`${plan} checkout includes trial and correct account catalogue metadata`, async () => {
     const originalFetch = globalThis.fetch;
     let checkoutBody = '';
     globalThis.fetch = async (_url, options) => {
@@ -78,19 +91,21 @@ for (const plan of Object.keys(PLAN_DETAILS)) {
     };
     try {
       const response = await onRequestGet({
-        request: signedInRequest(`https://planyx.example/create-checkout-session?plan=${plan}`),
+        request: signedInRequest(`https://planyx.example/create-checkout-session?plan=${plan}&accountType=${details[2]}`),
         env: {
           DB: database({ toggle_payments: 'true' }),
           STRIPE_SECRET_KEY: 'sk_test',
-          [`STRIPE_PRICE_${plan === 'personal' ? 'EXPLORE' : plan === 'standard' ? 'PLAN' : plan === 'professional' ? 'COMPLETE' : 'TOGETHER'}`]: `price_${plan}`,
           ...OIDC_ENV,
         },
       });
       assert.equal(response.status, 303);
       const params = new URLSearchParams(checkoutBody);
       assert.equal(params.get('mode'), 'subscription');
+      assert.equal(params.get('line_items[0][price]'), `price_${plan}`);
       assert.equal(params.get('subscription_data[trial_period_days]'), '30');
       assert.equal(params.get('subscription_data[metadata][plan_code]'), plan);
+      assert.equal(params.get('subscription_data[metadata][account_type]'), details[2]);
+      assert.equal(params.get('subscription_data[metadata][catalogue]'), details[2] === 'organisation' ? 'business' : 'standard');
     } finally {
       globalThis.fetch = originalFetch;
     }
