@@ -14,7 +14,7 @@ test('Dedicated authority reporting URLs render the same protected Admin page', 
   const edgeRoute = await read('functions/admin/authority-reporting.js');
   assert.match(edgeRoute, /return context\.next\(\)/);
   assert.doesNotMatch(edgeRoute, /status:\s*302/);
-  assert.doesNotMatch(edgeRoute, /\/admin\/reports/);
+  assert.doesNotMatch(edgeRoute, /Location:/);
 });
 
 test('Authority reporting includes an official-source UK police station directory', async () => {
