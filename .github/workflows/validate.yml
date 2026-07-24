@@ -60,6 +60,7 @@ jobs:
             tests/stripe-webhook.test.mjs \
             tests/manual-subscription-claim.test.mjs \
             tests/subscription-catalogue-persistence.test.mjs \
+            tests/admin-subscription-plans-editor.test.mjs \
             tests/account-type-itinerary-access.test.mjs \
             tests/public-bundle-hygiene.test.mjs \
             tests/admin-pin-visual-style.test.mjs \
