@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Helmet } from '@dr.pogodin/react-helmet';
 import { Link } from 'react-router-dom';
 import {
@@ -11,6 +12,7 @@ import {
   Globe2,
   Keyboard,
   LifeBuoy,
+  Loader2,
   Mail,
   MessageSquare,
   Settings,
@@ -21,14 +23,14 @@ import {
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import type { AdminManualId } from '@/lib/admin-manual-pdf';
 
 interface Manual {
+  id: AdminManualId;
   title: string;
   description: string;
   audience: string;
-  file: string;
-  pages: number;
-  size: string;
+  pages: string;
   icon: typeof BookOpen;
   topics: string[];
   accent: string;
@@ -36,34 +38,31 @@ interface Manual {
 
 const MANUALS: Manual[] = [
   {
+    id: 'admin-centre',
     title: 'Admin Centre Manual',
     description: 'Secure operation of the Planyx Admin Centre, customer records, subscriptions, builders, website controls and incident checks.',
     audience: 'Authorised administrators and support staff',
-    file: '/manuals/planyx-admin-centre-manual.pdf',
-    pages: 7,
-    size: '132 KB',
+    pages: 'Multi-page',
     icon: ShieldCheck,
     topics: ['Microsoft sign-in and Admin PIN', 'Keyboard shortcuts', 'Customer CRM and enquiries', 'Stripe and subscription routes', 'Contact Us status controls'],
     accent: 'from-blue-600 to-cyan-500',
   },
   {
+    id: 'customer-portal',
     title: 'Customer Portal Manual',
     description: 'How customer accounts, subscriptions, planning builders, exports, read-only sharing and organisation workspaces operate.',
     audience: 'Customers, administrators and customer-support staff',
-    file: '/manuals/planyx-customer-portal-manual.pdf',
-    pages: 5,
-    size: '92 KB',
+    pages: 'Multi-page',
     icon: Users,
     topics: ['Signing in and account basics', 'Plans and account types', 'Creating itineraries', 'PDF export and sharing', 'Privacy and troubleshooting'],
     accent: 'from-violet-600 to-blue-600',
   },
   {
+    id: 'public-website',
     title: 'Public Website Manual',
     description: 'Reference for the customer-facing Planyx website, pricing, Help Centre, Contact Us states, partner discovery and legal pages.',
     audience: 'Administrators, content staff, support staff and customers',
-    file: '/manuals/planyx-public-website-manual.pdf',
-    pages: 4,
-    size: '84 KB',
+    pages: 'Multi-page',
     icon: Globe2,
     topics: ['Website purpose and navigation', 'Plans, pricing and sign-in', 'Contact Us and Help Centre', 'Partner discovery', 'Legal, cookies and accessibility'],
     accent: 'from-cyan-500 to-violet-600',
@@ -80,6 +79,42 @@ const QUICK_LINKS = [
 ];
 
 export default function AdminManualsPage() {
+  const [generating, setGenerating] = useState<AdminManualId | null>(null);
+
+  async function createManual(id: AdminManualId, action: 'open' | 'download') {
+    const previewWindow = action === 'open' ? window.open('', '_blank') : null;
+    setGenerating(id);
+    try {
+      const { createAdminManualPdf } = await import('@/lib/admin-manual-pdf');
+      const manual = createAdminManualPdf(id);
+      const url = URL.createObjectURL(manual.blob);
+
+      if (action === 'open') {
+        if (previewWindow) {
+          previewWindow.location.href = url;
+          previewWindow.document.title = manual.title;
+        } else {
+          window.location.assign(url);
+        }
+      } else {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = manual.filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      previewWindow?.close();
+      console.error('Failed to create Admin manual PDF', error);
+      window.alert('The PDF manual could not be created. Please refresh the page and try again.');
+    } finally {
+      setGenerating(null);
+    }
+  }
+
   return (
     <>
       <Helmet>
@@ -99,12 +134,12 @@ export default function AdminManualsPage() {
                 </div>
                 <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">Support guidance for operating Planyx safely</h1>
                 <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-                  Open or download the current manuals for the Admin Centre, Customer Portal and public website. These documents are stored inside the production Planyx application and can be used during support, training and incident checks.
+                  Open or download the current manuals for the Admin Centre, Customer Portal and public website. Each document is generated as a proper multi-page PDF from the production Admin Centre.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold text-slate-200">
                   <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Version 1.0</span>
                   <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Updated July 2026</span>
-                  <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">PDF format</span>
+                  <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Generated PDF</span>
                 </div>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
@@ -131,7 +166,7 @@ export default function AdminManualsPage() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-300">Document library</p>
                 <h2 id="manual-library-title" className="mt-1 text-2xl font-black tracking-tight text-slate-950 dark:text-white">PDF manuals</h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Each manual opens in a new browser tab and can also be downloaded.</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Open a manual in a new tab or download a copy to the device.</p>
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400">3 current documents</span>
             </div>
@@ -139,8 +174,9 @@ export default function AdminManualsPage() {
             <div className="mt-5 grid gap-5 xl:grid-cols-3">
               {MANUALS.map(manual => {
                 const Icon = manual.icon;
+                const busy = generating === manual.id;
                 return (
-                  <Card key={manual.file} className="overflow-hidden border-slate-200 bg-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <Card key={manual.id} className="overflow-hidden border-slate-200 bg-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900">
                     <div className={`h-1.5 bg-gradient-to-r ${manual.accent}`} />
                     <CardContent className="flex h-full flex-col p-5">
                       <div className="flex items-start justify-between gap-4">
@@ -169,19 +205,15 @@ export default function AdminManualsPage() {
 
                       <div className="mt-auto pt-5">
                         <div className="mb-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                          <span>{manual.pages} pages</span>
-                          <span>{manual.size}</span>
+                          <span>{manual.pages}</span>
+                          <span>Generated on demand</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <Button asChild variant="outline" className="gap-2">
-                            <a href={manual.file} target="_blank" rel="noreferrer">
-                              <ExternalLink className="h-4 w-4" /> Open
-                            </a>
+                          <Button type="button" variant="outline" className="gap-2" disabled={busy} onClick={() => void createManual(manual.id, 'open')}>
+                            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />} Open
                           </Button>
-                          <Button asChild className="gap-2">
-                            <a href={manual.file} download>
-                              <Download className="h-4 w-4" /> Download
-                            </a>
+                          <Button type="button" className="gap-2" disabled={busy} onClick={() => void createManual(manual.id, 'download')}>
+                            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Download
                           </Button>
                         </div>
                       </div>
@@ -209,11 +241,7 @@ export default function AdminManualsPage() {
                   {QUICK_LINKS.map(item => {
                     const Icon = item.icon;
                     return (
-                      <Link
-                        key={item.href}
-                        to={item.href}
-                        className="group flex items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/30"
-                      >
+                      <Link key={item.href} to={item.href} className="group flex items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/30">
                         <Icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" />
                         <span>
                           <span className="block text-sm font-semibold text-slate-900 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-200">{item.label}</span>
