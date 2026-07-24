@@ -10,6 +10,7 @@ import CookieBannerErrorBoundary from '@/components/CookieBannerErrorBoundary';
 import RouteErrorPage from '@/components/RouteErrorPage';
 import AccessibilityRuntime from '@/components/AccessibilityRuntime';
 import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
+import AdminSupportLauncher from '@/components/AdminSupportLauncher';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
 import { routes, adminRoutes, resellerRoutes } from './routes';
@@ -26,6 +27,7 @@ import './styles/accessibility-global.css';
 const StandardBusinessHomePage = lazy(() => import('./pages/home'));
 const StandardBusinessPlansPage = lazy(() => import('./pages/plans'));
 const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
+const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
 
 const CookieBanner = lazy(() =>
   import('@/components/CookieBanner').catch((error) => {
@@ -66,12 +68,23 @@ const withErrorPage = (route: RouteObject): RouteObject => ({
   errorElement: route.errorElement ?? errorElement,
 });
 
+const adminManualsRoute: RouteObject = {
+  path: '/admin/manuals',
+  element: (
+    <Suspense fallback={<SpinnerFallback />}>
+      <AdminManualsPage />
+    </Suspense>
+  ),
+  errorElement,
+};
+
 const routeTree: RouteObject[] = [
   {
     element: rootElement,
     errorElement,
     children: customerRoutes,
   },
+  adminManualsRoute,
   ...adminRoutes.map(withErrorPage),
   ...resellerRoutes.map(withErrorPage),
 ];
@@ -92,6 +105,7 @@ export default function App() {
                       <AccessibilityRuntime />
                       <RouterProvider router={router} />
                       <AdminKeyboardShortcuts />
+                      <AdminSupportLauncher />
                       <CookieBannerErrorBoundary>
                         <Suspense fallback={null}>
                           <CookieBanner />

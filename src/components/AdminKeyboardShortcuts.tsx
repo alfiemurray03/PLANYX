@@ -20,6 +20,7 @@ const ADMIN_SHORTCUTS: AdminShortcut[] = [
   { key: 'a', label: 'AI Chatbot Control', description: 'Chatbot and Contact Us settings', href: '/admin/ai-chatbot', section: 'systemsettings' },
   { key: 's', label: 'Site Status & Settings', description: 'Website status and platform settings', href: '/admin/site-settings', section: 'systemsettings' },
   { key: 'h', label: 'Production Health', description: 'Live platform health checks', href: '/admin/health', section: 'health' },
+  { key: 'm', label: 'Admin Support & Manuals', description: 'PDF manuals and administrator guidance', href: '/admin/manuals', section: 'support' },
 ];
 
 function isEditableTarget(target: EventTarget | null) {
