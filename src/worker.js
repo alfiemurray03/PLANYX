@@ -1,6 +1,6 @@
 import { EmailMessage } from 'cloudflare:email';
 
-const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
+const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
 const MAX_FIELD_LENGTHS = { name: 120, email: 254, subject: 200, message: 10000, category: 60, priority: 30 };
 
 function json(body, status = 200) {
@@ -92,7 +92,42 @@ function teamsPayload(ticket, enquiry) {
   };
 }
 
+async function loadContactAvailability(env) {
+  if (!env.DB) return { status: 'online', enabled: true, message: '' };
+  try {
+    const result = await env.DB.prepare(`
+      SELECT key, value FROM site_settings
+      WHERE key IN ('contact_page_status', 'contact_page_enabled', 'contact_maintenance_message', 'contact_offline_message')
+    `).all();
+    const settings = Object.fromEntries((result.results || []).map(row => [row.key, row.value]));
+    const status = ['online', 'maintenance', 'offline'].includes(settings.contact_page_status)
+      ? settings.contact_page_status
+      : 'online';
+    return {
+      status,
+      enabled: settings.contact_page_enabled !== 'false',
+      message: status === 'maintenance'
+        ? clean(settings.contact_maintenance_message || 'Contact support is temporarily unavailable while maintenance is completed.', 800)
+        : clean(settings.contact_offline_message || 'The Contact Us page is currently offline.', 800),
+    };
+  } catch (error) {
+    console.error('Contact availability lookup failed', { error: String(error) });
+    return { status: 'online', enabled: true, message: '' };
+  }
+}
+
 async function submitSupport(request, env) {
+  const availability = await loadContactAvailability(env);
+  if (availability.status === 'maintenance') {
+    return json({ success: false, maintenance: true, error: availability.message }, 503);
+  }
+  if (availability.status === 'offline') {
+    return json({ success: false, offline: true, error: availability.message }, 503);
+  }
+  if (!availability.enabled) {
+    return json({ success: false, error: 'Online Contact Us enquiries are currently disabled.' }, 503);
+  }
+
   let body;
   try {
     body = await request.json();

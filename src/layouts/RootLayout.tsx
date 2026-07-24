@@ -6,6 +6,7 @@ import Footer from '@/layouts/parts/Footer';
 import Header from '@/layouts/parts/Header';
 import Website from '@/layouts/Website';
 import MaintenanceGate from '@/components/MaintenanceGate';
+import ContactStatusGate from '@/components/ContactStatusGate';
 import AccessibilityBubble from '@/components/AccessibilityBubble';
 import InstallAppModal from '@/components/InstallAppModal';
 import { useFeatureConfig } from '@/lib/feature-config-context';
@@ -27,6 +28,10 @@ const STANDALONE_PATHS = [
 
 function isStandalone(pathname: string) {
   return STANDALONE_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
+}
+
+function isContactPage(pathname: string) {
+  return pathname === '/contact' || pathname === '/contact/';
 }
 
 interface RootLayoutProps {
@@ -53,6 +58,7 @@ function A11yBubbleWrapper({ hasSupportBubble }: { hasSupportBubble?: boolean })
 export default function RootLayout({ children }: RootLayoutProps) {
   const location = useLocation();
   const standalone = isStandalone(location.pathname);
+  const contactPage = isContactPage(location.pathname);
 
   if (standalone) {
     return (
@@ -88,7 +94,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <Header />
       <MaintenanceGate>
         <main id="main-content">
-          {children}
+          {contactPage ? <ContactStatusGate>{children}</ContactStatusGate> : children}
         </main>
       </MaintenanceGate>
       <Footer />

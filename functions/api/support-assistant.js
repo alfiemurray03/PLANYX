@@ -43,6 +43,12 @@ function acknowledgementOnly(message) {
   return /^(?:ok(?:ay)?|yes|no|sure|continue|go ahead|thanks?|thank you|hi|hello|hey|help)[.! ]*$/i.test(message);
 }
 
+function contactStatusFrom(settings) {
+  return ["online", "maintenance", "offline"].includes(settings.contact_page_status)
+    ? settings.contact_page_status
+    : "online";
+}
+
 export async function onRequest(context) {
   const { env } = context;
   let request = withIdentity(context.request, null);
@@ -112,7 +118,14 @@ export async function onRequest(context) {
         contactResponseData: config.contactResponseData,
         contactResponseNote: config.contactResponseNote,
         contactEmailEnabled: config.contactEmailEnabled,
-        contactTelephoneEnabled: config.contactTelephoneEnabled
+        contactTelephoneEnabled: config.contactTelephoneEnabled,
+        contactPageStatus: contactStatusFrom(settings),
+        contactMaintenanceTitle: clean(settings.contact_maintenance_title || "Contact support is temporarily unavailable", 160),
+        contactMaintenanceReason: clean(settings.contact_maintenance_reason || "Contact service maintenance", 160),
+        contactMaintenanceMessage: clean(settings.contact_maintenance_message || "We are carrying out essential work on the Planyx contact service. Please check back shortly.", 800),
+        contactMaintenanceStart: clean(settings.contact_maintenance_start, 40),
+        contactMaintenanceExpectedReturn: clean(settings.contact_maintenance_expected_return, 40),
+        contactOfflineMessage: clean(settings.contact_offline_message || "The Contact Us page is currently offline.", 800)
       },
       categories: Array.from(new Set(articles.map((article) => article.category))).filter(Boolean),
       articleCount: articles.length,
