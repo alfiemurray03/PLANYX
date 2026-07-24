@@ -68,26 +68,30 @@ const withErrorPage = (route: RouteObject): RouteObject => ({
   errorElement: route.errorElement ?? errorElement,
 });
 
+const adminManualsRoute: RouteObject = {
+  path: '/admin/manuals',
+  element: (
+    <Suspense fallback={<SpinnerFallback />}>
+      <AdminManualsPage />
+    </Suspense>
+  ),
+  errorElement,
+};
+
 const routeTree: RouteObject[] = [
   {
     element: rootElement,
     errorElement,
     children: customerRoutes,
   },
+  adminManualsRoute,
   ...adminRoutes.map(withErrorPage),
   ...resellerRoutes.map(withErrorPage),
 ];
 
 const router = createBrowserRouter(routeTree);
 
-function isDirectAdminManualsPage() {
-  if (typeof window === 'undefined') return false;
-  return window.location.pathname.replace(/\/+$/, '') === '/admin/manuals';
-}
-
 export default function App() {
-  const directAdminManuals = isDirectAdminManualsPage();
-
   return (
     <SiteSettingsProvider>
       <ThemeProvider>
@@ -99,9 +103,7 @@ export default function App() {
                   <ResellerAuthProvider>
                     <>
                       <AccessibilityRuntime />
-                      <Suspense fallback={<SpinnerFallback />}>
-                        {directAdminManuals ? <AdminManualsPage /> : <RouterProvider router={router} />}
-                      </Suspense>
+                      <RouterProvider router={router} />
                       <AdminKeyboardShortcuts />
                       <AdminSupportLauncher />
                       <CookieBannerErrorBoundary>
