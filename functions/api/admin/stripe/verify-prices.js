@@ -98,6 +98,36 @@ async function readSetting(DB, key) {
   }
 }
 
+async function readPlanRecord(DB, key) {
+  if (!DB) return null;
+  try {
+    return await DB.prepare(`
+      SELECT id, plan_name, price_pence, stripe_product_id, stripe_price_id
+      FROM service_plans
+      WHERE id = ?
+    `).bind(key).first();
+  } catch {
+    return null;
+  }
+}
+
+function uniqueNames(values) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+}
+
+async function hydrateExpectedPlan(env, plan) {
+  const record = await readPlanRecord(env.DB, plan.key);
+  const editedAmount = Number(record?.price_pence);
+  return {
+    ...plan,
+    label: String(record?.plan_name || plan.label).trim(),
+    amount: Number.isFinite(editedAmount) && editedAmount >= 0 ? editedAmount : plan.amount,
+    productId: String(record?.stripe_product_id || plan.productId).trim(),
+    productNames: uniqueNames([record?.plan_name, ...plan.productNames]),
+    databasePriceId: String(record?.stripe_price_id || "").trim()
+  };
+}
+
 function submittedPrice(body, plan) {
   const values = body.prices && typeof body.prices === "object" ? body.prices : body;
   return String(values?.[plan.configKey] ?? values?.[plan.key] ?? "").trim();
@@ -107,8 +137,10 @@ async function resolvePriceId(env, body, plan) {
   const submitted = submittedPrice(body, plan);
   if (submitted) return { id: submitted, source: "submitted" };
 
+  if (plan.databasePriceId) return { id: plan.databasePriceId, source: "plan database" };
+
   const saved = await readSetting(env.DB, plan.configKey);
-  if (saved) return { id: saved, source: "database" };
+  if (saved) return { id: saved, source: "legacy database override" };
 
   for (const envKey of plan.envKeys) {
     const configured = String(env[envKey] || "").trim();
@@ -169,12 +201,12 @@ export async function verifyConfiguredPrice(fetchImpl, secretKey, plan, id, sour
   const priceActive = payload.active !== false;
   const productActive = product ? product.active !== false : true;
   const currencyMatches = String(payload.currency || "").toLowerCase() === "gbp";
-  const amountMatches = Number(payload.unit_amount) === plan.amount;
+  const amountMatches = Number(payload.unit_amount) === Number(plan.amount);
   const intervalMatches = payload.recurring?.interval === "month" && Number(payload.recurring?.interval_count || 1) === 1;
 
   const failures = [];
   if (!productMatches) failures.push(`belongs to the wrong product (expected ${plan.label})`);
-  if (!amountMatches) failures.push(`has the wrong amount (expected £${(plan.amount / 100).toFixed(2)})`);
+  if (!amountMatches) failures.push(`has the wrong amount (expected £${(Number(plan.amount) / 100).toFixed(2)})`);
   if (!currencyMatches) failures.push("is not priced in GBP");
   if (!intervalMatches) failures.push("is not a monthly recurring price");
   if (!priceActive) failures.push("is inactive");
@@ -219,7 +251,7 @@ async function writeAudit(env, identity, results) {
         "stripe",
         "subscription_prices",
         "Verified all Planyx Stripe Price IDs.",
-        JSON.stringify({ valid: Object.values(results).filter((item) => item.valid).length, total: PLAN_PRICES.length })
+        JSON.stringify({ valid: Object.values(results).filter((item) => item.valid).length, total: Object.keys(results).length })
       )
       .run();
   } catch {
@@ -244,10 +276,12 @@ export async function onRequestPost(context) {
 
   request = withIdentity(request, identity);
   const body = await requestBody(request);
-  const secretKey = String(env.STRIPE_SECRET_KEY || "").trim();
+  const storedSecret = await readSetting(env.DB, "stripe_secret_key");
+  const secretKey = storedSecret || String(env.STRIPE_SECRET_KEY || "").trim();
   const results = {};
 
-  for (const plan of PLAN_PRICES) {
+  for (const basePlan of PLAN_PRICES) {
+    const plan = await hydrateExpectedPlan(env, basePlan);
     const { id, source } = await resolvePriceId(env, body, plan);
     results[plan.key] = await verifyConfiguredPrice(fetch, secretKey, plan, id, source);
   }
@@ -258,7 +292,7 @@ export async function onRequestPost(context) {
     prices: results,
     summary: {
       valid: Object.values(results).filter((item) => item.valid).length,
-      total: PLAN_PRICES.length,
+      total: Object.keys(results).length,
       allValid: Object.values(results).every((item) => item.valid)
     }
   });
