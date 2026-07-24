@@ -5,20 +5,24 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 
-test('Authority reporting searches and links real customer profiles', async () => {
-  const api = await read('functions/api/admin/authority-report-context.js');
+test('Authority reporting searches customers administrators and tracked identities by name or email', async () => {
+  const api = await read('functions/api/admin/authority-user-search.js');
   const panel = await read('src/components/admin/AuthorityReportLinkingPanel.tsx');
   assert.match(api, /SELECT \* FROM profiles/);
+  assert.match(api, /SELECT \* FROM admin_users/);
+  assert.match(api, /FROM auth_sessions/);
   assert.match(api, /display_name/);
   assert.match(api, /verified_name/);
-  assert.match(api, /lower\(COALESCE\(email,''\)\) LIKE/);
-  assert.match(panel, /Search and link a customer/);
-  assert.match(panel, /Customer name or email address/);
+  assert.match(api, /linked_user_name/);
+  assert.match(api, /recordType: "Administrator"/);
+  assert.match(panel, /Search and link a Planyx user/);
+  assert.match(panel, /Name, email address or organisation/);
+  assert.match(panel, /authority-user-search\?q=/);
   assert.match(panel, /Link selected details/);
 });
 
 test('Billing address prefers Stripe and safely falls back to the saved account address', async () => {
-  const api = await read('functions/api/admin/authority-report-context.js');
+  const api = await read('functions/api/admin/authority-user-search.js');
   assert.match(api, /stripeBillingAddress/);
   assert.match(api, /https:\/\/api\.stripe\.com\/v1\/customers/);
   assert.match(api, /Stripe billing address/);
@@ -37,25 +41,31 @@ test('Responsible force and nearest station use postcode coordinates and officia
   assert.match(api, /Dist.*postcode centroid|postcode centroid/i);
 });
 
-test('Multiple customer sessions are attached through a junction table and evidence holds', async () => {
+test('Multiple user sessions are attached through a junction table and evidence holds', async () => {
   const api = await read('functions/api/admin/authority-report-context.js');
-  const route = await read('src/pages/admin/authority-reporting-route.tsx');
+  const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
   assert.match(api, /CREATE TABLE IF NOT EXISTS authority_report_sessions/);
   assert.match(api, /UNIQUE\(report_id, session_id\)/);
   assert.match(api, /action === "sync_sessions"/);
   assert.match(api, /legal_hold=1/);
   assert.match(api, /Evidence hold applied by authority report/);
-  assert.match(route, /session_ids: context\.sessions\.map/);
-  assert.match(route, /Linked Planyx sessions:/);
-  assert.match(route, /investigation_context/);
+  assert.match(embedded, /session_ids: context\.sessions\.map/);
+  assert.match(embedded, /Linked Planyx sessions:/);
+  assert.match(embedded, /investigation_context/);
 });
 
-test('The linking drawer writes the user primary session and police assignment into the report', async () => {
+test('User linking is embedded inside section two rather than shown as a floating drawer', async () => {
   const route = await read('src/pages/admin/authority-reporting-route.tsx');
-  assert.match(route, /updateControlledInput\('user-email'/);
-  assert.match(route, /updateControlledInput\('user-name'/);
-  assert.match(route, /updateControlledInput\('session-reference'/);
-  assert.match(route, /linked_session_id: primary\?\.id/);
-  assert.match(route, /assigned_station: context\.assignedStation/);
-  assert.match(route, /Link user, sessions & police/);
+  const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
+  assert.match(route, /<EmbeddedAuthorityReportLinking\s*\/>/);
+  assert.match(embedded, /createPortal/);
+  assert.match(embedded, /getElementById\('user-email'\)\?\.closest\('section'\)/);
+  assert.match(embedded, /authority-linking-inline-root/);
+  assert.match(embedded, /setInput\('user-email'/);
+  assert.match(embedded, /setInput\('user-name'/);
+  assert.match(embedded, /setInput\('session-reference'/);
+  assert.match(embedded, /linked_session_id: primary\?\.id/);
+  assert.match(embedded, /assigned_station: context\.assignedStation/);
+  assert.doesNotMatch(route, /fixed bottom-24/);
+  assert.doesNotMatch(route, /Link user, sessions & police/);
 });
