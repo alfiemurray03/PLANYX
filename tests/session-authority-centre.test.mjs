@@ -51,6 +51,21 @@ test('Unified session tracking links verified identities and audits sign-in, act
   assert.match(customerContext, /recordCustomerSession\('logout'\)/);
 });
 
+test('Failed Microsoft sign-ins are stored without passwords, cookies or tokens', async () => {
+  const audit = await read('functions/_shared/auth-attempt-audit.js');
+  const adminCallback = await read('functions/admin/auth/callback.js');
+  const customerCallback = await read('functions/account/auth/callback.js');
+  assert.match(audit, /Sign-in failed/);
+  assert.match(audit, /Unidentified sign-in attempt/);
+  assert.match(audit, /Failure at \$\{stage\}/);
+  assert.match(audit, /requestId/);
+  assert.match(audit, /ipHash/);
+  assert.doesNotMatch(audit, /password/i);
+  assert.doesNotMatch(audit, /access_token/i);
+  assert.match(adminCallback, /recordAuthenticationFailure/);
+  assert.match(customerCallback, /recordAuthenticationFailure/);
+});
+
 test('Session Centre masks fingerprints, links profiles and preserves investigation evidence', async () => {
   const api = await read('functions/api/admin/session-centre.js');
   assert.match(api, /maskFingerprint/);
