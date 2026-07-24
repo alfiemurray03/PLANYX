@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+// This regression runs after the production build and confirms the PIN design
+// is inside the generated Vite CSS rather than a detached public stylesheet.
 const root = new URL('../', import.meta.url);
 
 async function read(relativePath) {
