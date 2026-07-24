@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import AdminLayout from '@/components/AdminLayout';
 import AdminBrandingPage from '@/pages/admin/branding';
 import AdminEnquiriesPage from '@/pages/admin/enquiries';
+import AdminPlansPage from '@/pages/admin/plans';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -106,12 +107,13 @@ export default function AdminOperationalSection() {
   const definition = DEFINITIONS[location.pathname] || DEFINITIONS['/admin/operations'];
   const isBranding = definition.section === 'branding';
   const isEnquiries = definition.section === 'enquiries';
+  const isPlans = definition.section === 'plans';
   const [data, setData] = useState<Record<string, unknown>>({});
-  const [loading, setLoading] = useState(!isBranding && !isEnquiries);
+  const [loading, setLoading] = useState(!isBranding && !isEnquiries && !isPlans);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (isBranding || isEnquiries) {
+    if (isBranding || isEnquiries || isPlans) {
       setLoading(false);
       setError('');
       setData({});
@@ -130,7 +132,7 @@ export default function AdminOperationalSection() {
     } finally {
       setLoading(false);
     }
-  }, [definition.section, isBranding, isEnquiries]);
+  }, [definition.section, isBranding, isEnquiries, isPlans]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -140,6 +142,7 @@ export default function AdminOperationalSection() {
 
   if (isBranding) return <AdminBrandingPage />;
   if (isEnquiries) return <AdminEnquiriesPage />;
+  if (isPlans) return <AdminPlansPage />;
 
   return (
     <AdminLayout title={definition.title} subtitle={definition.subtitle}>
