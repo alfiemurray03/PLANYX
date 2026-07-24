@@ -51,6 +51,17 @@ test('Unified session tracking links verified identities and audits sign-in, act
   assert.match(customerContext, /recordCustomerSession\('logout'\)/);
 });
 
+test('Successful Microsoft callbacks are audited before redirecting to the application', async () => {
+  const helper = await read('functions/_shared/completed-login-audit.js');
+  const adminCallback = await read('functions/admin/auth/callback.js');
+  const customerCallback = await read('functions/account/auth/callback.js');
+  assert.match(helper, /sessionCookieFromResponse/);
+  assert.match(helper, /getNativeSession/);
+  assert.match(helper, /recordSessionHeartbeat/);
+  assert.match(adminCallback, /await recordCompletedLogin\(context, response, "admin"\)/);
+  assert.match(customerCallback, /await recordCompletedLogin\(context, response, "customer"\)/);
+});
+
 test('Failed Microsoft sign-ins are stored without passwords, cookies or tokens', async () => {
   const audit = await read('functions/_shared/auth-attempt-audit.js');
   const adminCallback = await read('functions/admin/auth/callback.js');
