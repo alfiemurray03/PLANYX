@@ -64,7 +64,8 @@ jobs:
             tests/public-bundle-hygiene.test.mjs \
             tests/admin-pin-visual-style.test.mjs \
             tests/contact-page-status-enforcement.test.mjs \
-            tests/admin-keyboard-shortcuts.test.mjs 2>&1 | tee targeted-tests.log
+            tests/admin-keyboard-shortcuts.test.mjs \
+            tests/admin-support-manuals.test.mjs 2>&1 | tee targeted-tests.log
 
       - name: Run full repository test baseline
         id: fulltests
