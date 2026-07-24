@@ -80,7 +80,6 @@ jobs:
             'Business Plans',
             'accountType=',
             'Secure application recovery',
-            'analytics-compat-refresh',
           ];
 
           for (const marker of requiredMarkers) {
@@ -89,6 +88,15 @@ jobs:
             }
           }
           NODE
+
+          # Compatibility and visual assets are verified directly rather than
+          # allowing an old hashed Vite bundle to satisfy these checks.
+          test -f public/assets/analytics-XYhWdSNH.js
+          grep -F 'analytics-compat-refresh' public/assets/analytics-XYhWdSNH.js >/dev/null
+          test -f public/admin-pin.css
+          test -f public/admin-pin-shell.css
+          grep -F ':has(#admin-security-pin)' public/admin-pin.css >/dev/null
+          grep -F 'planyx-logo.svg' public/admin-pin-shell.css >/dev/null
 
           grep -F "planyx-shell-v7" public/sw.js >/dev/null
           grep -F "if (isAdminRoute(url.pathname)) return false;" public/sw.js >/dev/null
@@ -103,7 +111,7 @@ jobs:
           retention-days: 7
 
       - name: Commit refreshed public bundle
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         run: |
           set -euo pipefail
