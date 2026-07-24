@@ -25,6 +25,21 @@ test('Admin PIN gate styling is compiled through the main application entry', as
   assert.doesNotMatch(index, /admin-pin-shell\.css/);
 });
 
+test('generated production CSS contains the Admin PIN visual layer', async () => {
+  const manifest = JSON.parse(await read('public/.asset-manifest.json'));
+  const cssAssets = (manifest.currentAssets || []).filter(
+    asset => asset.startsWith('assets/') && asset.endsWith('.css'),
+  );
+
+  assert.ok(cssAssets.length > 0, 'The production manifest must contain a CSS bundle.');
+  const compiledCss = (await Promise.all(
+    cssAssets.map(asset => read(`public/${asset}`)),
+  )).join('\n');
+
+  assert.match(compiledCss, /#admin-theme-root:has\(#admin-security-pin\)/);
+  assert.match(compiledCss, /Administrator verification/);
+});
+
 test('Admin PIN restyle does not replace authentication or lockout handling', async () => {
   const layout = await read('src/components/AdminLayout.tsx');
 
