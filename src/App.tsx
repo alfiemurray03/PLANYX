@@ -9,6 +9,7 @@ import {
 import CookieBannerErrorBoundary from '@/components/CookieBannerErrorBoundary';
 import RouteErrorPage from '@/components/RouteErrorPage';
 import AccessibilityRuntime from '@/components/AccessibilityRuntime';
+import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
 import { routes, adminRoutes, resellerRoutes } from './routes';
@@ -90,6 +91,7 @@ export default function App() {
                     <>
                       <AccessibilityRuntime />
                       <RouterProvider router={router} />
+                      <AdminKeyboardShortcuts />
                       <CookieBannerErrorBoundary>
                         <Suspense fallback={null}>
                           <CookieBanner />
