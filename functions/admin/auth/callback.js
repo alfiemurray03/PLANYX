@@ -1,9 +1,12 @@
 import { completeLogin } from "../../_shared/oidc.js";
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
+import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 
 export async function onRequestGet(context) {
   try {
-    return await completeLogin(context, "admin");
+    const response = await completeLogin(context, "admin");
+    await recordCompletedLogin(context, response, "admin").catch(() => null);
+    return response;
   } catch (error) {
     console.error(JSON.stringify({ event: "admin_oidc_callback_failed", message: error instanceof Error ? error.message : "Unknown error" }));
     await recordAuthenticationFailure(context.env.DB, context.request, "admin", error).catch(() => null);
