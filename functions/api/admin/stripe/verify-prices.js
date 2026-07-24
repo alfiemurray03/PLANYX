@@ -1,46 +1,14 @@
 import { assertSameOrigin, getNativeSession, withIdentity } from "../../../_shared/oidc.js";
 
-const PLAN_PRICES = [
-  {
-    key: "personal",
-    configKey: "stripe_price_personal_override",
-    envKeys: ["STRIPE_PRICE_EXPLORE", "STRIPE_PRICE_PERSONAL"],
-    label: "Explore Plan",
-    amount: 599,
-    productId: "prod_UtkvP5dvxrwLNa",
-    productNames: ["Explore Plan", "Planyx – Explore", "Planyx - Explore"],
-    defaultPriceId: "price_1TtxPrDZzb3r6Q3cIViE64O4"
-  },
-  {
-    key: "standard",
-    configKey: "stripe_price_standard_override",
-    envKeys: ["STRIPE_PRICE_PLAN", "STRIPE_PRICE_STANDARD"],
-    label: "Plan Plan",
-    amount: 799,
-    productId: "prod_UtkvpswzvV53y7",
-    productNames: ["Plan Plan", "Planyx – Plan", "Planyx - Plan"],
-    defaultPriceId: "price_1TtxPyDZzb3r6Q3cg9hcgXeA"
-  },
-  {
-    key: "professional",
-    configKey: "stripe_price_professional_override",
-    envKeys: ["STRIPE_PRICE_COMPLETE", "STRIPE_PRICE_PROFESSIONAL"],
-    label: "Complete Plan",
-    amount: 1499,
-    productId: "prod_Utkv85XaRxReja",
-    productNames: ["Complete Plan", "Planyx – Complete", "Planyx - Complete"],
-    defaultPriceId: "price_1TtxQ5DZzb3r6Q3c0XxvHRDY"
-  },
-  {
-    key: "org_starter",
-    configKey: "stripe_price_org_starter_override",
-    envKeys: ["STRIPE_PRICE_TOGETHER", "STRIPE_PRICE_ORG_STARTER"],
-    label: "Together Plan",
-    amount: 3999,
-    productId: "prod_Utkwas33GBC6Yn",
-    productNames: ["Together Plan", "Planyx – Together", "Planyx - Together"],
-    defaultPriceId: "price_1TtxQDDZzb3r6Q3cI8rCEJwJ"
-  }
+const APPROVED_PLAN_PRICES = [
+  { key: "personal", configKey: "stripe_price_personal_override", envKeys: ["STRIPE_PRICE_EXPLORE", "STRIPE_PRICE_PERSONAL"], label: "Explore Plan", amount: 599, productId: "prod_UtkvP5dvxrwLNa", productNames: ["Explore Plan", "Planyx – Explore", "Planyx - Explore"], defaultPriceId: "price_1TtxPrDZzb3r6Q3cIViE64O4" },
+  { key: "standard", configKey: "stripe_price_standard_override", envKeys: ["STRIPE_PRICE_PLAN", "STRIPE_PRICE_STANDARD"], label: "Plan Plan", amount: 799, productId: "prod_UtkvpswzvV53y7", productNames: ["Plan Plan", "Planyx – Plan", "Planyx - Plan"], defaultPriceId: "price_1TtxPyDZzb3r6Q3cg9hcgXeA" },
+  { key: "professional", configKey: "stripe_price_professional_override", envKeys: ["STRIPE_PRICE_COMPLETE", "STRIPE_PRICE_PROFESSIONAL"], label: "Complete Plan", amount: 1499, productId: "prod_Utkv85XaRxReja", productNames: ["Complete Plan", "Planyx – Complete", "Planyx - Complete"], defaultPriceId: "price_1TtxQ5DZzb3r6Q3c0XxvHRDY" },
+  { key: "org_starter", configKey: "stripe_price_org_starter_override", envKeys: ["STRIPE_PRICE_TOGETHER", "STRIPE_PRICE_ORG_STARTER"], label: "Together Plan", amount: 3999, productId: "prod_Utkwas33GBC6Yn", productNames: ["Together Plan", "Planyx – Together", "Planyx - Together"], defaultPriceId: "price_1TtxQDDZzb3r6Q3cI8rCEJwJ" },
+  { key: "business_personal", configKey: "", envKeys: [], label: "Business Explore Plan", amount: 599, productId: "prod_Uwgus0xRHwgrlj", productNames: ["Explore Plan", "Planyx Business – Explore", "Planyx Business - Explore"], defaultPriceId: "price_1TwnWFDZzb3r6Q3c0SKHckVo" },
+  { key: "business_standard", configKey: "", envKeys: [], label: "Business Plan Plan", amount: 799, productId: "prod_UwgunfLOeoBA9V", productNames: ["Plan Plan", "Planyx Business – Plan", "Planyx Business - Plan"], defaultPriceId: "price_1TwnWVDZzb3r6Q3caG24V63l" },
+  { key: "business_professional", configKey: "", envKeys: [], label: "Business Complete Plan", amount: 1499, productId: "prod_UwgujYPsJYBj1F", productNames: ["Complete Plan", "Planyx Business – Complete", "Planyx Business - Complete"], defaultPriceId: "price_1TwnWjDZzb3r6Q3crQKwr2bw" },
+  { key: "business_org_starter", configKey: "", envKeys: [], label: "Business Together Plan", amount: 3999, productId: "prod_Uwgu4EVCfy4wKb", productNames: ["Together Plan", "Planyx Business – Together", "Planyx Business - Together"], defaultPriceId: "price_1TwnWxDZzb3r6Q3cxqCPgI3o" }
 ];
 
 function json(data, status = 200) {
@@ -55,10 +23,7 @@ function json(data, status = 200) {
 
 function configuredAdmins(env) {
   const raw = env.ADMIN_EMAILS || env.ADMIN_EMAIL || "alfieholywoodmurray@jagroupservices.co.uk";
-  return String(raw)
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+  return String(raw).split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
 }
 
 async function isAuthorisedAdmin(env, identity) {
@@ -66,12 +31,8 @@ async function isAuthorisedAdmin(env, identity) {
   if (!email) return false;
   if (configuredAdmins(env).includes(email)) return true;
   if (!env.DB) return false;
-
   try {
-    const admin = await env.DB
-      .prepare("SELECT status FROM admin_users WHERE lower(email)=lower(?)")
-      .bind(email)
-      .first();
+    const admin = await env.DB.prepare("SELECT status FROM admin_users WHERE lower(email)=lower(?)").bind(email).first();
     const status = String(admin?.status || "active").trim().toLowerCase();
     return Boolean(admin) && !["blocked", "closed", "disabled", "inactive", "suspended"].includes(status);
   } catch {
@@ -89,7 +50,7 @@ async function requestBody(request) {
 }
 
 async function readSetting(DB, key) {
-  if (!DB) return "";
+  if (!DB || !key) return "";
   try {
     const row = await DB.prepare("SELECT value FROM site_settings WHERE key=?").bind(key).first();
     return String(row?.value || "").trim();
@@ -98,34 +59,35 @@ async function readSetting(DB, key) {
   }
 }
 
-async function readPlanRecord(DB, key) {
-  if (!DB) return null;
-  try {
-    return await DB.prepare(`
-      SELECT id, plan_name, price_pence, stripe_product_id, stripe_price_id
-      FROM service_plans
-      WHERE id = ?
-    `).bind(key).first();
-  } catch {
-    return null;
-  }
-}
-
 function uniqueNames(values) {
   return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
-async function hydrateExpectedPlan(env, plan) {
-  const record = await readPlanRecord(env.DB, plan.key);
-  const editedAmount = Number(record?.price_pence);
-  return {
-    ...plan,
-    label: String(record?.plan_name || plan.label).trim(),
-    amount: Number.isFinite(editedAmount) && editedAmount >= 0 ? editedAmount : plan.amount,
-    productId: String(record?.stripe_product_id || plan.productId).trim(),
-    productNames: uniqueNames([record?.plan_name, ...plan.productNames]),
-    databasePriceId: String(record?.stripe_price_id || "").trim()
-  };
+async function loadExpectedPlans(DB) {
+  let rows = [];
+  try {
+    const result = await DB.prepare(`
+      SELECT id, plan_name, price_pence, stripe_product_id, stripe_price_id
+      FROM service_plans
+      ORDER BY sort_order ASC, plan_name ASC
+    `).all();
+    rows = result.results || [];
+  } catch {
+    rows = [];
+  }
+
+  return APPROVED_PLAN_PRICES.map((approved) => {
+    const record = rows.find((row) => row.id === approved.key);
+    const editedAmount = Number(record?.price_pence);
+    return {
+      ...approved,
+      label: String(record?.plan_name || approved.label).trim(),
+      amount: Number.isFinite(editedAmount) && editedAmount >= 0 ? editedAmount : approved.amount,
+      productId: String(record?.stripe_product_id || approved.productId).trim(),
+      productNames: uniqueNames([record?.plan_name, ...approved.productNames]),
+      databasePriceId: String(record?.stripe_price_id || "").trim()
+    };
+  });
 }
 
 function submittedPrice(body, plan) {
@@ -137,12 +99,12 @@ async function resolvePriceId(env, body, plan) {
   const submitted = submittedPrice(body, plan);
   if (submitted) return { id: submitted, source: "submitted" };
 
-  if (plan.databasePriceId) return { id: plan.databasePriceId, source: "plan database" };
+  if (plan.databasePriceId) return { id: plan.databasePriceId, source: "database" };
 
   const saved = await readSetting(env.DB, plan.configKey);
-  if (saved) return { id: saved, source: "legacy database override" };
+  if (saved) return { id: saved, source: "database" };
 
-  for (const envKey of plan.envKeys) {
+  for (const envKey of plan.envKeys || []) {
     const configured = String(env[envKey] || "").trim();
     if (configured) return { id: configured, source: "secret" };
   }
@@ -151,15 +113,7 @@ async function resolvePriceId(env, body, plan) {
 }
 
 function invalidResult(plan, id, source, error, extra = {}) {
-  return {
-    set: Boolean(id),
-    valid: false,
-    label: plan.label,
-    id: id || undefined,
-    source,
-    error,
-    ...extra
-  };
+  return { set: Boolean(id), valid: false, label: plan.label, id: id || undefined, source, error, ...extra };
 }
 
 function normaliseName(value) {
@@ -168,12 +122,8 @@ function normaliseName(value) {
 
 export async function verifyConfiguredPrice(fetchImpl, secretKey, plan, id, source) {
   if (!id) return invalidResult(plan, "", source, "No Price ID is configured.");
-  if (!/^price_[A-Za-z0-9]+$/.test(id)) {
-    return invalidResult(plan, id, source, "This is not a valid Stripe Price ID format.");
-  }
-  if (!secretKey) {
-    return invalidResult(plan, id, source, "The Stripe secret key is not configured.");
-  }
+  if (!/^price_[A-Za-z0-9]+$/.test(id)) return invalidResult(plan, id, source, "This is not a valid Stripe Price ID format.");
+  if (!secretKey) return invalidResult(plan, id, source, "The Stripe secret key is not configured.");
 
   let response;
   let payload;
@@ -188,15 +138,12 @@ export async function verifyConfiguredPrice(fetchImpl, secretKey, plan, id, sour
     return invalidResult(plan, id, source, "Stripe could not be reached. Please try again.");
   }
 
-  if (!response.ok || payload?.error) {
-    const message = String(payload?.error?.message || "Stripe could not find this Price ID.");
-    return invalidResult(plan, id, source, message);
-  }
+  if (!response.ok || payload?.error) return invalidResult(plan, id, source, String(payload?.error?.message || "Stripe could not find this Price ID."));
 
   const product = payload && typeof payload.product === "object" ? payload.product : null;
   const productId = product?.id || (typeof payload.product === "string" ? payload.product : "");
   const productName = String(product?.name || "").trim();
-  const acceptedNames = new Set(plan.productNames.map(normaliseName));
+  const acceptedNames = new Set((plan.productNames || []).map(normaliseName));
   const productMatches = productId === plan.productId || acceptedNames.has(normaliseName(productName));
   const priceActive = payload.active !== false;
   const productActive = product ? product.active !== false : true;
@@ -226,14 +173,7 @@ export async function verifyConfiguredPrice(fetchImpl, secretKey, plan, id, sour
     interval: payload.recurring?.interval || "one_time",
     active: priceActive && productActive,
     matchesExpectedId: id === plan.defaultPriceId,
-    checks: {
-      productMatches,
-      amountMatches,
-      currencyMatches,
-      intervalMatches,
-      priceActive,
-      productActive
-    },
+    checks: { productMatches, amountMatches, currencyMatches, intervalMatches, priceActive, productActive },
     error: valid ? undefined : `Price ID ${failures.join(", ")}.`
   };
 }
@@ -245,15 +185,10 @@ async function writeAudit(env, identity, results) {
       (id, actor_email, action, entity_type, entity_id, summary, metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?)`)
       .bind(
-        crypto.randomUUID(),
-        identity.email,
-        "stripe.verify_prices",
-        "stripe",
-        "subscription_prices",
-        "Verified all Planyx Stripe Price IDs.",
+        crypto.randomUUID(), identity.email, "stripe.verify_prices", "stripe", "subscription_prices",
+        "Verified all Planyx Standard and Business Stripe Price IDs.",
         JSON.stringify({ valid: Object.values(results).filter((item) => item.valid).length, total: Object.keys(results).length })
-      )
-      .run();
+      ).run();
   } catch {
     // Verification must still complete if audit storage is unavailable.
   }
@@ -263,7 +198,6 @@ export async function onRequestPost(context) {
   const { env } = context;
   let request = withIdentity(context.request, null);
   let identity;
-
   try {
     identity = await getNativeSession(request, env, "admin");
   } catch {
@@ -278,10 +212,10 @@ export async function onRequestPost(context) {
   const body = await requestBody(request);
   const storedSecret = await readSetting(env.DB, "stripe_secret_key");
   const secretKey = storedSecret || String(env.STRIPE_SECRET_KEY || "").trim();
+  const expectedPlans = await loadExpectedPlans(env.DB);
   const results = {};
 
-  for (const basePlan of PLAN_PRICES) {
-    const plan = await hydrateExpectedPlan(env, basePlan);
+  for (const plan of expectedPlans) {
     const { id, source } = await resolvePriceId(env, body, plan);
     results[plan.key] = await verifyConfiguredPrice(fetch, secretKey, plan, id, source);
   }
@@ -299,8 +233,6 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequest(context) {
-  if (context.request.method !== "POST") {
-    return json({ success: false, error: "Method not allowed." }, 405);
-  }
+  if (context.request.method !== "POST") return json({ success: false, error: "Method not allowed." }, 405);
   return onRequestPost(context);
 }
