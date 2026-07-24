@@ -2,7 +2,8 @@
    Authentication, lockout and PIN handling remain in AdminLayout.tsx. */
 
 body:has(#admin-security-pin) {
-  background: #f6f8fc;
+  min-height: 100vh;
+  background: #f4f7fb;
 }
 
 #admin-theme-root:has(#admin-security-pin) {
@@ -12,9 +13,9 @@ body:has(#admin-security-pin) {
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.13), transparent 31%),
-    radial-gradient(circle at 88% 80%, rgba(6, 182, 212, 0.10), transparent 28%),
-    #f6f8fc;
+    radial-gradient(circle at 14% 20%, rgba(37, 99, 235, 0.14), transparent 30%),
+    radial-gradient(circle at 86% 78%, rgba(6, 182, 212, 0.11), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
   color: #0f172a;
 }
 
@@ -38,8 +39,9 @@ body:has(#admin-security-pin) {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 24px;
   border-top: 1px solid #dbe3ef;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.9);
   color: #64748b;
   font-size: 11px;
   font-weight: 600;
@@ -55,84 +57,51 @@ body:has(#admin-security-pin) {
   min-height: 0 !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 34px 24px !important;
+  padding: 36px 20px !important;
   background: transparent !important;
 }
 
 #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div {
   position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
-  width: min(1040px, 100%);
-  min-height: 570px;
+  width: min(100%, 470px) !important;
+  max-width: 470px !important;
+  margin: 0 !important;
+  padding: 34px 36px 30px !important;
   overflow: hidden;
-  padding: 0 !important;
-  border: 1px solid #dbe3ef;
-  border-radius: 28px;
-  background: #ffffff;
+  border: 1px solid #dbe3ef !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   box-shadow:
-    0 32px 90px rgba(37, 99, 235, 0.14),
-    0 12px 34px rgba(15, 23, 42, 0.10);
+    0 28px 80px rgba(37, 99, 235, 0.13),
+    0 12px 32px rgba(15, 23, 42, 0.09) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div::before {
-  content: "SECURE STAFF ACCESS\A\AAdministrator verification\A\AYour Microsoft sign-in has been accepted. Enter your personal four-digit PIN to unlock the Planyx Admin Centre.\A\A✓ Personal administrator PIN\A✓ Audited privileged access\A✓ Automatic lockout protection";
-  grid-column: 1;
-  grid-row: 1 / span 20;
-  min-height: 570px;
-  padding: 76px 58px 58px;
-  box-sizing: border-box;
-  white-space: pre-line;
-  background:
-    linear-gradient(180deg, rgba(11, 23, 45, 0.05), rgba(11, 23, 45, 0.28)),
-    radial-gradient(circle at 82% 18%, rgba(34, 211, 238, 0.34), transparent 28%),
-    radial-gradient(circle at 12% 84%, rgba(139, 92, 246, 0.30), transparent 32%),
-    linear-gradient(145deg, #123f9c 0%, #2463eb 49%, #0f7691 100%);
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.9;
-}
-
-#admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div::after {
-  content: "Build experiences. Create memories.";
+  content: "";
   position: absolute;
-  left: 58px;
-  bottom: 46px;
-  z-index: 2;
-  width: calc(52% - 116px);
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.24);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-#admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > * {
-  grid-column: 2;
-  margin-left: 48px !important;
-  margin-right: 48px !important;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, #2563eb 0%, #06b6d4 55%, #8b5cf6 100%);
 }
 
 #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > div:first-child {
-  width: 48px !important;
-  height: 48px !important;
-  margin-top: 58px !important;
-  margin-bottom: 20px !important;
+  width: 52px !important;
+  height: 52px !important;
+  margin: 0 0 22px !important;
   border: 1px solid #bfdbfe !important;
-  border-radius: 15px !important;
-  background: #eff6ff !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, #eff6ff 0%, #e0f2fe 100%) !important;
   color: #1d4ed8 !important;
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
 }
 
 #admin-theme-root:has(#admin-security-pin) h1 {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin: 0 !important;
   color: #0f172a !important;
   font-size: 26px !important;
-  font-weight: 700 !important;
+  font-weight: 750 !important;
   line-height: 1.2 !important;
   letter-spacing: -0.035em !important;
 }
@@ -145,16 +114,18 @@ body:has(#admin-security-pin) {
 }
 
 #admin-theme-root:has(#admin-security-pin) label {
-  margin-top: 20px !important;
+  margin-top: 22px !important;
   color: #334155 !important;
   font-size: 12px !important;
   font-weight: 700 !important;
+  letter-spacing: 0.01em;
 }
 
 #admin-security-pin,
 #admin-security-pin-confirm {
   height: 54px !important;
   margin-top: 7px !important;
+  padding-inline: 18px !important;
   border: 1px solid #cbd5e1 !important;
   border-radius: 14px !important;
   background: #f8fafc !important;
@@ -163,6 +134,7 @@ body:has(#admin-security-pin) {
   font-weight: 700 !important;
   letter-spacing: 0.62em !important;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 #admin-security-pin:focus,
@@ -172,13 +144,28 @@ body:has(#admin-security-pin) {
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13) !important;
 }
 
+#admin-security-pin:disabled,
+#admin-security-pin-confirm:disabled {
+  cursor: not-allowed;
+  background: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
 #admin-theme-root:has(#admin-security-pin) p[role="alert"] {
-  padding: 10px 12px;
+  margin-top: 14px !important;
+  padding: 11px 13px;
   border: 1px solid #fecaca;
-  border-radius: 11px;
+  border-radius: 12px;
   background: #fef2f2;
   color: #b91c1c !important;
   font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+
+#admin-theme-root:has(#admin-security-pin) p[role="alert"] + p[role="alert"] {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207 !important;
 }
 
 #admin-theme-root:has(#admin-security-pin) button:first-of-type {
@@ -191,6 +178,12 @@ body:has(#admin-security-pin) {
   font-size: 14px !important;
   font-weight: 700 !important;
   box-shadow: 0 12px 28px rgba(37, 99, 235, 0.24) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease !important;
+}
+
+#admin-theme-root:has(#admin-security-pin) button:first-of-type:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.3) !important;
 }
 
 #admin-theme-root:has(#admin-security-pin) button:first-of-type:disabled {
@@ -206,9 +199,14 @@ body:has(#admin-security-pin) {
   text-decoration: none !important;
 }
 
+#admin-theme-root:has(#admin-security-pin) button:nth-of-type(2):hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
 #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > p:last-child {
   margin-top: 22px !important;
-  margin-bottom: 42px !important;
+  margin-bottom: 0 !important;
   padding-top: 18px;
   border-top: 1px solid #e2e8f0;
   color: #64748b !important;
@@ -218,8 +216,8 @@ body:has(#admin-security-pin) {
 
 .dark #admin-theme-root:has(#admin-security-pin) {
   background:
-    radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.20), transparent 31%),
-    radial-gradient(circle at 88% 80%, rgba(6, 182, 212, 0.13), transparent 28%),
+    radial-gradient(circle at 14% 20%, rgba(59, 130, 246, 0.2), transparent 30%),
+    radial-gradient(circle at 86% 78%, rgba(6, 182, 212, 0.13), transparent 28%),
     #0b1120;
 }
 
@@ -231,9 +229,9 @@ body:has(#admin-security-pin) {
 }
 
 .dark #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div {
-  border-color: #263449;
-  background: #101827;
-  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.42);
+  border-color: #263449 !important;
+  background: rgba(16, 24, 39, 0.98) !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42) !important;
 }
 
 .dark #admin-theme-root:has(#admin-security-pin) h1 {
@@ -254,7 +252,11 @@ body:has(#admin-security-pin) {
   color: #f8fafc !important;
 }
 
-@media (max-width: 800px) {
+.dark #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > p:last-child {
+  border-color: #263449;
+}
+
+@media (max-width: 640px) {
   #admin-theme-root:has(#admin-security-pin) {
     grid-template-rows: 68px minmax(0, 1fr) auto;
     overflow: auto;
@@ -267,34 +269,19 @@ body:has(#admin-security-pin) {
 
   #admin-theme-root:has(#admin-security-pin)::after {
     min-height: 48px;
-    padding: 12px 20px;
+    padding: 12px 18px;
   }
 
   #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) {
-    padding: 24px 16px !important;
+    padding: 24px 14px !important;
   }
 
   #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div {
-    display: block;
-    min-height: 0;
-    border-radius: 22px;
+    padding: 30px 24px 26px !important;
+    border-radius: 20px !important;
   }
 
-  #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div::before,
-  #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div::after {
-    display: none;
-  }
-
-  #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > * {
-    margin-left: 28px !important;
-    margin-right: 28px !important;
-  }
-
-  #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > div:first-child {
-    margin-top: 30px !important;
-  }
-
-  #admin-theme-root:has(#admin-security-pin) > div:has(#admin-security-pin) > div > p:last-child {
-    margin-bottom: 30px !important;
+  #admin-theme-root:has(#admin-security-pin) h1 {
+    font-size: 23px !important;
   }
 }
