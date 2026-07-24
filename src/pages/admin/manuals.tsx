@@ -124,38 +124,43 @@ export default function AdminManualsPage() {
 
       <AdminLayout title="Admin Support & Manuals" subtitle="Administrator guidance, PDF manuals and support routes">
         <div className="space-y-8">
-          <section className="relative overflow-hidden rounded-3xl border border-blue-200 bg-slate-950 px-6 py-8 text-white shadow-2xl dark:border-blue-500/30 sm:px-8 sm:py-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgb(37_99_235/0.35),transparent_34%),radial-gradient(circle_at_88%_78%,rgb(124_58_237/0.28),transparent_32%)]" />
+          <section
+            data-admin-manuals-hero
+            className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-br from-white via-blue-50/70 to-violet-50/60 px-6 py-8 text-slate-950 shadow-xl dark:border-blue-500/30 dark:from-slate-950 dark:via-slate-950 dark:to-violet-950/50 dark:text-white dark:shadow-2xl sm:px-8 sm:py-10"
+          >
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-violet-600" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgb(37_99_235/0.14),transparent_36%),radial-gradient(circle_at_88%_78%,rgb(124_58_237/0.10),transparent_34%)] dark:hidden" />
+            <div className="absolute inset-0 hidden bg-[radial-gradient(circle_at_15%_15%,rgb(37_99_235/0.35),transparent_34%),radial-gradient(circle_at_88%_78%,rgb(124_58_237/0.28),transparent_32%)] dark:block" />
             <div className="relative grid gap-7 lg:grid-cols-[1.35fr_0.65fr] lg:items-center">
               <div>
-                <div className="flex items-center gap-2 text-blue-200">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-200">
                   <LifeBuoy className="h-5 w-5" />
                   <span className="text-xs font-bold uppercase tracking-[0.16em]">Administrator support</span>
                 </div>
-                <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">Support guidance for operating Planyx safely</h1>
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+                <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">Support guidance for operating Planyx safely</h1>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
                   Open or download the current manuals for the Admin Centre, Customer Portal and public website. Each document is generated as a proper multi-page PDF from the production Admin Centre.
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold text-slate-200">
-                  <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Version 1.0</span>
-                  <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Updated July 2026</span>
-                  <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5">Generated PDF</span>
+                <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="rounded-full border border-blue-200 bg-white/80 px-3 py-1.5 shadow-sm dark:border-white/15 dark:bg-white/5 dark:shadow-none">Version 1.0</span>
+                  <span className="rounded-full border border-blue-200 bg-white/80 px-3 py-1.5 shadow-sm dark:border-white/15 dark:bg-white/5 dark:shadow-none">Updated July 2026</span>
+                  <span className="rounded-full border border-blue-200 bg-white/80 px-3 py-1.5 shadow-sm dark:border-white/15 dark:bg-white/5 dark:shadow-none">Generated PDF</span>
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 text-slate-950 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-white dark:shadow-none">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/20 text-blue-200">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                     <Keyboard className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-bold">Keyboard access</p>
-                    <p className="text-sm text-slate-400">Open this page from anywhere in the unlocked Admin Centre.</p>
+                    <p className="font-bold text-slate-950 dark:text-white">Keyboard access</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Open this page from anywhere in the unlocked Admin Centre.</p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
-                  <kbd className="rounded-lg border border-white/15 bg-slate-900 px-3 py-2 font-mono text-sm font-bold">G</kbd>
-                  <span className="text-sm text-slate-500">then</span>
-                  <kbd className="rounded-lg border border-blue-400/40 bg-blue-500/15 px-3 py-2 font-mono text-sm font-bold text-blue-100">M</kbd>
+                  <kbd className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm font-bold text-slate-900 shadow-sm dark:border-white/15 dark:bg-slate-900 dark:text-white dark:shadow-none">G</kbd>
+                  <span className="text-sm text-slate-500 dark:text-slate-500">then</span>
+                  <kbd className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 font-mono text-sm font-bold text-blue-700 shadow-sm dark:border-blue-400/40 dark:bg-blue-500/15 dark:text-blue-100 dark:shadow-none">M</kbd>
                 </div>
               </div>
             </div>

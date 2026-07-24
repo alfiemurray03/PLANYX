@@ -28,6 +28,18 @@ test('Admin Support page contains three separate PDF manuals', async () => {
   assert.match(page, /Open or download the current manuals/);
 });
 
+test('Admin manuals hero follows the existing light and dark controls', async () => {
+  const page = await read('src/pages/admin/manuals.tsx');
+  assert.match(page, /data-admin-manuals-hero/);
+  assert.match(page, /from-white[\s\S]{0,180}dark:from-slate-950/);
+  assert.match(page, /text-slate-950 dark:text-white/);
+  assert.match(page, /text-slate-600 dark:text-slate-300/);
+  assert.match(page, /bg-white\/80[\s\S]{0,140}dark:bg-white\/5/);
+  assert.match(page, /dark:hidden/);
+  assert.match(page, /hidden[\s\S]{0,160}dark:block/);
+  assert.doesNotMatch(page, /data-admin-manuals-hero[\s\S]{0,220}bg-slate-950 px-6 py-8 text-white/);
+});
+
 test('PDF generator creates branded multi-page PDF documents', async () => {
   const generator = await read('src/lib/admin-manual-pdf.ts');
   assert.match(generator, /import \{ jsPDF \} from 'jspdf'/);
