@@ -4,6 +4,8 @@ import AdminLayout from '@/components/AdminLayout';
 import AdminBrandingPage from '@/pages/admin/branding';
 import AdminEnquiriesPage from '@/pages/admin/enquiries';
 import AdminPlansPage from '@/pages/admin/plans';
+import AdminSessionsPage from '@/pages/admin/sessions';
+import AdminAuthorityReportingPage from '@/pages/admin/authority-reporting';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,7 +20,7 @@ interface SectionDefinition {
 const DEFINITIONS: Record<string, SectionDefinition> = {
   '/admin/health': { section: 'health', title: 'Production Health', subtitle: 'Verified platform, database and integration signals.' },
   '/admin/operations': { section: 'operations', title: 'Operations', subtitle: 'Live customer and platform operations.' },
-  '/admin/reports': { section: 'reports', title: 'Reports', subtitle: 'Operational, customer and administration reporting.' },
+  '/admin/reports': { section: 'reports', title: 'Authority Reporting Centre', subtitle: 'Police, safeguarding, regulatory and local-authority reporting records.' },
   '/admin/status': { section: 'status', title: 'Status Centre', subtitle: 'Current public website and service availability.' },
   '/admin/notifications': { section: 'notifications', title: 'Notifications', subtitle: 'Customer and administration communications.' },
   '/admin/system-reports': { section: 'systemreports', title: 'System Reports', subtitle: 'Reported platform issues and their resolution status.' },
@@ -26,7 +28,7 @@ const DEFINITIONS: Record<string, SectionDefinition> = {
   '/admin/enquiries': { section: 'enquiries', title: 'Contact Enquiries', subtitle: 'Messages and enquiries received from customers.' },
   '/admin/admin-users': { section: 'admins', title: 'Admin Users', subtitle: 'Administrator accounts and access status.' },
   '/admin/roles': { section: 'roles', title: 'Roles', subtitle: 'Administration roles and assigned permissions.' },
-  '/admin/sessions': { section: 'sessions', title: 'Sessions', subtitle: 'Active and recent administrator sessions.' },
+  '/admin/sessions': { section: 'sessions', title: 'Session & Sign-in Centre', subtitle: 'Linked staff and customer access, security evidence and investigation records.' },
   '/admin/credits': { section: 'credits', title: 'Builder Usage Tokens', subtitle: 'Builder token balances, grants and usage.' },
   '/admin/usage': { section: 'usage', title: 'Customer Usage', subtitle: 'Builder activity and customer usage information.' },
   '/admin/addons': { section: 'addons', title: 'Paid Add-Ons', subtitle: 'Optional paid features and customer entitlements.' },
@@ -108,12 +110,15 @@ export default function AdminOperationalSection() {
   const isBranding = definition.section === 'branding';
   const isEnquiries = definition.section === 'enquiries';
   const isPlans = definition.section === 'plans';
+  const isSessions = definition.section === 'sessions';
+  const isAuthorityReporting = definition.section === 'reports';
+  const dedicatedPage = isBranding || isEnquiries || isPlans || isSessions || isAuthorityReporting;
   const [data, setData] = useState<Record<string, unknown>>({});
-  const [loading, setLoading] = useState(!isBranding && !isEnquiries && !isPlans);
+  const [loading, setLoading] = useState(!dedicatedPage);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (isBranding || isEnquiries || isPlans) {
+    if (dedicatedPage) {
       setLoading(false);
       setError('');
       setData({});
@@ -132,7 +137,7 @@ export default function AdminOperationalSection() {
     } finally {
       setLoading(false);
     }
-  }, [definition.section, isBranding, isEnquiries, isPlans]);
+  }, [definition.section, dedicatedPage]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -143,6 +148,8 @@ export default function AdminOperationalSection() {
   if (isBranding) return <AdminBrandingPage />;
   if (isEnquiries) return <AdminEnquiriesPage />;
   if (isPlans) return <AdminPlansPage />;
+  if (isSessions) return <AdminSessionsPage />;
+  if (isAuthorityReporting) return <AdminAuthorityReportingPage />;
 
   return (
     <AdminLayout title={definition.title} subtitle={definition.subtitle}>
