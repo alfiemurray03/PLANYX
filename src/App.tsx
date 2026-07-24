@@ -10,6 +10,7 @@ import CookieBannerErrorBoundary from '@/components/CookieBannerErrorBoundary';
 import RouteErrorPage from '@/components/RouteErrorPage';
 import AccessibilityRuntime from '@/components/AccessibilityRuntime';
 import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
+import AdminSupportLauncher from '@/components/AdminSupportLauncher';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
 import { routes, adminRoutes, resellerRoutes } from './routes';
@@ -26,6 +27,7 @@ import './styles/accessibility-global.css';
 const StandardBusinessHomePage = lazy(() => import('./pages/home'));
 const StandardBusinessPlansPage = lazy(() => import('./pages/plans'));
 const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
+const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
 
 const CookieBanner = lazy(() =>
   import('@/components/CookieBanner').catch((error) => {
@@ -78,7 +80,14 @@ const routeTree: RouteObject[] = [
 
 const router = createBrowserRouter(routeTree);
 
+function isDirectAdminManualsPage() {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.replace(/\/+$/, '') === '/admin/manuals';
+}
+
 export default function App() {
+  const directAdminManuals = isDirectAdminManualsPage();
+
   return (
     <SiteSettingsProvider>
       <ThemeProvider>
@@ -90,8 +99,11 @@ export default function App() {
                   <ResellerAuthProvider>
                     <>
                       <AccessibilityRuntime />
-                      <RouterProvider router={router} />
+                      <Suspense fallback={<SpinnerFallback />}>
+                        {directAdminManuals ? <AdminManualsPage /> : <RouterProvider router={router} />}
+                      </Suspense>
                       <AdminKeyboardShortcuts />
+                      <AdminSupportLauncher />
                       <CookieBannerErrorBoundary>
                         <Suspense fallback={null}>
                           <CookieBanner />
