@@ -13,12 +13,13 @@ import {
 } from '@/lib/service-plans';
 
 type Audience = 'individual' | 'organisation';
+type PublicPlanRecord = Partial<ServicePlan> & Pick<ServicePlan, 'id' | 'plan_name'>;
 
 type PublicPlansResponse = {
-  plans?: Array<Partial<ServicePlan> & Pick<ServicePlan, 'id' | 'plan_name'>>;
+  plans?: PublicPlanRecord[];
 };
 
-function hydratePlan(plan: PublicPlansResponse['plans'][number]): ServicePlan {
+function hydratePlan(plan: PublicPlanRecord): ServicePlan {
   const fallback = PLANYX_SUBSCRIPTIONS.find(item => item.id === plan.id)
     || PLANYX_SUBSCRIPTIONS.find(item => planBaseId(item.id) === planBaseId(plan.id));
   return {
@@ -96,7 +97,7 @@ function Family({ audience, compare, plans, loading }: { audience: Audience; com
 }
 
 export default function StandardBusinessPlans({ comparisons = true }: { comparisons?: boolean }) {
-  const [plans, setPlans] = useState<ServicePlan[]>(PLANYX_SUBSCRIPTIONS);
+  const [plans, setPlans] = useState<ServicePlan[]>(PLANYX_SUBSCRIPTIONS.map(plan => ({ ...plan, payment_available: false })));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -108,7 +109,9 @@ export default function StandardBusinessPlans({ comparisons = true }: { comparis
         return data.plans.map(hydratePlan);
       })
       .then(next => { if (active) setPlans(next); })
-      .catch(() => { if (active) setPlans(PLANYX_SUBSCRIPTIONS); })
+      .catch(() => {
+        if (active) setPlans(PLANYX_SUBSCRIPTIONS.map(plan => ({ ...plan, is_active: 0, payment_available: false })));
+      })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
