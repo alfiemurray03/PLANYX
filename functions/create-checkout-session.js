@@ -2,16 +2,21 @@ import { readFeatureFlag } from "./_shared/feature-flags.js";
 import { getNativeSession, loginRedirect } from "./_shared/oidc.js";
 
 const DEFAULT_PLANS = [
-  ["personal", "Explore Plan", "Monthly subscription", "£5.99", 599, "prod_UtkvP5dvxrwLNa", "price_1TtxPrDZzb3r6Q3cIViE64O4", "Essential planning builders", "Save and revisit your plans", "A simple starting point for exploring ideas and building clear, practical plans.", "Start 30-day free trial", 1, 0, 10],
-  ["standard", "Plan Plan", "Monthly subscription", "£7.99", 799, "prod_UtkvpswzvV53y7", "price_1TtxPyDZzb3r6Q3cg9hcgXeA", "More builders and planning tools", "Download your finished plans", "For regularly creating detailed destination, itinerary, experience and everyday plans.", "Start 30-day free trial", 1, 1, 20],
-  ["professional", "Complete Plan", "Monthly subscription", "£14.99", 1499, "prod_Utkv85XaRxReja", "price_1TtxQ5DZzb3r6Q3c0XxvHRDY", "Full planning-builder access", "Enhanced planning and outputs", "Complete access for building and managing more comprehensive personalised plans.", "Start 30-day free trial", 1, 0, 30],
-  ["org_starter", "Together Plan", "Monthly subscription", "£39.99", 3999, "prod_Utkwas33GBC6Yn", "price_1TtxQDDZzb3r6Q3cI8rCEJwJ", "Shared planning for groups", "All builders and collaborative tools", "Shared planning for households, families and groups who want to build plans together.", "Start 30-day free trial", 1, 0, 40]
+  ["personal", "Explore Plan", "Standard monthly subscription", "£5.99", 599, "prod_UtkvP5dvxrwLNa", "price_1TtxPrDZzb3r6Q3cIViE64O4", "Essential planning builders", "Save and revisit your plans", "A simple starting point for exploring ideas and building clear, practical plans.", "Start 30-day free trial", 1, 0, 10],
+  ["standard", "Plan Plan", "Standard monthly subscription", "£7.99", 799, "prod_UtkvpswzvV53y7", "price_1TtxPyDZzb3r6Q3cg9hcgXeA", "More builders and planning tools", "Download your finished plans", "For regularly creating detailed destination, itinerary, experience and everyday plans.", "Start 30-day free trial", 1, 1, 20],
+  ["professional", "Complete Plan", "Standard monthly subscription", "£14.99", 1499, "prod_Utkv85XaRxReja", "price_1TtxQ5DZzb3r6Q3c0XxvHRDY", "Full planning-builder access", "Enhanced planning and outputs", "Complete access for building and managing more comprehensive personalised plans.", "Start 30-day free trial", 1, 0, 30],
+  ["org_starter", "Together Plan", "Standard monthly subscription", "£39.99", 3999, "prod_Utkwas33GBC6Yn", "price_1TtxQDDZzb3r6Q3cI8rCEJwJ", "High-capacity personal planning", "All builders and unlimited use", "High-capacity private planning for households and individuals who do not need an organisation workspace.", "Start 30-day free trial", 1, 0, 40],
+  ["business_personal", "Explore Plan", "Business monthly subscription", "£5.99", 599, "prod_Uwgus0xRHwgrlj", "price_1TwnWFDZzb3r6Q3c0SKHckVo", "Essential business planning builders", "Read-only itinerary sharing", "For small businesses and organisations that need core planning tools and a separate organisation workspace.", "Start 30-day free trial", 1, 0, 110],
+  ["business_standard", "Plan Plan", "Business monthly subscription", "£7.99", 799, "prod_UwgunfLOeoBA9V", "price_1TwnWVDZzb3r6Q3caG24V63l", "Expanded business planning builders", "Read-only itinerary sharing", "For organisations that need a wider range of guided builders and regular read-only sharing.", "Start 30-day free trial", 1, 1, 120],
+  ["business_professional", "Complete Plan", "Business monthly subscription", "£14.99", 1499, "prod_UwgujYPsJYBj1F", "price_1TwnWjDZzb3r6Q3crQKwr2bw", "Complete business planning access", "Advanced tools and read-only sharing", "For organisations that need full planning-builder access, advanced planning tools and read-only sharing.", "Start 30-day free trial", 1, 0, 130],
+  ["business_org_starter", "Together Plan", "Business monthly subscription", "£39.99", 3999, "prod_Uwgu4EVCfy4wKb", "price_1TwnWxDZzb3r6Q3cxqCPgI3o", "Shared planning for teams", "Invited editing and member workspace", "For businesses, teams and organisations that need shared planning, invited editing and member administration.", "Start 30-day free trial", 1, 0, 140]
 ];
 
 export async function onRequestGet(context) {
   try {
     const url = new URL(context.request.url);
     const planCode = String(url.searchParams.get("plan") || "").trim();
+    const accountType = String(url.searchParams.get("accountType") || "").trim();
 
     if (!planCode) {
       return redirectTo(getSiteUrl(context.env) + "/pricing/");
@@ -19,7 +24,7 @@ export async function onRequestGet(context) {
 
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
-    return await createCheckoutSession(planCode, context.env, identity);
+    return await createCheckoutSession(planCode, accountType, context.env, identity);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_get_failed", message: errorMessage(error) }));
     return redirectTo(getSiteUrl(context.env) + "/pricing/?checkout=unavailable");
@@ -30,9 +35,10 @@ export async function onRequestPost(context) {
   try {
     const formData = await context.request.formData();
     const planCode = String(formData.get("plan") || "").trim();
+    const accountType = String(formData.get("accountType") || "").trim();
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
-    return await createCheckoutSession(planCode, context.env, identity);
+    return await createCheckoutSession(planCode, accountType, context.env, identity);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_post_failed", message: errorMessage(error) }));
     return redirectTo(getSiteUrl(context.env) + "/pricing/?checkout=unavailable");
@@ -48,7 +54,7 @@ async function customerIdentity(context) {
   }
 }
 
-async function createCheckoutSession(planCode, env, identity) {
+async function createCheckoutSession(planCode, requestedAccountType, env, identity) {
   const siteUrl = getSiteUrl(env);
   if (!env || !env.DB) {
     return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
@@ -59,7 +65,8 @@ async function createCheckoutSession(planCode, env, identity) {
     return redirectTo(siteUrl + "/pricing/?payments=disabled");
   }
 
-  if (!env.STRIPE_SECRET_KEY) {
+  const stripeSecret = await getStripeSecret(env);
+  if (!stripeSecret) {
     console.error(JSON.stringify({ event: "checkout_stripe_secret_missing" }));
     return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
   }
@@ -67,16 +74,22 @@ async function createCheckoutSession(planCode, env, identity) {
   await syncServicePlans(env.DB);
 
   const selectedPlan = await env.DB.prepare(`
-    SELECT id, plan_name, plan_type, price_label, price_pence, stripe_price_id, is_active
+    SELECT id, plan_name, plan_type, price_label, price_pence, stripe_product_id, stripe_price_id, is_active
     FROM service_plans
     WHERE id = ?
   `).bind(planCode).first();
 
   if (!selectedPlan || Number(selectedPlan.is_active || 0) !== 1) {
-    return redirectTo(siteUrl + "/pricing/?plan=unavailable");
+    return redirectTo(siteUrl + "/pricing/?plan=coming-soon");
   }
 
-  const priceId = await resolveStripePriceId(selectedPlan, env, env.DB);
+  const businessPlan = String(selectedPlan.id || "").startsWith("business_");
+  const accountType = businessPlan ? "organisation" : "individual";
+  if (requestedAccountType && ![accountType, businessPlan ? "business" : "personal"].includes(requestedAccountType.toLowerCase())) {
+    return redirectTo(siteUrl + "/pricing/?plan=account-type-mismatch");
+  }
+
+  const priceId = await resolveStripePriceId(selectedPlan, env, env.DB, stripeSecret);
   if (!priceId) {
     console.error(JSON.stringify({ event: "checkout_price_unresolved", planCode }));
     return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
@@ -102,16 +115,20 @@ async function createCheckoutSession(planCode, env, identity) {
   params.append("metadata[plan_code]", selectedPlan.id);
   params.append("metadata[plan_name]", selectedPlan.plan_name || selectedPlan.id);
   params.append("metadata[plan_type]", selectedPlan.plan_type || "");
+  params.append("metadata[account_type]", accountType);
+  params.append("metadata[catalogue]", businessPlan ? "business" : "standard");
   params.append("metadata[account_email]", accountEmail);
   params.append("subscription_data[metadata][service_line]", "Planyx");
   params.append("subscription_data[metadata][plan_code]", selectedPlan.id);
   params.append("subscription_data[metadata][plan_name]", selectedPlan.plan_name || selectedPlan.id);
+  params.append("subscription_data[metadata][account_type]", accountType);
+  params.append("subscription_data[metadata][catalogue]", businessPlan ? "business" : "standard");
   params.append("subscription_data[metadata][customer_email]", accountEmail);
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: {
-      "Authorization": "Bearer " + env.STRIPE_SECRET_KEY,
+      "Authorization": "Bearer " + stripeSecret,
       "Content-Type": "application/x-www-form-urlencoded"
     },
     body: params.toString()
@@ -172,10 +189,13 @@ async function syncServicePlans(DB) {
   }
 }
 
-async function resolveStripePriceId(plan, env, DB) {
+async function getStripeSecret(env) {
+  const stored = await env.DB.prepare("SELECT value FROM site_settings WHERE key = 'stripe_secret_key'").first().catch(() => null);
+  return String(stored?.value || env.STRIPE_SECRET_KEY || "").trim();
+}
+
+async function resolveStripePriceId(plan, env, DB, stripeSecret) {
   // The Admin Centre service_plans record is the live source of truth.
-  // Legacy site-settings overrides remain only as a fallback for databases
-  // that have not yet been edited through the dedicated plans page.
   if (plan.stripe_price_id) return String(plan.stripe_price_id);
 
   const overrideByPlan = {
@@ -190,6 +210,7 @@ async function resolveStripePriceId(plan, env, DB) {
     const override = String(row?.value || "").trim();
     if (override) return override;
   }
+
   const secretByPlan = {
     personal: "STRIPE_PRICE_EXPLORE",
     standard: "STRIPE_PRICE_PLAN",
@@ -200,7 +221,7 @@ async function resolveStripePriceId(plan, env, DB) {
   if (configured) return String(configured);
 
   const response = await fetch("https://api.stripe.com/v1/prices?active=true&type=recurring&limit=100&expand[]=data.product", {
-    headers: { "Authorization": "Bearer " + env.STRIPE_SECRET_KEY }
+    headers: { "Authorization": "Bearer " + stripeSecret }
   });
   if (!response.ok) return "";
   const catalogue = await response.json();
@@ -208,7 +229,11 @@ async function resolveStripePriceId(plan, env, DB) {
     personal: "Planyx – Explore",
     standard: "Planyx – Plan",
     professional: "Planyx – Complete",
-    org_starter: "Planyx – Together"
+    org_starter: "Planyx – Together",
+    business_personal: "Planyx Business – Explore",
+    business_standard: "Planyx Business – Plan",
+    business_professional: "Planyx Business – Complete",
+    business_org_starter: "Planyx Business – Together"
   };
   const acceptedNames = new Set([
     String(plan.plan_name || "").trim().toLowerCase(),
