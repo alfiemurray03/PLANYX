@@ -173,6 +173,11 @@ async function syncServicePlans(DB) {
 }
 
 async function resolveStripePriceId(plan, env, DB) {
+  // The Admin Centre service_plans record is the live source of truth.
+  // Legacy site-settings overrides remain only as a fallback for databases
+  // that have not yet been edited through the dedicated plans page.
+  if (plan.stripe_price_id) return String(plan.stripe_price_id);
+
   const overrideByPlan = {
     personal: "stripe_price_personal_override",
     standard: "stripe_price_standard_override",
@@ -193,8 +198,6 @@ async function resolveStripePriceId(plan, env, DB) {
   };
   const configured = env[secretByPlan[plan.id]];
   if (configured) return String(configured);
-
-  if (plan.stripe_price_id) return String(plan.stripe_price_id);
 
   const response = await fetch("https://api.stripe.com/v1/prices?active=true&type=recurring&limit=100&expand[]=data.product", {
     headers: { "Authorization": "Bearer " + env.STRIPE_SECRET_KEY }
