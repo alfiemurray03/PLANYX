@@ -8,9 +8,13 @@ export const SUBSCRIPTION_ENTITLEMENTS = Object.freeze({
 
 const PLAN_ALIASES = Object.freeze({
   personal: "personal", explore: "personal", "explore-plan": "personal",
+  "business-personal": "personal", "business-explore": "personal", "business-explore-plan": "personal",
   standard: "standard", plan: "standard", "plan-plan": "standard",
+  "business-standard": "standard", "business-plan": "standard", "business-plan-plan": "standard",
   professional: "professional", complete: "professional", "complete-plan": "professional",
+  "business-professional": "professional", "business-complete": "professional", "business-complete-plan": "professional",
   org_starter: "org_starter", "org-starter": "org_starter", together: "org_starter", "together-plan": "org_starter",
+  "business-org-starter": "org_starter", "business-together": "org_starter", "business-together-plan": "org_starter",
   trial: "trial", "30-day-free-trial": "trial"
 });
 
