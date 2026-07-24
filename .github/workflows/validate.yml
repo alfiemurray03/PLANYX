@@ -31,10 +31,6 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      # The repository currently contains a substantial inherited TypeScript
-      # baseline outside this PR's scope. Keep the complete result visible and
-      # downloadable without allowing unrelated historical errors to conceal
-      # whether the changed customer/admin paths build correctly.
       - name: Type-check repository baseline
         id: typecheck
         continue-on-error: true
@@ -65,11 +61,9 @@ jobs:
             tests/manual-subscription-claim.test.mjs \
             tests/subscription-catalogue-persistence.test.mjs \
             tests/account-type-itinerary-access.test.mjs \
-            tests/public-bundle-hygiene.test.mjs 2>&1 | tee targeted-tests.log
+            tests/public-bundle-hygiene.test.mjs \
+            tests/admin-pin-visual-style.test.mjs 2>&1 | tee targeted-tests.log
 
-      # Run the complete inherited suite after the build so generated assets
-      # exist. Its result remains diagnostic until obsolete static-site tests
-      # are reconciled with the current React/Vite architecture.
       - name: Run full repository test baseline
         id: fulltests
         continue-on-error: true
