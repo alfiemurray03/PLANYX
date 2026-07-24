@@ -1,11 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { CircleOff, Clock, Loader2, Mail, Phone, Wrench } from 'lucide-react';
+import { BotOff, CircleOff, Clock, Loader2, Mail, Phone, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PLANYX_EMAIL, GROUP_PHONE_DISPLAY, GROUP_PHONE_HREF } from '@/lib/contact-details';
 
 type ContactStatus = 'online' | 'maintenance' | 'offline';
 
 interface ContactStatusConfig {
+  enabled: boolean;
+  maintenanceEnabled: boolean;
+  maintenanceMessage: string;
+  contactPageEnabled: boolean;
   contactPageStatus: ContactStatus;
   contactMaintenanceTitle: string;
   contactMaintenanceReason: string;
@@ -19,6 +23,10 @@ interface ContactStatusConfig {
 }
 
 const DEFAULT_CONFIG: ContactStatusConfig = {
+  enabled: true,
+  maintenanceEnabled: false,
+  maintenanceMessage: 'The Help Centre assistant is temporarily unavailable while maintenance is completed.',
+  contactPageEnabled: true,
   contactPageStatus: 'online',
   contactMaintenanceTitle: 'Contact support is temporarily unavailable',
   contactMaintenanceReason: 'Contact service maintenance',
@@ -81,7 +89,28 @@ export default function ContactStatusGate({ children }: { children: ReactNode })
     );
   }
 
-  if (config.contactPageStatus === 'online') return <>{children}</>;
+  if (config.contactPageEnabled && config.contactPageStatus === 'online') {
+    const assistantUnavailable = !config.enabled || config.maintenanceEnabled;
+    const AssistantIcon = config.maintenanceEnabled ? Wrench : BotOff;
+    return (
+      <>
+        {assistantUnavailable && (
+          <section role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-amber-950">
+            <div className="mx-auto flex max-w-7xl items-start gap-3">
+              <AssistantIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <div>
+                <p className="text-sm font-bold">The AI Help Centre assistant is currently unavailable</p>
+                <p className="mt-1 text-xs leading-5 text-amber-900">
+                  {config.maintenanceEnabled ? config.maintenanceMessage : 'The assistant has been switched off.'} The Contact Us page and manual enquiry form remain available.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+        {children}
+      </>
+    );
+  }
 
   const maintenance = config.contactPageStatus === 'maintenance';
   const title = maintenance ? config.contactMaintenanceTitle : 'Contact Us is currently offline';
@@ -131,7 +160,7 @@ export default function ContactStatusGate({ children }: { children: ReactNode })
           </div>
 
           <p className="mt-6 border-t border-border pt-5 text-xs leading-5 text-muted-foreground">
-            The online enquiry form and AI-assisted contact box are unavailable in this mode. Admin Centre access remains available.
+            The online enquiry form and AI-assisted contact box are unavailable in this mode. The Support Assistant is also prevented from offering or submitting an enquiry. Admin Centre access remains available.
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
   loadAssistantSettings,
   workersAiAnswer
 } from "../_shared/support-assistant-core.js";
+import { contactServiceStatusFromSettings } from "../_shared/contact-service-status.js";
 import { guidedEscalation } from "../_shared/support-assistant-triage.js";
 import {
   recordAssistantEvent,
@@ -43,10 +44,8 @@ function acknowledgementOnly(message) {
   return /^(?:ok(?:ay)?|yes|no|sure|continue|go ahead|thanks?|thank you|hi|hello|hey|help)[.! ]*$/i.test(message);
 }
 
-function contactStatusFrom(settings) {
-  return ["online", "maintenance", "offline"].includes(settings.contact_page_status)
-    ? settings.contact_page_status
-    : "online";
+function enquirySuggestion(value) {
+  return /(?:create|send|submit).*(?:enquir|contact)|contact (?:the )?team|human support/i.test(String(value || ""));
 }
 
 export async function onRequest(context) {
@@ -54,6 +53,14 @@ export async function onRequest(context) {
   let request = withIdentity(context.request, null);
   const settings = await loadAssistantSettings(env.DB);
   const config = configFrom(settings);
+  const contact = contactServiceStatusFromSettings(settings);
+  const effectiveConfig = {
+    ...config,
+    escalationEnabled: config.escalationEnabled && contact.available,
+    escalationPrompt: contact.available
+      ? config.escalationPrompt
+      : `${contact.message} I can still help with available self-service information.`
+  };
   const articles = knowledgeFrom(settings);
   let identity = null;
   try {
@@ -81,7 +88,7 @@ export async function onRequest(context) {
         maintenanceAllowEnquiries: false,
         allowAnonymous: config.allowAnonymous,
         selfHelpEnabled: config.selfHelpEnabled,
-        escalationEnabled: config.escalationEnabled,
+        escalationEnabled: effectiveConfig.escalationEnabled,
         assistantName: config.assistantName,
         logoUrl: config.logoUrl,
         avatarUrl: config.avatarUrl,
@@ -100,32 +107,33 @@ export async function onRequest(context) {
         inputPlaceholder: config.inputPlaceholder,
         showPoweredBy: config.showPoweredBy,
         autoOpenDelaySeconds: config.autoOpenDelaySeconds,
-        contactPageEnabled: config.contactPageEnabled,
+        contactPageEnabled: contact.enabled,
+        contactEnquiriesAvailable: contact.available,
         contactEyebrow: config.contactEyebrow,
         contactTitle: config.contactTitle,
         contactIntroduction: config.contactIntroduction,
         contactAiTitle: config.contactAiTitle,
         contactAiDescription: config.contactAiDescription,
-        contactSupportEmail: config.contactSupportEmail,
+        contactSupportEmail: contact.supportEmail,
         contactGeneralEmail: config.contactGeneralEmail,
         contactDpoEmail: config.contactDpoEmail,
-        contactPhoneDisplay: config.contactPhoneDisplay,
-        contactPhoneHref: config.contactPhoneHref,
+        contactPhoneDisplay: contact.phoneDisplay,
+        contactPhoneHref: contact.phoneHref,
         contactRegisteredOffice: config.contactRegisteredOffice,
         contactCompanyDetails: config.contactCompanyDetails,
         contactResponseStandard: config.contactResponseStandard,
         contactResponseTechnical: config.contactResponseTechnical,
         contactResponseData: config.contactResponseData,
         contactResponseNote: config.contactResponseNote,
-        contactEmailEnabled: config.contactEmailEnabled,
-        contactTelephoneEnabled: config.contactTelephoneEnabled,
-        contactPageStatus: contactStatusFrom(settings),
+        contactEmailEnabled: contact.emailEnabled,
+        contactTelephoneEnabled: contact.telephoneEnabled,
+        contactPageStatus: contact.status,
         contactMaintenanceTitle: clean(settings.contact_maintenance_title || "Contact support is temporarily unavailable", 160),
         contactMaintenanceReason: clean(settings.contact_maintenance_reason || "Contact service maintenance", 160),
-        contactMaintenanceMessage: clean(settings.contact_maintenance_message || "We are carrying out essential work on the Planyx contact service. Please check back shortly.", 800),
+        contactMaintenanceMessage: contact.maintenanceMessage,
         contactMaintenanceStart: clean(settings.contact_maintenance_start, 40),
         contactMaintenanceExpectedReturn: clean(settings.contact_maintenance_expected_return, 40),
-        contactOfflineMessage: clean(settings.contact_offline_message || "The Contact Us page is currently offline.", 800)
+        contactOfflineMessage: contact.offlineMessage
       },
       categories: Array.from(new Set(articles.map((article) => article.category))).filter(Boolean),
       articleCount: articles.length,
@@ -164,6 +172,7 @@ export async function onRequest(context) {
   }
 
   if (event === "verify_support_pin") {
+    if (!contact.available) return json({ success: false, contactUnavailable: true, contactPageStatus: contact.status, error: contact.message }, 503);
     if (!identityEmail) return json({ success: false, error: "Please sign in before verifying your identity." }, 401);
     if (!/^\d{6}$/.test(String(body.pin || "").trim())) {
       return json({ success: false, error: "Enter the six-digit Planyx Support PIN." }, 400);
@@ -189,16 +198,31 @@ export async function onRequest(context) {
       source: "issue_intake_guard"
     };
   } else {
-    result = guidedEscalation(config, message, history);
-    if (!result) result = await workersAiAnswer(env, config, articles, message, history);
-    if (!result) result = builtInAnswer(config, articles, message, history);
+    result = guidedEscalation(effectiveConfig, message, history);
+    if (!result) result = await workersAiAnswer(env, effectiveConfig, articles, message, history);
+    if (!result) result = builtInAnswer(effectiveConfig, articles, message, history);
   }
+
+  const attemptedHandover = Boolean(result?.escalate) || (result?.suggestions || []).some(enquirySuggestion);
+  if (!contact.available && attemptedHandover) {
+    result = {
+      ...result,
+      reply: [result.reply, contact.message, "Online enquiries are unavailable in this mode. I can continue helping with self-service information or you can use the published email or telephone details."].filter(Boolean).join("\n\n"),
+      suggestions: ["Try another question", "Open the Help Centre"],
+      escalate: false,
+      resolved: false,
+      source: `${result.source || "assistant"}_contact_unavailable`
+    };
+  }
+
   await recordAssistantExchange(env.DB, request, { ...body, history }, result, config.provider === "workers_ai" ? config.model : "");
 
   return json({
     success: true,
     assistantName: config.assistantName,
     responseTime: config.responseTime,
+    contactPageStatus: contact.status,
+    contactEnquiriesAvailable: contact.available,
     ...result
   });
 }
