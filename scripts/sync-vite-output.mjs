@@ -19,6 +19,7 @@ const staticAssets = path.join(root, 'static');
 const manifestName = '.asset-manifest.json';
 const manifestVersion = 2;
 const legacyManifestAssetLimit = 500;
+const generatedRootEntries = new Set(['assets', 'index.html', manifestName]);
 
 function normaliseAssetPath(asset) {
   return asset.replaceAll('\\', '/');
@@ -72,9 +73,6 @@ try {
       .filter(isSafeAssetPath),
   )].sort();
 
-  // Version 1 manifests created before publicDir was disabled may contain every
-  // historic hashed asset. Do not preserve a clearly polluted legacy manifest;
-  // otherwise the stale bundle is copied into every future release forever.
   if (manifest.version === 1 && safeRecordedAssets.length > legacyManifestAssetLimit) {
     console.warn(
       `Skipping ${safeRecordedAssets.length} legacy assets from a polluted production manifest.`,
@@ -83,9 +81,6 @@ try {
     previousReleaseAssets = safeRecordedAssets;
   }
 } catch {
-  // First migration: retain the existing release once, unless it is clearly a
-  // polluted asset directory. Future version 2 manifests preserve exactly one
-  // immediately previous release.
   const existingAssets = [...new Set(
     (await listFiles(path.join(destination, 'assets'), 'assets')).filter(isSafeAssetPath),
   )].sort();
@@ -103,6 +98,16 @@ const preservationMap = new Map([
   ['coming-soon', 'coming-soon'],
   [path.join('assets', 'js', 'coming-soon.js'), path.join('assets', 'js', 'coming-soon.js')],
 ]);
+
+// Preserve deliberate Cloudflare and compatibility files at the production
+// root while allowing generated index/manifest files and obsolete hashed assets
+// to be replaced. This protects _headers, _redirects, analytics and runtime
+// helpers during every clean production build.
+const existingRootEntries = await readdir(destination, { withFileTypes: true }).catch(() => []);
+for (const entry of existingRootEntries) {
+  if (generatedRootEntries.has(entry.name)) continue;
+  preservationMap.set(entry.name, entry.name);
+}
 
 for (const asset of previousReleaseAssets) {
   preservationMap.set(asset, asset);
@@ -122,8 +127,6 @@ try {
   await mkdir(destination, { recursive: true });
   await cp(source, destination, { recursive: true });
 
-  // Source-owned compatibility files are copied after Vite output. These may
-  // include aliases that safely refresh browser tabs opened on an older build.
   const staticStats = await stat(staticAssets).catch(() => null);
   if (staticStats?.isDirectory()) {
     await cp(staticAssets, destination, { recursive: true });

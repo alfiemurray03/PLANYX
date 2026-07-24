@@ -2,50 +2,46 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import {
-  resolveConfiguredStripePriceId,
-  verifyStripePriceConfiguration,
-} from "../functions/_shared/stripe-price-verification.js";
+import { verifyConfiguredPrice } from "../functions/api/admin/stripe/verify-prices.js";
 
 const root = new URL("../", import.meta.url);
+const verifierUrl = new URL("functions/api/admin/stripe/verify-prices.js", root);
 
 const plan = {
-  code: "personal",
-  name: "Explore",
-  amountPence: 599,
-  currency: "gbp",
-  interval: "month",
+  key: "personal",
+  label: "Explore Plan",
+  amount: 599,
+  productId: "prod_expected",
+  productNames: ["Explore Plan"],
+  defaultPriceId: "price_expected",
 };
 
-test("Stripe price resolution prefers the Admin-saved price ID", () => {
-  const result = resolveConfiguredStripePriceId(
-    { stripe_price_id: "price_admin" },
-    { STRIPE_PRICE_PERSONAL: "price_env" },
-    plan,
-  );
+function stripeResponse(payload, ok = true) {
+  return {
+    ok,
+    async json() {
+      return payload;
+    },
+  };
+}
 
-  assert.deepEqual(result, {
-    priceId: "price_admin",
-    source: "database",
-  });
-});
+test("Stripe price resolution retains submitted, database, secret and default precedence", async () => {
+  const source = await readFile(verifierUrl, "utf8");
 
-test("Stripe price resolution falls back to the environment", () => {
-  const result = resolveConfiguredStripePriceId(
-    null,
-    { STRIPE_PRICE_PERSONAL: "price_env" },
-    plan,
-  );
+  const submittedPosition = source.indexOf("if (submitted) return");
+  const databasePosition = source.indexOf('source: "database"');
+  const secretPosition = source.indexOf('source: "secret"');
+  const defaultPosition = source.indexOf('source: "default"');
 
-  assert.deepEqual(result, {
-    priceId: "price_env",
-    source: "environment",
-  });
+  assert.ok(submittedPosition >= 0, "Submitted Admin values must be supported.");
+  assert.ok(databasePosition > submittedPosition, "Database values must follow submitted values.");
+  assert.ok(secretPosition > databasePosition, "Environment secrets must follow database values.");
+  assert.ok(defaultPosition > secretPosition, "Approved defaults must remain the final fallback.");
 });
 
 test("Stripe verifier accepts the correct active monthly GBP plan mapping", async () => {
-  const result = await verifyStripePriceConfiguration(
-    async () => ({
+  const result = await verifyConfiguredPrice(
+    async () => stripeResponse({
       id: "price_expected",
       active: true,
       currency: "gbp",
@@ -61,13 +57,16 @@ test("Stripe verifier accepts the correct active monthly GBP plan mapping", asyn
   );
 
   assert.equal(result.valid, true);
-  assert.equal(result.priceId, "price_expected");
+  assert.equal(result.id, "price_expected");
   assert.equal(result.source, "database");
+  assert.equal(result.checks.amountMatches, true);
+  assert.equal(result.checks.currencyMatches, true);
+  assert.equal(result.checks.intervalMatches, true);
 });
 
 test("Stripe verifier rejects a Price ID mapped to the wrong amount", async () => {
-  const result = await verifyStripePriceConfiguration(
-    async () => ({
+  const result = await verifyConfiguredPrice(
+    async () => stripeResponse({
       id: "price_other",
       active: true,
       currency: "gbp",
