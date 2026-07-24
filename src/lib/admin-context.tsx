@@ -9,6 +9,7 @@
  *  2. Microsoft authenticates the user and redirects back to /auth/admin/oidc/callback
  *  3. Callback verifies the tenant, extracts identity, creates ja_admin_session cookie
  *  4. On every page load, GET /api/admin/auth/me restores the session from the cookie
+ *  5. A same-origin heartbeat records the verified sign-in, linked administrator and activity
  *
  * The session cookie (ja_admin_session) is httpOnly — it cannot be read by JS.
  * localStorage is used only as a fast-read cache for the admin profile so the
@@ -55,6 +56,20 @@ function clearCachedAdmin(): void {
   try { localStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
 }
 
+async function recordAdminSession(action: 'heartbeat' | 'logout'): Promise<void> {
+  try {
+    await fetch('/api/session-heartbeat', {
+      method: 'POST',
+      credentials: 'include',
+      keepalive: action === 'logout',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ action }),
+    });
+  } catch {
+    // Authentication must continue even if the audit endpoint is temporarily unavailable.
+  }
+}
+
 function startAdminMicrosoftLogout(): void {
   // Some legacy layout handlers perform a client-side navigation immediately
   // after calling logout(). Schedule the terminal server navigation after that
@@ -78,12 +93,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const cached = getCachedAdmin();
     if (cached) setAdmin(cached); // optimistic render
 
-    fetch('/api/admin/auth/me', { credentials: 'include' })
+    fetch('/api/admin/auth/me', { credentials: 'include', cache: 'no-store' })
       .then(r => r.json())
       .then((d: { success: boolean; admin?: AdminUser }) => {
         if (d.success && d.admin) {
           setCachedAdmin(d.admin);
           setAdmin(d.admin);
+          void recordAdminSession('heartbeat');
         } else {
           clearCachedAdmin();
           setAdmin(null);
@@ -96,6 +112,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    await recordAdminSession('logout');
     clearCachedAdmin();
     setAdmin(null);
 
