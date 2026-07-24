@@ -22,6 +22,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function recordCustomerSession(action: 'heartbeat' | 'logout'): void {
+  void fetch('/api/session-heartbeat', {
+    method: 'POST',
+    credentials: 'include',
+    keepalive: action === 'logout',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ action }),
+  }).catch(() => {
+    // Customer access must continue if security-audit storage is temporarily unavailable.
+  });
+}
+
 function startCustomerMicrosoftLogout(): void {
   // Dashboard layout handlers may still perform a client-side navigation after
   // invoking logout(). Defer the terminal navigation until the click handler has
@@ -38,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshCurrentUser().then((serverUser) => {
       setUser(serverUser);
+      if (serverUser) recordCustomerSession('heartbeat');
       setIsLoading(false);
     });
   }, []);
@@ -46,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const result = await loginUser(email, password);
     if (result.success && result.user) {
       setUser(result.user);
+      recordCustomerSession('heartbeat');
     }
     return { success: result.success, error: result.error };
   }, []);
@@ -61,11 +75,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const result = await registerUser(email, password, firstName, lastName, company, usageType);
     if (result.success && result.user) {
       setUser(result.user);
+      recordCustomerSession('heartbeat');
     }
     return { success: result.success, error: result.error };
   }, []);
 
   const logout = useCallback(() => {
+    recordCustomerSession('logout');
     setUser(null);
 
     // /account/logout revokes only the customer OIDC and legacy customer
@@ -75,7 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshUser = useCallback(() => {
-    void refreshCurrentUser().then(setUser);
+    void refreshCurrentUser().then(serverUser => {
+      setUser(serverUser);
+      if (serverUser) recordCustomerSession('heartbeat');
+    });
   }, []);
 
   return (
