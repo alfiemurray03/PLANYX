@@ -38,10 +38,10 @@ export async function enforceCustomerAge(context) {
 
   const status = await profileAgeStatus(context.env.DB, identity.email);
   if (status.eligible) {
-    const request = new Request(context.request);
-    request.headers.set("x-planyx-age-band", status.ageBand || "18+");
-    request.headers.set("x-planyx-young-person", status.minorSafeguards ? "true" : "false");
-    return context.next(request);
+    const headers = new Headers(context.request.headers);
+    headers.set("x-planyx-age-band", status.ageBand || "18+");
+    headers.set("x-planyx-young-person", status.minorSafeguards ? "true" : "false");
+    return context.next(new Request(context.request, { headers }));
   }
 
   if (expectsJson(context.request)) {
