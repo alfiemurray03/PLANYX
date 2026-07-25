@@ -33,7 +33,8 @@ test('Admin Portal requires the personal PIN after Microsoft authentication', as
 
 test('Customer CRM verification is scoped to the exact administrator and customer', async () => {
   const endpoint = await read('functions/api/admin/customer-verification.js');
-  const middleware = await read('functions/admin/_middleware.js');
+  const legacyMiddleware = await read('functions/admin/_middleware.js');
+  const governedMiddleware = await read('functions/api/admin/_middleware.js');
   const runtime = await read('static/assets/customer-crm-verification.js');
   const index = await read('index.html');
 
@@ -42,8 +43,10 @@ test('Customer CRM verification is scoped to the exact administrator and custome
   assert.match(endpoint, /verifyScopedAdminPin/);
   assert.match(endpoint, /customer-specific CRM action/);
   assert.match(endpoint, /UPDATE customer_identity_verification_sessions SET ended_at=CURRENT_TIMESTAMP/);
-  assert.match(middleware, /\["admin_pin_override", "override_identity_lock"\]/);
-  assert.match(middleware, /GOVERNED_VERIFICATION_REQUIRED/);
+  assert.match(legacyMiddleware, /\["admin_pin_override", "override_identity_lock"\]/);
+  assert.match(legacyMiddleware, /GOVERNED_VERIFICATION_REQUIRED/);
+  assert.match(governedMiddleware, /CUSTOMER_SCOPE_MISMATCH/);
+  assert.match(governedMiddleware, /requestRow\.customer_email/);
   assert.match(runtime, /Fresh verification per customer/);
   assert.match(runtime, /re-enter your own PIN/i);
   assert.match(index, /customer-crm-verification\.js\?v=1/);
@@ -67,6 +70,16 @@ test('Customer CRM override requires structured justification and independent ap
   assert.match(runtime, /Professional justification/);
   assert.match(runtime, /Request supervisor approval/);
   assert.match(runtime, /Supervisor review note/);
+});
+
+test('Support PIN failures have an enforced customer lockout with alternate recovery routes', async () => {
+  const middleware = await read('functions/api/admin/_middleware.js');
+  assert.match(middleware, /attempts >= 3/);
+  assert.match(middleware, /15 \* 60 \* 1000/);
+  assert.match(middleware, /SUPPORT_PIN_LOCKED/);
+  assert.match(middleware, /registered-email code or a governed supervisor override/);
+  assert.match(middleware, /customer_support_pin_locked/);
+  assert.match(middleware, /verify_email_code", "authorise_override/);
 });
 
 test('registered-email support codes are hashed, one-time, rate-limited and honestly labelled', async () => {
