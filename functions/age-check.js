@@ -54,49 +54,132 @@ function effectiveAvailability(settings) {
   return "live";
 }
 
+function statusIcon({ denied, success, maintenance }) {
+  if (denied) return "!";
+  if (success) return "✓";
+  if (maintenance) return "•";
+  return "16+";
+}
+
 function page({ returnTo = "/dashboard", error = "", denied = false, success = false, ageBand = "", settings, unavailable = "" } = {}) {
   const config = settings || {};
   const maintenance = unavailable === "maintenance" || unavailable === "paused";
   const title = denied
-    ? "Planyx is only available to people aged 16 or over"
+    ? "This account cannot continue"
     : success
       ? "Age check completed"
       : maintenance
         ? (config.maintenanceHeading || "Age verification is temporarily unavailable")
         : (config.publicHeading || "Confirm you are aged 16 or over");
   const description = denied
-    ? "An account cannot be registered or used by anyone under 16 years of age."
+    ? "Planyx accounts are available only to people aged 16 or over."
     : success
-      ? `Your ${ageBand === "16-17" ? "young-person" : "adult"} account safeguards have been applied.`
+      ? `Your ${ageBand === "16-17" ? "young-person" : "adult"} account settings have been applied securely.`
       : maintenance
         ? (config.maintenanceMessage || "New registrations are paused while the age-verification service is maintained.")
-        : (config.publicDescription || "Planyx is a 16+ planning service. Complete the age check before creating or using an account.");
+        : (config.publicDescription || "Enter your date of birth so Planyx can apply the correct account access and privacy settings.");
   const compact = config.designVariant === "compact";
   const assurance = config.designVariant === "assurance";
+
+  const primaryPanel = maintenance
+    ? `<div class="state-panel state-panel--warning">
+        <div class="state-panel__title">Safe registration pause</div>
+        <p>No unverified account can be created while this service is unavailable. The 16+ minimum age has not been lowered or bypassed.</p>
+       </div>
+       <div class="action-row"><a class="button button--secondary" href="/">Return to Planyx</a>${config.showSafetyLink !== false ? `<a class="button button--secondary" href="/safety">Read 16+ safety guidance</a>` : ""}</div>`
+    : denied
+      ? `<div class="state-panel state-panel--danger">
+          <div class="state-panel__title">Registration has not been permitted</div>
+          <p>Do not enter a false date of birth or create an account for somebody under 16. Public information remains available without an account.</p>
+         </div>
+         <div class="action-row"><a class="button button--secondary" href="/">Return to Planyx</a>${config.showSafetyLink !== false ? `<a class="button button--secondary" href="/safety">Read safety guidance</a>` : ""}</div>`
+      : success
+        ? `<div class="state-panel state-panel--success"><div class="state-panel__title">You are ready to continue</div><p>Your eligibility result has been recorded and the correct privacy settings have been applied.</p></div><div class="action-row"><a class="button" href="${escapeHtml(returnTo)}">Continue to Planyx <span aria-hidden="true">→</span></a></div>`
+        : `<form class="verification-form" method="post" action="/age-check" novalidate>
+            <input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
+            <div class="field-group">
+              <div class="field-heading">
+                <div>
+                  <label class="field-label" for="date_of_birth">Your date of birth</label>
+                  <p class="field-caption">Use the date shown on your official records.</p>
+                </div>
+                <span class="secure-pill" aria-label="Secure encrypted field">Secure field</span>
+              </div>
+              <div class="date-field-wrap">
+                <span class="date-field-icon" aria-hidden="true">□</span>
+                <input class="date-field" id="date_of_birth" name="date_of_birth" type="date" max="${maximumEligibleBirthDate()}" autocomplete="bday" required aria-describedby="age-help privacy-summary">
+              </div>
+              <p id="age-help" class="field-help"><strong>You must already be 16.</strong> Customers aged 16–17 receive enhanced privacy and safeguarding defaults.</p>
+            </div>
+            <div class="declaration-box">
+              <span class="declaration-box__icon" aria-hidden="true">✓</span>
+              <p>By continuing, you confirm that the date entered is accurate. This self-declaration is an account eligibility check, not independent identity verification. Planyx may require a stronger approved check where necessary.</p>
+            </div>
+            <button class="button button--primary" type="submit">${escapeHtml(config.buttonLabel || "Confirm age and continue")} <span aria-hidden="true">→</span></button>
+          </form>`;
+
   return `<!doctype html>
 <html lang="en-GB" class="h-full"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${escapeHtml(title)} — Planyx</title><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light dark">
 <link rel="icon" href="/assets/brand/planyx-icon.png?v=1">
-<style>
-*{box-sizing:border-box}body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f8ff;color:#0f172a}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 18% 15%,rgba(37,99,235,.16),transparent 34%),radial-gradient(circle at 84% 75%,rgba(124,58,237,.12),transparent 32%)}.shell{position:relative;min-height:100vh;display:flex;flex-direction:column}.top{width:min(1080px,calc(100% - 2rem));margin:0 auto;padding:1.25rem 0;border-bottom:1px solid #dbe5f4}.top img{height:40px;width:auto}.main{flex:1;display:grid;place-items:center;width:min(${compact ? "620px" : "760px"},calc(100% - 2rem));margin:0 auto;padding:${compact ? "2rem" : "clamp(2.5rem,7vw,6rem)"} 0}.card{width:100%;overflow:hidden;border:1px solid ${assurance ? "#93c5fd" : "#cbdaf0"};border-radius:${compact ? "18px" : "24px"};background:rgba(255,255,255,.95);box-shadow:0 28px 80px rgba(15,23,42,.14)}.accent{height:5px;background:linear-gradient(90deg,#2563eb,#06b6d4,#7c3aed)}.content{padding:${compact ? "1.5rem" : "clamp(1.4rem,5vw,3rem)"}}.icon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:#eaf1ff;color:#2563eb;font-size:1.45rem}.eyebrow{margin:1.25rem 0 .5rem;color:#2563eb;font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}h1{margin:0;max-width:650px;font-size:clamp(2rem,5vw,3.4rem);line-height:1.05;letter-spacing:-.04em}p{line-height:1.7}.lead{color:#475569;font-size:1rem}.notice{margin-top:1.25rem;padding:1rem;border:1px solid #bfdbfe;border-radius:14px;background:#eff6ff;color:#1e3a8a;font-size:.88rem}.error{margin-top:1rem;padding:1rem;border:1px solid #fecaca;border-radius:14px;background:#fef2f2;color:#991b1b;font-size:.9rem}.form{margin-top:1.5rem;display:grid;gap:1rem}.label{font-size:.88rem;font-weight:750}.input{width:100%;min-height:50px;border:1px solid #b8c7dc;border-radius:12px;background:#fff;color:#0f172a;padding:.75rem 1rem;font:inherit}.input:focus{outline:3px solid rgba(37,99,235,.22);border-color:#2563eb}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;border:0;border-radius:12px;background:#2563eb;color:white;padding:.75rem 1rem;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}.button:hover{background:#1d4ed8}.button.secondary{background:#fff;color:#1e3a8a;border:1px solid #bfdbfe}.small{color:#64748b;font-size:.78rem;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.5rem}footer{width:min(1080px,calc(100% - 2rem));margin:0 auto;padding:1.25rem 0 2rem;border-top:1px solid #dbe5f4;color:#64748b;font-size:.75rem}footer a{color:#1d4ed8}
-@media(prefers-color-scheme:dark){body{background:#07101f;color:#eff6ff}.top,footer{border-color:#1e2d45}.card{border-color:#223b61;background:rgba(10,20,37,.96);box-shadow:0 28px 80px rgba(0,0,0,.36)}.icon{background:#102a55;color:#93c5fd}.eyebrow{color:#7dd3fc}.lead,.small,footer{color:#9fb1c9}.notice{border-color:#254b7a;background:#0c2341;color:#bfdbfe}.error{border-color:#7f1d1d;background:#2f1117;color:#fecaca}.input{border-color:#365071;background:#09182c;color:#eff6ff}.button.secondary{background:#0b1d35;color:#bfdbfe;border-color:#294b75}footer a{color:#93c5fd}}
-</style></head><body><div class="shell">
-<header class="top"><a href="/"><img src="/assets/brand/planyx-logo.svg?v=1" alt="Planyx"></a></header>
-<main class="main"><section class="card"><div class="accent"></div><div class="content">
-<div class="icon" aria-hidden="true">${denied ? "⛔" : success ? "✓" : maintenance ? "🛠" : "16+"}</div>
-<p class="eyebrow">Planyx age and safeguarding check</p><h1>${escapeHtml(title)}</h1><p class="lead">${escapeHtml(description)}</p>
-${error ? `<div class="error" role="alert">${escapeHtml(error)}</div>` : ""}
-${maintenance ? `<div class="notice"><strong>Safe registration pause.</strong><br>No unverified account can be created while this service is unavailable. This does not lower or bypass the 16+ minimum age.</div><div class="actions"><a class="button secondary" href="/">Return to Planyx</a>${config.showSafetyLink !== false ? `<a class="button secondary" href="/safety">Read 16+ safety guidance</a>` : ""}</div>` : denied ? `<div class="notice"><strong>Registration has not been permitted.</strong><br>Do not try to create or use an account for somebody under 16. Public pages may still be viewed without registering.</div><div class="actions"><a class="button secondary" href="/">Return to Planyx</a>${config.showSafetyLink !== false ? `<a class="button secondary" href="/safety">Read safety guidance</a>` : ""}</div>` : success ? `<div class="actions"><a class="button" href="${escapeHtml(returnTo)}">Continue to Planyx</a></div>` : `<form class="form" method="post" action="/age-check" novalidate>
-<input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
-<label class="label" for="date_of_birth">Date of birth</label>
-<input class="input" id="date_of_birth" name="date_of_birth" type="date" max="${maximumEligibleBirthDate()}" autocomplete="bday" required aria-describedby="age-help">
-<p id="age-help" class="small">You must already be 16. People aged 16–17 receive enhanced privacy and safeguarding defaults. A payment card is not accepted as proof of age.</p>
-<button class="button" type="submit">${escapeHtml(config.buttonLabel || "Confirm age and continue")}</button>
-</form>${config.showPrivacyNotice === false ? "" : `<div class="notice"><strong>Privacy:</strong> your date of birth is encrypted in a restricted age-verification record linked to your Customer CRM profile. It is masked by default and access is audited. The normal customer profile stores only eligibility, age band and safeguarding status.</div>`}`}
-</div></section></main>
-<footer>© ${new Date().getFullYear()} Planyx · Operated by JA Group Services Ltd · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>${config.showSafetyLink === false ? "" : ` · <a href="/safety">16+ safety</a>`}</footer>
-</div></body></html>`;
+<link rel="stylesheet" href="/assets/age-verification.css?v=2">
+</head><body class="age-page ${compact ? "age-page--compact" : ""} ${assurance ? "age-page--assurance" : ""}">
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand-link" href="/" aria-label="Return to Planyx"><img src="/assets/brand/planyx-logo.svg?v=1" alt="Planyx"></a>
+    <div class="header-assurance"><span class="header-assurance__dot" aria-hidden="true"></span><span>Secure age and safeguarding check</span></div>
+  </header>
+  <main class="page-main">
+    <section class="verification-card" aria-labelledby="age-check-title">
+      <div class="verification-card__accent"></div>
+      <div class="verification-layout">
+        <div class="verification-primary">
+          <div class="status-icon ${denied ? "status-icon--danger" : success ? "status-icon--success" : maintenance ? "status-icon--warning" : ""}" aria-hidden="true">${statusIcon({ denied, success, maintenance })}</div>
+          <p class="eyebrow">Planyx account eligibility</p>
+          <h1 id="age-check-title">${escapeHtml(title)}</h1>
+          <p class="lead">${escapeHtml(description)}</p>
+          ${error ? `<div class="error-panel" role="alert"><strong>We could not complete the check.</strong><span>${escapeHtml(error)}</span></div>` : ""}
+          ${primaryPanel}
+          ${config.showPrivacyNotice === false || maintenance || denied || success ? "" : `<div id="privacy-summary" class="privacy-summary"><span class="privacy-summary__icon" aria-hidden="true">◈</span><div><strong>Your information is protected</strong><p>Your date of birth is encrypted in a restricted age-verification record linked to your Customer CRM profile. It is masked by default and access is audited. The normal customer profile stores only eligibility, age band and safeguarding status.</p></div></div>`}
+        </div>
+        <aside class="verification-aside" aria-label="What happens during the age check">
+          <div class="aside-card">
+            <p class="aside-card__eyebrow">What happens next</p>
+            <ol class="steps-list">
+              <li><span>1</span><div><strong>Enter your date of birth</strong><p>Use the secure field only. Never send it through the AI guide or ordinary contact form.</p></div></li>
+              <li><span>2</span><div><strong>Eligibility is calculated</strong><p>Under-16 access is blocked. Ages 16–17 receive higher privacy defaults.</p></div></li>
+              <li><span>3</span><div><strong>Continue securely</strong><p>Eligible customers proceed to Microsoft customer sign-in or their Planyx account.</p></div></li>
+            </ol>
+          </div>
+          <div class="aside-card aside-card--muted">
+            <p class="aside-card__eyebrow">Important</p>
+            <p class="aside-copy">A debit-card payment or ticking a box is not independent proof of age. Where a more robust check is required, Planyx may use an approved provider that returns only the minimum age result needed.</p>
+          </div>
+          <section id="age-guide" class="age-guide" hidden aria-labelledby="age-guide-title">
+            <button id="age-guide-toggle" class="age-guide__toggle" type="button" aria-expanded="false" aria-controls="age-guide-panel">
+              <span><strong id="age-guide-title">Need help with the age check?</strong><small>Ask the Planyx Age Verification Guide</small></span><span aria-hidden="true">+</span>
+            </button>
+            <div id="age-guide-panel" class="age-guide__panel" hidden>
+              <p id="age-guide-welcome" class="age-guide__welcome"></p>
+              <div id="age-guide-suggestions" class="age-guide__suggestions"></div>
+              <div id="age-guide-messages" class="age-guide__messages" aria-live="polite"></div>
+              <form id="age-guide-form" class="age-guide__form">
+                <label for="age-guide-input" class="sr-only">Question about the age check</label>
+                <textarea id="age-guide-input" rows="2" maxlength="1200" required></textarea>
+                <button type="submit">Ask guide</button>
+              </form>
+              <p class="age-guide__privacy">Do not enter your date of birth, upload identity documents or share payment details in this guide.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>© ${new Date().getFullYear()} Planyx · Operated by JA Group Services Ltd</span><nav aria-label="Legal links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a>${config.showSafetyLink === false ? "" : `<a href="/safety">16+ safety</a>`}</nav></footer>
+</div>
+<script src="/assets/age-verification-guide.js?v=2" defer></script>
+</body></html>`;
 }
 
 async function settingsFor(context) {
