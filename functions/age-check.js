@@ -5,6 +5,7 @@ import {
   expireAgeAssuranceCookie,
   persistAgeAssurance,
 } from "./_shared/age-assurance.js";
+import { createAgeVerificationRecord } from "./_shared/age-verification-records.js";
 import {
   getAgeVerificationSettings,
   recordAgeVerificationEvent,
@@ -92,7 +93,7 @@ ${maintenance ? `<div class="notice"><strong>Safe registration pause.</strong><b
 <input class="input" id="date_of_birth" name="date_of_birth" type="date" max="${maximumEligibleBirthDate()}" autocomplete="bday" required aria-describedby="age-help">
 <p id="age-help" class="small">You must already be 16. People aged 16–17 receive enhanced privacy and safeguarding defaults. A payment card is not accepted as proof of age.</p>
 <button class="button" type="submit">${escapeHtml(config.buttonLabel || "Confirm age and continue")}</button>
-</form>${config.showPrivacyNotice === false ? "" : `<div class="notice"><strong>Privacy:</strong> the date is checked on the server and converted to the minimum account record needed: eligibility, age band and—only for 16–17-year-olds—the date young-person safeguards end. Planyx does not keep the full date of birth in the normal customer profile.</div>`}`}
+</form>${config.showPrivacyNotice === false ? "" : `<div class="notice"><strong>Privacy:</strong> your date of birth is encrypted in a restricted age-verification record linked to your Customer CRM profile. It is masked by default and access is audited. The normal customer profile stores only eligibility, age band and safeguarding status.</div>`}`}
 </div></section></main>
 <footer>© ${new Date().getFullYear()} Planyx · Operated by JA Group Services Ltd · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>${config.showSafetyLink === false ? "" : ` · <a href="/safety">16+ safety</a>`}</footer>
 </div></body></html>`;
@@ -182,10 +183,34 @@ export async function onRequestPost(context) {
 
   assurance.method = "Self-declared date of birth converted to a signed age band";
   assurance.policyVersion = settings.policyVersion;
+  try {
+    await createAgeVerificationRecord(context.env.DB, context.env, {
+      verificationId: assurance.verificationId,
+      email: identity?.email || "",
+      dateOfBirth: assurance.dateOfBirth,
+      ageBand: assurance.ageBand,
+      method: assurance.method,
+      providerName: "Planyx",
+      providerReference: assurance.verificationId,
+      policyVersion: assurance.policyVersion,
+      verifiedAt: assurance.verifiedAt,
+      expiresAt: assurance.expiresAt,
+    });
+  } catch (error) {
+    await recordAgeVerificationEvent(context.env.DB, context.request, {
+      eventType: "verification_record_failed", outcome: "failed", ageBand: assurance.ageBand,
+      subjectEmail: identity?.email, method: "self_declaration",
+      detail: error instanceof Error ? error.message : "The restricted CRM verification record could not be created.",
+    }).catch(() => null);
+    return new Response(page({ returnTo, settings, error: "The age check could not be recorded securely. Registration has not continued." }), {
+      status: 503,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
   if (identity?.email && context.env.DB) await persistAgeAssurance(context.env.DB, identity.email, assurance);
   await recordAgeVerificationEvent(context.env.DB, context.request, {
     eventType: "self_declaration", outcome: "passed", ageBand: assurance.ageBand, subjectEmail: identity?.email,
-    method: "self_declaration", detail: `Eligible ${assurance.ageBand} result created without retaining the full date of birth in the normal profile.`,
+    method: "self_declaration", detail: `Eligible ${assurance.ageBand} result recorded under verification ID ${assurance.verificationId}. The DOB is encrypted in the restricted CRM verification record.`,
   }).catch(() => null);
   const next = identity?.email ? returnTo : `/account/login?return_to=${encodeURIComponent(returnTo)}`;
   const headers = new Headers({ Location: next, "Cache-Control": "no-store" });
