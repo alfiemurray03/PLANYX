@@ -20,8 +20,12 @@ test('Admin Centre has a dedicated age verification control page and protected A
   assert.match(page, /Safeguards & governance/);
   assert.match(page, /Diagnostics/);
   assert.match(page, /Events/);
+  assert.match(page, /Customer preview/);
+  assert.match(page, /Administrator session needs refreshing/);
 
-  assert.match(api, /Administrator session required/);
+  assert.match(api, /getNativeSession\(request, env, "admin"\)/);
+  assert.match(api, /SESSION_EXPIRED/);
+  assert.doesNotMatch(api, /getAccessIdentity/);
   assert.match(api, /isSameOriginRequest/);
   assert.match(api, /manage_age_verification/);
   assert.match(api, /admin_audit_log/);
