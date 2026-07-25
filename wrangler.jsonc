@@ -16,5 +16,8 @@
       "name": "SUPPORT_EMAIL",
       "destination_address": "planyx@jagroupservices.co.uk"
     }
-  ]
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }
