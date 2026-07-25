@@ -6,7 +6,7 @@ import {
   readGateSettings,
   renderLaunchGate,
   renderMaintenanceGate,
-} from "../../_shared/site-gates.js";
+} from "../../_shared/site-gates-v2.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
