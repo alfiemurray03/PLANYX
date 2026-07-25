@@ -1,4 +1,5 @@
-import { getAccessIdentity, isSameOriginRequest } from "../../_shared/enquiries.js";
+import { isSameOriginRequest } from "../../_shared/enquiries.js";
+import { getNativeSession } from "../../_shared/oidc.js";
 import { calculateAge, ageBandFor } from "../../_shared/age-assurance.js";
 import {
   ageVerificationDiagnostics,
@@ -11,7 +12,11 @@ import {
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
   });
 }
 
@@ -32,20 +37,21 @@ function parsePermissions(value) {
 }
 
 async function authorise(DB, identity, env) {
-  if (!identity.email) return { authenticated: false, authorised: false };
-  if (configuredAdmins(env).includes(identity.email)) return { authenticated: true, authorised: true };
+  const email = clean(identity?.email, 254).toLowerCase();
+  if (!email) return { authenticated: false, authorised: false };
+  if (configuredAdmins(env).includes(email)) return { authenticated: true, authorised: true };
   const admin = await DB.prepare("SELECT role,status,permissions FROM admin_users WHERE lower(email)=lower(?)")
-    .bind(identity.email).first().catch(() => null);
+    .bind(email).first().catch(() => null);
   if (!admin || ["blocked", "closed", "disabled", "inactive", "suspended"].includes(clean(admin.status || "Active", 80).toLowerCase())) {
     return { authenticated: true, authorised: false };
   }
   if (admin.role === "Platform Owner") return { authenticated: true, authorised: true };
   const explicit = parsePermissions(admin.permissions);
-  if (explicit.includes("*") || explicit.includes("manage_age_verification") || explicit.includes("manage_system_settings")) {
+  if (explicit.includes("*") || explicit.includes("manage_age_verification") || explicit.includes("manage_system_settings") || explicit.includes("manage_settings")) {
     return { authenticated: true, authorised: true };
   }
   const permission = await DB.prepare(`SELECT permission_code FROM role_permissions
-    WHERE role_name=? AND permission_code IN ('manage_age_verification','manage_system_settings') LIMIT 1`)
+    WHERE role_name=? AND permission_code IN ('manage_age_verification','manage_system_settings','manage_settings') LIMIT 1`)
     .bind(clean(admin.role || "Auditor", 100)).first().catch(() => null);
   return { authenticated: true, authorised: Boolean(permission) };
 }
@@ -117,10 +123,17 @@ export async function onRequest(context) {
   if (!env.DB) return json({ success: false, error: "Age verification controls are unavailable because the database binding is missing.", correlationId }, 500);
 
   try {
-    const identity = getAccessIdentity(request);
+    const identity = await getNativeSession(request, env, "admin");
     const access = await authorise(env.DB, identity, env);
-    if (!access.authenticated) return json({ success: false, error: "Administrator session required." }, 401);
-    if (!access.authorised) return json({ success: false, error: "You do not have permission to manage age verification." }, 403);
+    if (!access.authenticated) {
+      return json({
+        success: false,
+        error: "Your administrator session has expired. Please sign in again.",
+        code: "SESSION_EXPIRED",
+        correlationId,
+      }, 401);
+    }
+    if (!access.authorised) return json({ success: false, error: "You do not have permission to manage age verification.", code: "FORBIDDEN", correlationId }, 403);
     await ensureAgeVerificationControlTables(env.DB);
 
     if (request.method === "GET") {
@@ -191,6 +204,6 @@ export async function onRequest(context) {
     return json({ success: false, error: "Unknown action." }, 400);
   } catch (error) {
     console.error(JSON.stringify({ event: "age_verification_admin_request_failed", correlation_id: correlationId, error: error instanceof Error ? error.message : "Unknown error" }));
-    return json({ success: false, error: error instanceof Error ? error.message : "Age verification controls could not be completed.", correlationId }, 500);
+    return json({ success: false, error: "Age verification controls could not be completed. Please retry or use the correlation reference when reporting the fault.", detail: error instanceof Error ? error.message : "Unknown error", correlationId }, 500);
   }
 }

@@ -1,5 +1,6 @@
 import { latestAgeVerificationRecord, ensureAgeVerificationRecordTable } from "../../_shared/age-verification-records.js";
 import { ensureAgeSafeguardingColumns } from "../../_shared/age-assurance.js";
+import { getNativeSession } from "../../_shared/oidc.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -14,13 +15,6 @@ function json(data, status = 200) {
 
 function clean(value, max = 1000) {
   return String(value ?? "").trim().slice(0, max);
-}
-
-function identityFrom(request) {
-  return {
-    email: clean(request.headers.get("x-ja-auth-email"), 254).toLowerCase(),
-    name: clean(request.headers.get("x-ja-auth-name") || request.headers.get("x-ja-auth-email"), 180),
-  };
 }
 
 function sameOrigin(request) {
@@ -45,10 +39,11 @@ function parsePermissions(value) {
 }
 
 async function permissionSet(DB, identity, env) {
-  if (!identity.email) return new Set();
-  if (configuredAdmins(env).includes(identity.email)) return new Set(["*"]);
+  const email = clean(identity?.email, 254).toLowerCase();
+  if (!email) return new Set();
+  if (configuredAdmins(env).includes(email)) return new Set(["*"]);
   const admin = await DB.prepare(`SELECT role,status,permissions FROM admin_users WHERE lower(email)=lower(?) LIMIT 1`)
-    .bind(identity.email).first().catch(() => null);
+    .bind(email).first().catch(() => null);
   if (!admin || ["blocked", "closed", "disabled", "inactive", "suspended"].includes(clean(admin.status || "Active", 80).toLowerCase())) return new Set();
   if (admin.role === "Platform Owner") return new Set(["*"]);
   const explicit = parsePermissions(admin.permissions);
@@ -125,8 +120,16 @@ async function profileSummary(DB, email) {
 export async function onRequest(context) {
   const { request, env } = context;
   if (!env.DB) return json({ success: false, error: "The CRM database is unavailable." }, 500);
-  const identity = identityFrom(request);
-  if (!identity.email) return json({ success: false, error: "Administrator session required." }, 401);
+
+  const identity = await getNativeSession(request, env, "admin");
+  if (!identity?.email) {
+    return json({
+      success: false,
+      error: "Your administrator session has expired. Please sign in again.",
+      code: "SESSION_EXPIRED",
+    }, 401);
+  }
+
   const permissions = await permissionSet(env.DB, identity, env);
   const canView = hasAny(permissions, ["manage_crm", "manage_users", "manage_age_verification", "manage_data_requests", "manage_audit"]);
   const canReveal = hasAny(permissions, ["manage_age_verification", "manage_data_requests", "manage_audit"]);
