@@ -31,6 +31,9 @@ test('Customer CRM masks DOB and requires an audited Admin PIN reveal', async ()
   const enhancer = await read('src/components/CustomerCrmAgeVerificationEnhancer.tsx');
   const app = await read('src/App.tsx');
 
+  assert.match(api, /getNativeSession\(request, env, "admin"\)/);
+  assert.match(api, /SESSION_EXPIRED/);
+  assert.doesNotMatch(api, /x-ja-auth-email/);
   assert.match(api, /reveal_dob/);
   assert.match(api, /activeAdminPinSession/);
   assert.match(api, /reason\.length < 10/);
