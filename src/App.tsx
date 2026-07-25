@@ -30,7 +30,7 @@ const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
 const YoungPersonSafetyPage = lazy(() => import('./pages/young-person-safety'));
 const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
 const AdminAuthorityReportingRoutePage = lazy(() => import('./pages/admin/authority-reporting-route'));
-const AdminAgeVerificationPage = lazy(() => import('./pages/admin/age-verification'));
+const AdminAgeVerificationPage = lazy(() => import('./pages/admin/age-verification-route'));
 
 const CookieBanner = lazy(() =>
   import('@/components/CookieBanner').catch((error) => {
