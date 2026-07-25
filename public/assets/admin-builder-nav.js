@@ -1,6 +1,7 @@
 (() => {
   const settingsHref = '/admin/pages?view=settings';
   const gatesHref = '/admin/gates';
+  const partnerGalleriesHref = '/admin/partner-galleries';
 
   function replaceLabel(link, from, to) {
     const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
@@ -51,7 +52,7 @@
     if (!primary) return;
 
     primary.style.flexWrap = 'nowrap';
-    primary.querySelectorAll(`a[href="${gatesHref}"]`).forEach(link => link.remove());
+    primary.querySelectorAll(`a[href="${gatesHref}"],a[href="${partnerGalleriesHref}"]`).forEach(link => link.remove());
     primary.querySelectorAll('a').forEach(link => {
       link.style.whiteSpace = 'nowrap';
       link.style.flexShrink = '0';
@@ -113,10 +114,24 @@
     toolsMenu?.querySelectorAll('a[href="/admin/site-settings"]').forEach(link => {
       cloneAfterInToolsMenu(link, gatesHref, 'Launch & Maintenance Gate Control Centre', 'Gate Control Centre');
     });
+    toolsMenu?.querySelectorAll('a[href="/admin/affiliate-content"],a[href="/admin/content"]').forEach(link => {
+      cloneAfterInToolsMenu(link, partnerGalleriesHref, 'Manage Headout and GetYourGuide galleries', 'Partner Galleries');
+    });
 
     enhanceSiteSettings();
     keepPrimaryHeaderStable();
   }
+
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+    if (!link) return;
+    const path = new URL(link.href, window.location.origin).pathname.replace(/\/+$/, '') || '/';
+    if (path !== partnerGalleriesHref) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.location.assign(partnerGalleriesHref);
+  }, true);
 
   apply();
   const observer = new MutationObserver(apply);
