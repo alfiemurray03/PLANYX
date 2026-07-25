@@ -1,3 +1,5 @@
+import { linkAgeVerificationRecord } from "./age-verification-records.js";
+
 const AGE_COOKIE = "planyx_age_assurance";
 const POLICY_VERSION = "planyx-16-plus-v1";
 const MINIMUM_AGE = 16;
@@ -101,6 +103,12 @@ async function signPayload(encodedPayload, env) {
   return base64Url(new Uint8Array(signature));
 }
 
+function newVerificationId() {
+  const day = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+  const random = crypto.randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase();
+  return `AGE-${day}-${random}`;
+}
+
 export async function createAgeAssurance(dateOfBirth, env) {
   const parsed = parseBirthDate(dateOfBirth);
   if (!parsed) throw new Error("Enter a valid date of birth.");
@@ -109,17 +117,29 @@ export async function createAgeAssurance(dateOfBirth, env) {
   const now = Math.floor(Date.now() / 1000);
   const ageBand = age < 18 ? "16-17" : "18+";
   const adultOn = ageBand === "16-17" ? adultOnFor(parsed) : "";
+  const verificationId = newVerificationId();
   const payload = {
     v: 1,
     policy: POLICY_VERSION,
     band: ageBand,
     adultOn,
+    ref: verificationId,
     iat: now,
     exp: now + COOKIE_SECONDS,
   };
   const encoded = base64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const signature = await signPayload(encoded, env);
-  return { eligible: true, ageBand, adultOn, token: `${encoded}.${signature}`, payload };
+  return {
+    eligible: true,
+    ageBand,
+    adultOn,
+    verificationId,
+    dateOfBirth: parsed.value,
+    verifiedAt: new Date(now * 1000).toISOString(),
+    expiresAt: new Date((now + COOKIE_SECONDS) * 1000).toISOString(),
+    token: `${encoded}.${signature}`,
+    payload,
+  };
 }
 
 export async function readAgeAssurance(request, env) {
@@ -128,7 +148,7 @@ export async function readAgeAssurance(request, env) {
   if (!encoded || !signature) return null;
   try {
     const valid = await crypto.subtle.verify(
-      "HMAC",
+      { name: "HMAC", hash: "SHA-256" },
       await hmacKey(env),
       decodeBase64Url(signature),
       new TextEncoder().encode(encoded),
@@ -144,8 +164,10 @@ export async function readAgeAssurance(request, env) {
       eligible: true,
       ageBand,
       adultOn: ageBand === "16-17" ? clean(payload.adultOn, 10) : "",
+      verificationId: clean(payload.ref, 80),
       policyVersion: POLICY_VERSION,
       verifiedAt: new Date(Number(payload.iat || now) * 1000).toISOString(),
+      expiresAt: new Date(Number(payload.exp || now) * 1000).toISOString(),
       method: "Self-declared date of birth converted to a signed age band",
     };
   } catch {
@@ -186,6 +208,7 @@ export async function ensureAgeSafeguardingColumns(DB) {
     "age_verified_at TEXT",
     "age_assurance_method TEXT",
     "age_policy_version TEXT",
+    "age_verification_id TEXT",
     "registration_eligible INTEGER DEFAULT 0",
     "minor_safeguards_enabled INTEGER DEFAULT 0",
     "profile_visibility TEXT DEFAULT 'private'",
@@ -214,10 +237,11 @@ export async function persistAgeAssurance(DB, email, assurance) {
   const minor = ageBand === "16-17" ? 1 : 0;
   const transitionAt = minor ? clean(assurance.adultOn, 10) : "";
   if (minor && !/^\d{4}-\d{2}-\d{2}$/.test(transitionAt)) throw new Error("The young-person safeguard transition date is missing.");
+  const verificationId = clean(assurance.verificationId, 80);
 
   await DB.prepare(`UPDATE profiles SET
     age_band=?, age_transition_at=?, age_verified_at=CURRENT_TIMESTAMP,
-    age_assurance_method=?, age_policy_version=?, registration_eligible=?,
+    age_assurance_method=?, age_policy_version=?, age_verification_id=?, registration_eligible=?,
     minor_safeguards_enabled=?,
     profile_visibility=CASE WHEN ?=1 THEN 'private' ELSE COALESCE(NULLIF(profile_visibility,''),'private') END,
     public_discovery_allowed=CASE WHEN ?=1 THEN 0 ELSE COALESCE(public_discovery_allowed,0) END,
@@ -232,6 +256,7 @@ export async function persistAgeAssurance(DB, email, assurance) {
       transitionAt,
       clean(assurance.method || "Self-declared date of birth converted to an age band", 180),
       clean(assurance.policyVersion || POLICY_VERSION, 80),
+      verificationId || null,
       eligible ? 1 : 0,
       minor,
       minor,
@@ -241,7 +266,8 @@ export async function persistAgeAssurance(DB, email, assurance) {
       minor,
       clean(email, 254).toLowerCase(),
     ).run();
-  return { eligible, ageBand, adultOn: transitionAt, minorSafeguards: minor === 1 };
+  if (verificationId) await linkAgeVerificationRecord(DB, email, verificationId).catch(() => null);
+  return { eligible, ageBand, adultOn: transitionAt, minorSafeguards: minor === 1, verificationId };
 }
 
 export async function profileAgeStatus(DB, email) {
@@ -249,7 +275,7 @@ export async function profileAgeStatus(DB, email) {
   await ensureAgeSafeguardingColumns(DB);
   const columns = await tableColumns(DB, "profiles");
   if (!columns.has("age_band") || !columns.has("age_transition_at")) return { eligible: false, reason: "age-check-required" };
-  const profile = await DB.prepare(`SELECT age_band, age_transition_at, age_verified_at, registration_eligible,
+  const profile = await DB.prepare(`SELECT age_band, age_transition_at, age_verified_at, age_verification_id, registration_eligible,
       minor_safeguards_enabled FROM profiles WHERE lower(email)=lower(?) LIMIT 1`)
     .bind(clean(email, 254).toLowerCase()).first().catch(() => null);
   if (!profile?.age_band || !profile?.age_verified_at) return { eligible: false, reason: "age-check-required" };
@@ -272,6 +298,7 @@ export async function profileAgeStatus(DB, email) {
     adultOn: ageBand === "16-17" ? clean(profile.age_transition_at, 10) : "",
     minorSafeguards: ageBand === "16-17" || Number(profile.minor_safeguards_enabled || 0) === 1,
     verifiedAt: profile.age_verified_at,
+    verificationId: clean(profile.age_verification_id, 80),
   };
 }
 
