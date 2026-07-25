@@ -1,1 +1,1 @@
-export { onRequest } from "./website-studio-v2.js";
+export { onRequest } from "./website-studio-v3.js";
