@@ -1,4 +1,4 @@
-import { readGateSettings, renderLaunchGate } from "../_shared/site-gates.js";
+import { readGateSettings, renderLaunchGate } from "../_shared/site-gates-v2.js";
 
 async function preserveLegacyHeadline(DB, config) {
   if (!DB) return config;
