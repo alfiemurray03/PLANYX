@@ -1,6 +1,16 @@
 import { clean, configFrom, loadAssistantSettings } from "../_shared/support-assistant-core.js";
 import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../_shared/age-verification-settings.js";
 
+const KNOWLEDGE_VERSION = "2026-07-25";
+const CUSTOMER_SUGGESTIONS = [
+  "Why is Planyx 16+?",
+  "What happens to my date of birth?",
+  "Is this independent age verification?",
+  "What safeguards apply at 16–17?",
+  "Which stronger age-check methods may be used?",
+  "What if the check does not work?",
+];
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -38,9 +48,9 @@ function ageAiConfig(record) {
     failureSupportEnabled: bool(record.age_ai_failure_support_enabled, true),
     contactHandoverEnabled: bool(record.age_ai_contact_handover_enabled, false),
     debugEnabled: bool(record.age_ai_debug_enabled, false),
-    welcomeMessage: clean(record.age_ai_welcome_message || "Hello. I can explain Planyx’s 16+ age check, privacy safeguards and what to do if verification is not working. I cannot guess or approve anyone’s age.", 600),
+    welcomeMessage: clean(record.age_ai_welcome_message || "Hello. I can explain Planyx’s 16+ account check, privacy safeguards, stronger verification methods and what to do if the process is not working. Do not send me your date of birth or identity documents.", 600),
     inputPlaceholder: clean(record.age_ai_input_placeholder || "Ask about the 16+ age check…", 120),
-    guardrailMessage: clean(record.age_ai_guardrail_message || "Only the secure Planyx age check or an approved independent provider can decide account eligibility. The AI assistant cannot estimate, approve or override age verification.", 700),
+    guardrailMessage: clean(record.age_ai_guardrail_message || "I cannot guess, estimate, approve, reject or override anyone’s age. Enter personal information only in the secure age-check field or an approved provider journey.", 700),
     maxTurns: integer(record.age_ai_max_turns, 6, 1, 12),
   };
 }
@@ -57,20 +67,111 @@ function saysUnderSixteen(message) {
   return /\b(?:under[- ]?16|aged?\s+1[0-5]|i am\s+1[0-5]|i'm\s+1[0-5])\b/i.test(message);
 }
 
+function asksToBypass(message) {
+  return /\b(?:bypass|skip|evade|fake|false|lie|inspect element|clear cookies|change cookies|vpn)\b.{0,40}\b(?:age|check|gate|verification|date of birth|dob)\b/i.test(message);
+}
+
+function offersSensitiveMaterial(message) {
+  return /\b(?:upload|send|share|attach)\b.{0,40}\b(?:passport|driving licen[cs]e|identity document|id card|selfie|bank statement|card details)\b/i.test(message);
+}
+
 const KNOWLEDGE = [
-  { terms: ["why", "16", "minimum", "age"], answer: "Planyx is restricted to people aged 16 or over. The check enforces that account rule and lets the platform apply enhanced privacy and safeguarding defaults to users aged 16–17." },
-  { terms: ["privacy", "store", "data", "birth"], answer: "Use the secure date-of-birth field, not this chat. Planyx converts the result into eligibility and an age band. The normal customer profile does not retain the full date of birth." },
-  { terms: ["16", "17", "young", "safeguards"], answer: "Customers aged 16–17 receive enhanced safeguards: private profile, public discovery off, non-essential profiling and marketing off, and precise location sharing off by default." },
-  { terms: ["failed", "not working", "error", "maintenance", "paused"], answer: "Check the message shown by the secure age-check page. During maintenance or a registration pause, Planyx blocks new registrations rather than allowing an unverified account through." },
-  { terms: ["microsoft", "sign in", "signup", "account"], answer: "The age check happens before Microsoft customer sign-in. Microsoft verifies the account identity and email address; the Planyx age gate or an approved independent provider supplies the age-eligibility result." },
-  { terms: ["provider", "passport", "selfie", "document"], answer: "Independent-provider mode is only used after onboarding, technical validation and governance approval. Planyx should receive the minimum result needed rather than retaining identity-document images or selfies." },
+  {
+    terms: ["why", "16", "minimum", "age", "need"],
+    answer: "Planyx accounts are restricted to people aged 16 or over. The age journey enforces that account rule and applies enhanced privacy and safeguarding defaults to customers aged 16–17. Public information can still be viewed without creating an account.",
+  },
+  {
+    terms: ["self declaration", "independent", "highly effective", "heaa", "ofcom", "compliant"],
+    answer: "The current Planyx date-of-birth form is a signed self-declaration used to decide account eligibility. It is not independent proof of age and must not be described as Ofcom ‘highly effective age assurance’. Under the Online Safety Act, self-declaration on its own does not count as age verification or age estimation where the Act requires those measures. The ICO also says self-declaration should not be relied on alone for higher-risk services. Whether a stronger check is required depends on the service’s legal scope and documented risk assessment.",
+  },
+  {
+    terms: ["method", "stronger", "provider", "open banking", "mobile", "mno", "facial", "photo id", "digital identity", "credit card", "email estimation"],
+    answer: "Methods Ofcom identifies as capable of being highly effective, when properly implemented, include open-banking age checks, photo-ID matching, facial age estimation, mobile-network-operator age checks, credit-card checks, email-based age estimation and digital identity services. A method is not automatically effective just because it is on that list: the whole process must be technically accurate, robust, reliable and fair.",
+  },
+  {
+    terms: ["open banking", "bank", "bank account"],
+    answer: "An approved open-banking age-check service can use verified banking information to return an age-threshold result. Planyx should receive only the minimum result needed, such as whether the person meets the required age, rather than bank balances, transaction history or a full date of birth.",
+  },
+  {
+    terms: ["mobile network", "mno", "phone", "adult content block"],
+    answer: "A mobile-network-operator age check may confirm that the network has completed an adult-status check for the mobile account, for example where an adult-content restriction has been removed. It is a provider result, not permission for Planyx to access calls, messages or ordinary mobile-account data.",
+  },
+  {
+    terms: ["face", "facial", "selfie", "photo", "passport", "licence", "document", "digital id"],
+    answer: "A stronger provider may offer facial age estimation, photo-ID matching or a reusable digital identity. Use only the provider’s secure journey. Never send a selfie, passport, driving licence or identity-document image to the Planyx AI guide or ordinary Contact Us form. Planyx should receive a minimal result, reference and expiry rather than retaining provider images.",
+  },
+  {
+    terms: ["card", "payment", "debit", "credit"],
+    answer: "Making a payment, holding a debit card or ticking a box is not independent proof of age. Ofcom does not treat payment methods that do not require the user to be over 18, such as ordinary debit-card payments, as highly effective age assurance. A regulated credit-card age check may be suitable for confirming 18+, but it cannot fairly cover eligible Planyx customers aged 16–17.",
+  },
+  {
+    terms: ["privacy", "store", "data", "birth", "dob", "encrypted", "crm", "retention"],
+    answer: "Enter your date of birth only in the secure field. In the current Planyx process it is encrypted in a restricted age-verification record, masked by default and subject to audited administrator access. The ordinary customer profile uses only the eligibility result, age band and safeguarding status. Provider documents, selfies and secrets should not be stored by Planyx unless strictly necessary and lawfully justified.",
+  },
+  {
+    terms: ["16", "17", "young", "safeguards", "privacy defaults"],
+    answer: "Customers aged 16–17 receive enhanced safeguards: a private profile, public discovery off, non-essential profiling and marketing off, precise location sharing off by default, and a safeguarding-review flag. These safeguards cannot be switched off through the ordinary customer journey.",
+  },
+  {
+    terms: ["under 16", "15", "14", "child", "too young"],
+    answer: "Nobody under 16 may register for or use a Planyx customer account. The account journey is stopped and any temporary age token is cleared. Do not enter a false date of birth or use another person’s details. Public pages and safety information remain available without an account.",
+  },
+  {
+    terms: ["failed", "not working", "error", "maintenance", "paused", "retry"],
+    answer: "Read the message shown on the secure age-check page. During maintenance or a registration pause, Planyx blocks new registrations rather than allowing an unverified account through. Refresh once, check that the date is complete and accurate, and try again later. Do not repeatedly submit different dates. If support is available, contact Planyx without attaching identity documents.",
+  },
+  {
+    terms: ["wrong", "mistake", "correct", "change", "appeal", "review"],
+    answer: "If you entered the wrong date, stop and use the secure process again only with accurate information. Where an eligibility decision appears wrong or an independent provider fails, request a review through the published support route. Do not send identity documents through ordinary email or AI chat; Planyx should provide a secure verification route if evidence is genuinely required.",
+  },
+  {
+    terms: ["microsoft", "sign in", "signup", "account", "email"],
+    answer: "The age check normally happens before Microsoft customer sign-in. Microsoft verifies the customer account identity and email address. The Planyx eligibility declaration or an approved independent provider supplies the separate age result. Microsoft sign-in by itself does not prove age.",
+  },
+  {
+    terms: ["bypass", "circumvention", "cookies", "inspect", "fake", "false date"],
+    answer: "Do not attempt to bypass the age gate, alter browser data, submit changing dates or use somebody else’s details. Planyx uses server-side signed results and may require a fresh or stronger check where information is inconsistent. False information may lead to registration being refused, access being suspended or an account being closed under the applicable terms.",
+  },
+  {
+    terms: ["ai", "chatbot", "guide", "decide", "guess"],
+    answer: "The Age Verification Guide provides explanations only. It cannot view you, estimate your age, approve an account, inspect an identity document or override a failed result. Do not place personal dates, documents, payment data or authentication secrets into the chat.",
+  },
+  {
+    terms: ["law", "legal", "ico", "children's code", "risk assessment", "dpia"],
+    answer: "Age assurance must be risk-based and privacy-preserving. The ICO expects services to assess the risks to children, choose a proportionate and sufficiently robust method, minimise personal data, consider circumvention and document the decision through appropriate governance such as a DPIA or Children’s Code assessment. Regulatory requirements depend on the service and content, so this guide provides general information rather than legal advice.",
+  },
 ];
 
 function builtInAnswer(message, settings, ageAi) {
   const lower = message.toLowerCase();
-  const best = KNOWLEDGE.map((item) => ({ item, score: item.terms.reduce((sum, term) => sum + (lower.includes(term) ? 2 : 0), 0) })).sort((a, b) => b.score - a.score)[0];
-  const state = settings.serviceStatus === "live" ? "The age-verification service is currently live." : `The age-verification service is currently ${settings.serviceStatus}; new registration remains safely blocked.`;
-  return `${best?.score ? best.item.answer : "I can explain the 16+ rule, privacy, safeguards, maintenance and provider checks. I cannot determine or guess anyone’s age."}\n\n${state}\n\n${ageAi.guardrailMessage}`;
+  const best = KNOWLEDGE
+    .map((item) => ({ item, score: item.terms.reduce((sum, term) => sum + (lower.includes(term) ? 2 : 0), 0) }))
+    .sort((a, b) => b.score - a.score)[0];
+  const state = settings.serviceStatus === "live"
+    ? `The Planyx age-check service is currently live. The configured method is ${settings.verificationMethod === "independent_provider" ? "an independent provider" : "a signed self-declaration"}.`
+    : `The age-check service is currently ${settings.serviceStatus}; new registration remains safely blocked.`;
+  const defaultAnswer = "I can explain the Planyx 16+ rule, the current self-declaration, stronger provider methods, privacy, safeguards, maintenance and review routes. I cannot determine or guess anyone’s age.";
+  return `${best?.score ? best.item.answer : defaultAnswer}\n\n${state}\n\n${ageAi.guardrailMessage}`;
+}
+
+function systemKnowledge(settings, ageAi) {
+  return `You are the Planyx Age Verification Guide, part of the shared Planyx AI systems. Use clear British English and concise paragraphs.
+
+Planyx facts:
+- Planyx customer accounts are 16+.
+- Under-16 registration and account use are prohibited.
+- Ages 16-17 receive mandatory high-privacy and safeguarding defaults.
+- The current signed date-of-birth form is a self-declaration used for Planyx account eligibility. It is not independent proof of age and must not be called Ofcom highly effective age assurance.
+- If a stronger check is required, approved methods may include open banking, photo-ID matching, facial age estimation, mobile-network-operator checks, credit-card checks for 18+, email-based age estimation or digital identity services. Explain that effectiveness depends on accurate, robust, reliable and fair implementation.
+- A debit-card payment, ordinary online payment or tick-box is not independent proof of age.
+- Planyx should receive and retain the minimum result needed. Never invite uploads of passports, driving licences, selfies, bank data or payment details into AI chat or Contact Us.
+- The current secure field encrypts the date of birth in a restricted verification record; the ordinary profile uses eligibility, age band and safeguard status.
+- Microsoft sign-in verifies account identity and email, not age.
+- Do not help users bypass, evade or falsify the age check.
+- Explain that regulatory requirements depend on service risk and scope; provide general information, not legal advice.
+
+Safety rules:
+Never guess, estimate, approve, fail or override a person's age. Never ask for or repeat a full date of birth, identity document, selfie, bank information, payment details, cookie, token or authentication secret. Direct personal information to the secure age-check or approved-provider journey only. Service state: ${settings.serviceStatus}. Configured method: ${settings.verificationMethod}. Guardrail: ${ageAi.guardrailMessage}`;
 }
 
 async function workersAnswer(env, shared, message, history, settings, ageAi) {
@@ -78,12 +179,12 @@ async function workersAnswer(env, shared, message, history, settings, ageAi) {
   try {
     const result = await env.AI.run(shared.model, {
       messages: [
-        { role: "system", content: `You are the Planyx Age Verification Guide, part of the shared Planyx AI systems. Explain the 16+ rule, privacy, safeguards for ages 16–17, maintenance and provider checks. Never guess, estimate, approve, fail or override a person's age. Never ask for or repeat a full date of birth, identity document, selfie, payment detail or authentication secret. Tell the person to use the secure age-check form. Under 16 cannot register. Only the signed Planyx check or an approved independent provider can decide eligibility. Service state: ${settings.serviceStatus}. Method: ${settings.verificationMethod}. Guardrail: ${ageAi.guardrailMessage}` },
+        { role: "system", content: systemKnowledge(settings, ageAi) },
         ...(Array.isArray(history) ? history.slice(-Math.min(ageAi.maxTurns * 2, 12)).map((item) => ({ role: item?.role === "assistant" ? "assistant" : "user", content: clean(item?.content || item?.text, 800) })) : []),
         { role: "user", content: clean(message, 1200) },
       ],
     });
-    const response = clean(result?.response || result?.result?.response || result?.text, 1800);
+    const response = clean(result?.response || result?.result?.response || result?.text, 2200);
     if (!response || /\b(?:you are|you're|appears? to be|looks? like)\s+(?:under|over|aged?|\d{1,2})/i.test(response)) return "";
     return response;
   } catch (error) {
@@ -100,7 +201,21 @@ export async function onRequest(context) {
   const settings = await getAgeVerificationSettings(env.DB, env);
 
   if (request.method === "GET") {
-    return json({ success: true, enabled: ageAi.enabled && shared.enabled, maintenance: shared.maintenanceEnabled, welcomeMessage: ageAi.welcomeMessage, inputPlaceholder: ageAi.inputPlaceholder, provider: shared.provider, model: shared.model, serviceStatus: settings.serviceStatus, guardrails: { aiCannotDecideAge: true, secureFormOnly: true, fullDobInChatProhibited: true, documentsInChatProhibited: true } });
+    return json({
+      success: true,
+      enabled: ageAi.enabled && shared.enabled,
+      maintenance: shared.maintenanceEnabled,
+      welcomeMessage: ageAi.welcomeMessage,
+      inputPlaceholder: ageAi.inputPlaceholder,
+      suggestions: CUSTOMER_SUGGESTIONS,
+      provider: shared.provider,
+      model: shared.model,
+      serviceStatus: settings.serviceStatus,
+      verificationMethod: settings.verificationMethod,
+      knowledgeVersion: KNOWLEDGE_VERSION,
+      knowledgeCoverage: ["16+ account rule", "self-declaration limitations", "Ofcom-capable methods", "ICO risk and privacy principles", "16–17 safeguards", "data handling", "maintenance and review", "anti-circumvention"],
+      guardrails: { aiCannotDecideAge: true, secureFormOnly: true, fullDobInChatProhibited: true, documentsInChatProhibited: true, bypassAdviceProhibited: true },
+    });
   }
   if (request.method !== "POST") return json({ success: false, error: "Method not allowed." }, 405);
   if (!sameOrigin(request)) return json({ success: false, error: "Request origin was rejected." }, 403);
@@ -114,15 +229,35 @@ export async function onRequest(context) {
 
   let reply = "";
   let source = "age_guard";
-  if (containsPersonalBirthDate(message)) reply = "Please do not send a full date of birth in this chat. Enter it only in the secure Planyx age-check field. The AI does not need and cannot verify that personal information.";
-  else if (asksAiToDecideAge(message)) reply = ageAi.guardrailMessage;
-  else if (saysUnderSixteen(message)) reply = "Planyx accounts are strictly for people aged 16 or over. Nobody under 16 may register or use a customer account. Do not enter a false date of birth. Public information and the 16+ safety page remain available without an account.";
-  else {
+  if (containsPersonalBirthDate(message)) {
+    reply = "Please do not send a full date of birth in this guide. Enter it only in the secure Planyx age-check field. The guide does not need and cannot verify that personal information.";
+  } else if (offersSensitiveMaterial(message)) {
+    reply = "Do not upload or send identity documents, selfies, bank information or payment details through this guide or the ordinary Contact Us service. Use only a secure approved-provider journey if Planyx specifically requires stronger evidence.";
+  } else if (asksToBypass(message)) {
+    reply = "I cannot help bypass or falsify the Planyx age check. Enter accurate information through the secure journey. Attempts to evade the gate may result in registration being refused, a fresh independent check or account action under the applicable terms.";
+  } else if (asksAiToDecideAge(message)) {
+    reply = ageAi.guardrailMessage;
+  } else if (saysUnderSixteen(message)) {
+    reply = "Planyx accounts are strictly for people aged 16 or over. Nobody under 16 may register or use a customer account. Do not enter a false date of birth. Public information and the 16+ safety page remain available without an account.";
+  } else {
     reply = await workersAnswer(env, shared, message, history, settings, ageAi);
     source = reply ? "shared_workers_ai" : "age_built_in";
     if (!reply) reply = builtInAnswer(message, settings, ageAi);
   }
 
-  await recordAgeVerificationEvent(env.DB, request, { eventType: "age_ai_guidance", outcome: "success", method: source, provider: shared.provider, detail: "Age-verification AI guidance supplied. The visitor's message content was not stored in the age-verification event record." }).catch(() => null);
-  return json({ success: true, reply, source, suggestions: ["Why is Planyx 16+?", "What is stored?", "Safeguards for ages 16–17", "The check is not working"], guardrails: { aiCannotDecideAge: true, secureFormOnly: true } });
+  await recordAgeVerificationEvent(env.DB, request, {
+    eventType: "age_ai_guidance",
+    outcome: "success",
+    method: source,
+    provider: shared.provider,
+    detail: `Age-verification AI guidance supplied using knowledge version ${KNOWLEDGE_VERSION}. The visitor's message content was not stored in the age-verification event record.`,
+  }).catch(() => null);
+  return json({
+    success: true,
+    reply,
+    source,
+    suggestions: CUSTOMER_SUGGESTIONS,
+    knowledgeVersion: KNOWLEDGE_VERSION,
+    guardrails: { aiCannotDecideAge: true, secureFormOnly: true, fullDobInChatProhibited: true, documentsInChatProhibited: true, bypassAdviceProhibited: true },
+  });
 }
