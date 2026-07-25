@@ -22,6 +22,6 @@ test('embedded age controls remain functional and visually integrated', async ()
   assert.match(enhancer, /\.admin-portal > footer/);
   assert.match(enhancer, /\.admin-portal > main/);
   assert.match(enhancer, /ResizeObserver/);
-  assert.match(enhancer, /credentials/);
+  assert.doesNotMatch(enhancer, /sandbox=/);
   assert.match(enhancer, /Open full page/);
 });
