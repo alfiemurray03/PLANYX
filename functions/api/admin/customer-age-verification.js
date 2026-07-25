@@ -195,7 +195,7 @@ export async function onRequest(context) {
       publicDiscoveryAllowed: Number(profile.public_discovery_allowed || 0) === 1,
       profilingAllowed: Number(profile.profiling_allowed || 0) === 1,
       marketingAllowed: Number(profile.marketing_allowed || 0) === 1,
-      preciseLocationDefault: profile.precise_location_default || "off",
+      preciseLocationDefault: Number(profile.precise_location_default || 0) === 1,
       safeguardingReviewRequired: Number(profile.safeguarding_review_required || 0) === 1,
     },
     permissions: { canView: true, canReveal },
