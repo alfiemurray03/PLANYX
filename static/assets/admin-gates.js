@@ -48,12 +48,22 @@
   }
 
   function launchForm(c) {
-    return `<div class="gate-panel"><div class="gate-panel__head"><div><h2>Launch Gate content and design</h2><p>Every field below is used by the actual public coming-soon page.</p></div><a class="gate-button gate-button--secondary" href="/coming-soon/" target="_blank">Open live page</a></div><div class="gate-panel__body">
+    return `<div class="gate-panel"><div class="gate-panel__head"><div><h2>Launch Gate content and design</h2><p>Every field and visibility switch below controls the actual public coming-soon page.</p></div><a class="gate-button gate-button--secondary" href="/coming-soon/" target="_blank">Open live page</a></div><div class="gate-panel__body">
+      <div class="gate-note"><strong>Add or remove sections:</strong> switch any built-in section off to remove it from the public page. Feature cards and footer links can be added, edited or deleted individually.</div>
+      <div class="gate-fields">
+        ${toggle('launch.logoEnabled','Show logo','Remove the top Planyx logo and header when disabled.',c.logoEnabled)}
+        ${toggle('launch.signalEnabled','Show route symbol','Display the circular route symbol above the heading.',c.signalEnabled)}
+        ${toggle('launch.statusEnabled','Show status label','Display the small launch-status line above the headline.',c.statusEnabled)}
+        ${toggle('launch.headlineEnabled','Show main headline','Display the main headline and highlighted words.',c.headlineEnabled)}
+        ${toggle('launch.subtextEnabled','Show supporting text','Display the larger supporting paragraph.',c.subtextEnabled)}
+        ${toggle('launch.descriptionEnabled','Show description','Display the smaller explanatory paragraph.',c.descriptionEnabled)}
+        ${toggle('launch.footerEnabled','Show footer','Display copyright and legal links.',c.footerEnabled)}
+      </div>
       <div class="gate-fields">
         ${input('launch.logoUrl','Logo URL',c.logoUrl,{hint:'Use a hosted URL or /assets/... path.'})}
         ${input('launch.statusLabel','Status label',c.statusLabel,{hint:'Small line above the headline.'})}
         ${input('launch.headline','Headline',c.headline,{wide:true})}
-        ${input('launch.highlight','Highlighted headline words',c.highlight,{wide:true,hint:'Displayed with the Planyx gradient. Leave blank to remove.'})}
+        ${input('launch.highlight','Highlighted headline words',c.highlight,{wide:true,hint:'Displayed with the Planyx gradient. Leave blank to remove highlighted words.'})}
         ${input('launch.subtext','Supporting text',c.subtext,{wide:true,rows:3})}
         ${input('launch.description','Description',c.description,{wide:true,rows:4})}
         ${input('launch.seoTitle','Browser and SEO title',c.seoTitle,{wide:true})}
@@ -63,7 +73,7 @@
       <div class="gate-field"><span>Feature cards</span><small>Add, edit or remove any item.</small>${listEditor('launch.features',c.features,'features')}</div>
       ${toggle('launch.countdownEnabled','Show launch countdown','Display a live countdown to the saved date.',c.countdownEnabled)}
       <div class="gate-fields">${input('launch.countdownLabel','Countdown label',c.countdownLabel)}${input('launch.launchDate','Launch date and time',c.launchDate ? c.launchDate.slice(0,16) : '',{type:'datetime-local'})}</div>
-      <div class="gate-note"><strong>Owner sign-in:</strong> the public page includes a small bottom-centre owner access control. You can edit or remove it below.</div>
+      <div class="gate-note"><strong>Owner sign-in:</strong> this is rendered in its own bottom-centre area between the page content and footer.</div>
       ${toggle('launch.ownerEnabled','Show owner sign-in','Display the owner prompt and sign-in button at the bottom centre.',c.ownerEnabled)}
       <div class="gate-fields">${input('launch.ownerPrompt','Owner prompt',c.ownerPrompt)}${input('launch.ownerButtonLabel','Button label',c.ownerButtonLabel)}${input('launch.ownerUrl','Sign-in URL',c.ownerUrl,{wide:true})}</div>
       <div class="gate-field"><span>Footer links</span><small>Add, update or remove the links displayed in the gate footer.</small>${listEditor('launch.legalLinks',c.legalLinks,'links')}</div>
@@ -75,6 +85,15 @@
 
   function maintenanceForm(c) {
     return `<div class="gate-panel"><div class="gate-panel__head"><div><h2>Maintenance Gate content and design</h2><p>Saving generates the exact HTML used by the live maintenance middleware.</p></div><a class="gate-button gate-button--secondary" href="/maintenance/" target="_blank">Open live page</a></div><div class="gate-panel__body">
+      <div class="gate-note"><strong>Add or remove sections:</strong> use the switches to remove built-in maintenance content without touching code.</div>
+      <div class="gate-fields">
+        ${toggle('maintenance.logoEnabled','Show logo','Display the Planyx logo in the maintenance header.',c.logoEnabled)}
+        ${toggle('maintenance.statusEnabled','Show status indicator','Display the maintenance-in-progress status.',c.statusEnabled)}
+        ${toggle('maintenance.reasonEnabled','Show maintenance reason','Display the small reason label above the heading.',c.reasonEnabled)}
+        ${toggle('maintenance.titleEnabled','Show page heading','Display the main maintenance heading.',c.titleEnabled)}
+        ${toggle('maintenance.messageEnabled','Show customer message','Display the main explanatory message.',c.messageEnabled)}
+        ${toggle('maintenance.footerEnabled','Show footer','Display copyright and legal links.',c.footerEnabled)}
+      </div>
       <div class="gate-fields">
         ${input('maintenance.logoUrl','Logo URL',c.logoUrl)}
         ${input('maintenance.statusLabel','Status label',c.statusLabel)}
@@ -89,7 +108,7 @@
       ${toggle('maintenance.timelineEnabled','Show maintenance timeline','Display start and expected-return information when supplied.',c.timelineEnabled)}
       ${toggle('maintenance.contactEnabled','Show contact guidance','Display the editable support guidance panel.',c.contactEnabled)}
       ${input('maintenance.contactText','Contact guidance',c.contactText,{wide:true,rows:3})}
-      ${toggle('maintenance.ownerEnabled','Show owner sign-in','Display the owner prompt and sign-in button at the bottom centre.',c.ownerEnabled)}
+      ${toggle('maintenance.ownerEnabled','Show owner sign-in','Display the owner prompt and sign-in button in the bottom-centre area.',c.ownerEnabled)}
       <div class="gate-fields">${input('maintenance.ownerPrompt','Owner prompt',c.ownerPrompt)}${input('maintenance.ownerButtonLabel','Button label',c.ownerButtonLabel)}${input('maintenance.ownerUrl','Sign-in URL',c.ownerUrl,{wide:true})}</div>
       <div class="gate-field"><span>Footer links</span><small>Add, update or remove maintenance-page links.</small>${listEditor('maintenance.legalLinks',c.legalLinks,'links')}</div>
       ${input('maintenance.footerText','Footer copyright text',c.footerText,{wide:true})}
