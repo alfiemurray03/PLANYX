@@ -2,7 +2,9 @@
   const VALID_VIEWS = new Set(['files', 'code', 'preview', 'history']);
 
   function addSourceTab(nav) {
-    if (!(nav instanceof HTMLElement) || nav.querySelector('[data-website-source-tab]')) return;
+    if (!(nav instanceof HTMLElement)) return;
+    const existing = Array.from(nav.querySelectorAll('a,button,span')).find(item => (item.textContent || '').trim() === 'Source Code');
+    if (existing || nav.querySelector('[data-website-source-tab]')) return;
     const source = document.createElement('a');
     source.href = '/admin/pages?view=source';
     source.dataset.websiteSourceTab = 'true';
