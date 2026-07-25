@@ -1,4 +1,6 @@
 (() => {
+  const settingsHref = '/admin/pages?view=settings';
+
   function replaceLabel(link, from, to) {
     const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
     let node;
@@ -14,13 +16,17 @@
       item.setAttribute('aria-hidden', 'true');
     });
 
+    document.querySelectorAll('a[href="/admin/website-builder-settings"]').forEach(link => {
+      link.setAttribute('href', settingsHref);
+    });
+
     document.querySelectorAll('a[href="/admin/pages"]').forEach(link => {
       replaceLabel(link, 'Website Pages', 'AI Website Builder');
       link.setAttribute('title', 'AI Website Builder');
 
-      if (document.querySelector('a[href="/admin/website-builder-settings"]')) return;
+      if (document.querySelector(`a[href="${settingsHref}"]`)) return;
       const clone = link.cloneNode(true);
-      clone.setAttribute('href', '/admin/website-builder-settings');
+      clone.setAttribute('href', settingsHref);
       clone.setAttribute('title', 'Website Builder Settings');
       replaceLabel(clone, 'AI Website Builder', 'Builder Settings');
       replaceLabel(clone, 'Website Pages', 'Builder Settings');
