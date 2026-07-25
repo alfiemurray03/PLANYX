@@ -45,7 +45,7 @@ test('Customer CRM masks DOB and requires an audited Admin PIN reveal', async ()
   assert.match(panel, /Legacy result/);
   assert.match(panel, /The DOB itself is not logged/);
   assert.match(enhancer, /data-customer-age-verification-crm/);
-  assert.match(app, /CustomerCrmAgeVerificationEnhancer/);
+  assert.doesNotMatch(app, /CustomerCrmAgeVerificationEnhancer/, 'The CRM DOM enhancer must never be mounted globally because it can affect every Admin route.');
 });
 
 test('public age-check wording explains restricted encrypted CRM retention', async () => {
