@@ -57,6 +57,25 @@ export function ageBandFor(dateOfBirth) {
   return "18+";
 }
 
+function adultOnFor(parsedBirthDate) {
+  const adultDate = new Date(Date.UTC(
+    parsedBirthDate.date.getUTCFullYear() + 18,
+    parsedBirthDate.date.getUTCMonth(),
+    parsedBirthDate.date.getUTCDate(),
+  ));
+  return adultDate.toISOString().slice(0, 10);
+}
+
+function isAdultTransitionReached(adultOn) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(clean(adultOn, 10))) return false;
+  return clean(adultOn, 10) <= new Date().toISOString().slice(0, 10);
+}
+
+function effectiveAgeBand(ageBand, adultOn) {
+  if (ageBand === "16-17" && isAdultTransitionReached(adultOn)) return "18+";
+  return ageBand;
+}
+
 function secretFor(env) {
   const secret = clean(env.AGE_ASSURANCE_SECRET || env.OIDC_TOKEN_ENCRYPTION_KEY, 2000);
   if (secret.length < 32) throw new Error("Age assurance is not configured securely.");
@@ -86,19 +105,21 @@ export async function createAgeAssurance(dateOfBirth, env) {
   const parsed = parseBirthDate(dateOfBirth);
   if (!parsed) throw new Error("Enter a valid date of birth.");
   const age = calculateAge(parsed.value);
-  if (age < MINIMUM_AGE) return { eligible: false, age, ageBand: "under-16", dateOfBirth: parsed.value };
+  if (age < MINIMUM_AGE) return { eligible: false, ageBand: "under-16", adultOn: "" };
   const now = Math.floor(Date.now() / 1000);
+  const ageBand = age < 18 ? "16-17" : "18+";
+  const adultOn = ageBand === "16-17" ? adultOnFor(parsed) : "";
   const payload = {
     v: 1,
     policy: POLICY_VERSION,
-    dob: parsed.value,
-    band: age < 18 ? "16-17" : "18+",
+    band: ageBand,
+    adultOn,
     iat: now,
     exp: now + COOKIE_SECONDS,
   };
   const encoded = base64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const signature = await signPayload(encoded, env);
-  return { eligible: true, age, ageBand: payload.band, dateOfBirth: parsed.value, token: `${encoded}.${signature}`, payload };
+  return { eligible: true, ageBand, adultOn, token: `${encoded}.${signature}`, payload };
 }
 
 export async function readAgeAssurance(request, env) {
@@ -116,16 +137,16 @@ export async function readAgeAssurance(request, env) {
     const payload = JSON.parse(new TextDecoder().decode(decodeBase64Url(encoded)));
     const now = Math.floor(Date.now() / 1000);
     if (payload?.v !== 1 || payload?.policy !== POLICY_VERSION || Number(payload?.exp || 0) <= now) return null;
-    const age = calculateAge(payload.dob);
-    if (age < MINIMUM_AGE) return null;
+    if (!["16-17", "18+"].includes(payload?.band)) return null;
+    if (payload.band === "16-17" && !/^\d{4}-\d{2}-\d{2}$/.test(clean(payload.adultOn, 10))) return null;
+    const ageBand = effectiveAgeBand(payload.band, payload.adultOn);
     return {
       eligible: true,
-      dateOfBirth: clean(payload.dob, 10),
-      age,
-      ageBand: age < 18 ? "16-17" : "18+",
+      ageBand,
+      adultOn: ageBand === "16-17" ? clean(payload.adultOn, 10) : "",
       policyVersion: POLICY_VERSION,
       verifiedAt: new Date(Number(payload.iat || now) * 1000).toISOString(),
-      method: "Self-declared date of birth with signed server assurance",
+      method: "Self-declared date of birth converted to a signed age band",
     };
   } catch {
     return null;
@@ -160,8 +181,8 @@ export async function ensureAgeSafeguardingColumns(DB) {
   )`).run();
 
   const columns = [
-    "date_of_birth TEXT",
     "age_band TEXT",
+    "age_transition_at TEXT",
     "age_verified_at TEXT",
     "age_assurance_method TEXT",
     "age_policy_version TEXT",
@@ -184,14 +205,18 @@ export async function ensureAgeSafeguardingColumns(DB) {
 }
 
 export async function persistAgeAssurance(DB, email, assurance) {
-  if (!DB || !email || !assurance?.dateOfBirth) throw new Error("Age assurance could not be linked to the account.");
+  if (!DB || !email || !assurance?.ageBand) throw new Error("Age assurance could not be linked to the account.");
   await ensureAgeSafeguardingColumns(DB);
-  const currentAge = calculateAge(assurance.dateOfBirth);
-  const eligible = currentAge >= MINIMUM_AGE;
-  const ageBand = eligible ? (currentAge < 18 ? "16-17" : "18+") : "under-16";
+  const requestedBand = clean(assurance.ageBand, 20);
+  if (!["under-16", "16-17", "18+"].includes(requestedBand)) throw new Error("The age assurance result is invalid.");
+  const ageBand = effectiveAgeBand(requestedBand, assurance.adultOn);
+  const eligible = ageBand === "16-17" || ageBand === "18+";
   const minor = ageBand === "16-17" ? 1 : 0;
+  const transitionAt = minor ? clean(assurance.adultOn, 10) : "";
+  if (minor && !/^\d{4}-\d{2}-\d{2}$/.test(transitionAt)) throw new Error("The young-person safeguard transition date is missing.");
+
   await DB.prepare(`UPDATE profiles SET
-    date_of_birth=?, age_band=?, age_verified_at=CURRENT_TIMESTAMP,
+    age_band=?, age_transition_at=?, age_verified_at=CURRENT_TIMESTAMP,
     age_assurance_method=?, age_policy_version=?, registration_eligible=?,
     minor_safeguards_enabled=?,
     profile_visibility=CASE WHEN ?=1 THEN 'private' ELSE COALESCE(NULLIF(profile_visibility,''),'private') END,
@@ -203,9 +228,9 @@ export async function persistAgeAssurance(DB, email, assurance) {
     updated_at=CURRENT_TIMESTAMP
     WHERE lower(email)=lower(?)`)
     .bind(
-      assurance.dateOfBirth,
       ageBand,
-      clean(assurance.method || "Self-declared date of birth with signed server assurance", 180),
+      transitionAt,
+      clean(assurance.method || "Self-declared date of birth converted to an age band", 180),
       clean(assurance.policyVersion || POLICY_VERSION, 80),
       eligible ? 1 : 0,
       minor,
@@ -216,27 +241,36 @@ export async function persistAgeAssurance(DB, email, assurance) {
       minor,
       clean(email, 254).toLowerCase(),
     ).run();
-  return { eligible, age: currentAge, ageBand, minorSafeguards: minor === 1 };
+  return { eligible, ageBand, adultOn: transitionAt, minorSafeguards: minor === 1 };
 }
 
 export async function profileAgeStatus(DB, email) {
   if (!DB || !email) return { eligible: false, reason: "missing-account" };
   await ensureAgeSafeguardingColumns(DB);
   const columns = await tableColumns(DB, "profiles");
-  if (!columns.has("date_of_birth")) return { eligible: false, reason: "age-check-required" };
-  const profile = await DB.prepare(`SELECT date_of_birth, age_band, age_verified_at, registration_eligible,
+  if (!columns.has("age_band") || !columns.has("age_transition_at")) return { eligible: false, reason: "age-check-required" };
+  const profile = await DB.prepare(`SELECT age_band, age_transition_at, age_verified_at, registration_eligible,
       minor_safeguards_enabled FROM profiles WHERE lower(email)=lower(?) LIMIT 1`)
     .bind(clean(email, 254).toLowerCase()).first().catch(() => null);
-  if (!profile?.date_of_birth || !profile?.age_verified_at) return { eligible: false, reason: "age-check-required" };
-  const age = calculateAge(profile.date_of_birth);
-  if (age < MINIMUM_AGE || Number(profile.registration_eligible || 0) !== 1) {
-    return { eligible: false, reason: "under-16", age, ageBand: "under-16" };
+  if (!profile?.age_band || !profile?.age_verified_at) return { eligible: false, reason: "age-check-required" };
+  if (profile.age_band === "under-16" || Number(profile.registration_eligible || 0) !== 1) {
+    return { eligible: false, reason: "under-16", ageBand: "under-16" };
+  }
+
+  const ageBand = effectiveAgeBand(clean(profile.age_band, 20), clean(profile.age_transition_at, 10));
+  if (profile.age_band === "16-17" && ageBand === "18+") {
+    await DB.prepare(`UPDATE profiles SET age_band='18+', age_transition_at='', minor_safeguards_enabled=0,
+      safeguarding_review_required=0, updated_at=CURRENT_TIMESTAMP WHERE lower(email)=lower(?)`)
+      .bind(clean(email, 254).toLowerCase()).run().catch(() => null);
+  }
+  if (ageBand === "16-17" && !/^\d{4}-\d{2}-\d{2}$/.test(clean(profile.age_transition_at, 10))) {
+    return { eligible: false, reason: "age-check-required" };
   }
   return {
     eligible: true,
-    age,
-    ageBand: age < 18 ? "16-17" : "18+",
-    minorSafeguards: age < 18 || Number(profile.minor_safeguards_enabled || 0) === 1,
+    ageBand,
+    adultOn: ageBand === "16-17" ? clean(profile.age_transition_at, 10) : "",
+    minorSafeguards: ageBand === "16-17" || Number(profile.minor_safeguards_enabled || 0) === 1,
     verifiedAt: profile.age_verified_at,
   };
 }
