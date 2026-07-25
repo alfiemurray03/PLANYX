@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import AdminAuthorityReportingPage from '@/pages/admin/authority-reporting';
 import AuthorityReportingLibraryPage from '@/pages/admin/authority-reporting-library';
+import AuthorityReportTemplateBridge from '@/components/admin/AuthorityReportTemplateBridge';
 import EmbeddedAuthoritySelection from '@/components/admin/EmbeddedAuthoritySelection';
 import EmbeddedAuthorityReportLinking from '@/components/admin/EmbeddedAuthorityReportLinking';
 
@@ -19,6 +20,7 @@ export default function AdminAuthorityReportingRoutePage() {
   return (
     <>
       <AdminAuthorityReportingPage />
+      <AuthorityReportTemplateBridge />
       <EmbeddedAuthoritySelection />
       <EmbeddedAuthorityReportLinking />
     </>
