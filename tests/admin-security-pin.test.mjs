@@ -4,11 +4,11 @@ import test from 'node:test';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('administrator CRM override PIN uses a correctly delimited HMAC and an audited session', async () => {
+test('administrator CRM PIN uses a correctly delimited HMAC and audited lockout controls', async () => {
   const endpoint = await read('functions/admin/api.js');
   assert.match(endpoint, /adminPinStatus/);
   assert.match(endpoint, /adminPinMac/);
-  assert.match(endpoint, /\["hmac_sha256", salt, await adminPinMac\(env, pin, salt\)\]\.join\("\\$"\)/);
+  assert.match(endpoint, /\["hmac_sha256", salt, await adminPinMac\(env, pin, salt\)\]\.join\("\$"\)/);
   assert.match(endpoint, /function parseAdminPinHash/);
   assert.match(endpoint, /parsedHash\?\.legacy/);
   assert.match(endpoint, /normalisedHash/);
@@ -31,21 +31,58 @@ test('Admin Portal requires the personal PIN after Microsoft authentication', as
   assert.doesNotMatch(layout, /false && !pinState\.unlocked/);
 });
 
-test('customer Support PIN is the initial CRM tab and administrator override verifies inline', async () => {
-  const api = await read('functions/admin/api.js');
-  const crm = await read('src/pages/admin/customer-crm.tsx');
-  assert.match(api, /body\.action === "admin_pin_override"/);
-  assert.match(api, /reason\.length < 4/);
-  assert.match(api, /customer_admin_pin_override/);
-  assert.match(crm, /defaultValue=\{data\.verification\?\.verified \? "overview" : "security"\}/);
-  assert.match(crm, /Administrator CRM override/);
-  assert.match(crm, /Administrator CRM override PIN/);
-  assert.match(crm, /\/admin\/api\?section=adminpin/);
-  assert.match(crm, /action: 'admin_pin_override'/);
-  assert.match(crm, /overrideReason\.trim\(\)\.length < 4/);
+test('Customer CRM verification is scoped to the exact administrator and customer', async () => {
+  const endpoint = await read('functions/api/admin/customer-verification.js');
+  const middleware = await read('functions/admin/_middleware.js');
+  const runtime = await read('static/assets/customer-crm-verification.js');
+  const index = await read('index.html');
+
+  assert.match(endpoint, /lower\(customer_email\)=lower\(\?\) AND lower\(admin_email\)=lower\(\?\)/);
+  assert.match(endpoint, /requiresPinPerCustomer: true/);
+  assert.match(endpoint, /verifyScopedAdminPin/);
+  assert.match(endpoint, /customer-specific CRM action/);
+  assert.match(endpoint, /UPDATE customer_identity_verification_sessions SET ended_at=CURRENT_TIMESTAMP/);
+  assert.match(middleware, /\["admin_pin_override", "override_identity_lock"\]/);
+  assert.match(middleware, /GOVERNED_VERIFICATION_REQUIRED/);
+  assert.match(runtime, /Fresh verification per customer/);
+  assert.match(runtime, /re-enter your own PIN/i);
+  assert.match(index, /customer-crm-verification\.js\?v=1/);
+  assert.match(index, /customer-crm-verification\.css\?v=1/);
 });
 
-test('Security Centre lets each administrator create or replace their CRM override PIN', async () => {
+test('Customer CRM override requires structured justification and independent approval for lower roles', async () => {
+  const endpoint = await read('functions/api/admin/customer-verification.js');
+  const runtime = await read('static/assets/customer-crm-verification.js');
+
+  assert.match(endpoint, /const REASONS = \[/);
+  assert.match(endpoint, /const CHANNELS = \[/);
+  assert.match(endpoint, /reasonDetail\.length < 20/);
+  assert.match(endpoint, /You cannot approve your own override request/);
+  assert.match(endpoint, /An active supervisor approval is required/);
+  assert.match(endpoint, /status='Consumed'/);
+  assert.match(endpoint, /reviewed_by/);
+  assert.match(endpoint, /approved_until/);
+  assert.match(runtime, /Override reason/);
+  assert.match(runtime, /Support or investigation channel/);
+  assert.match(runtime, /Professional justification/);
+  assert.match(runtime, /Request supervisor approval/);
+  assert.match(runtime, /Supervisor review note/);
+});
+
+test('registered-email support codes are hashed, one-time, rate-limited and honestly labelled', async () => {
+  const endpoint = await read('functions/api/admin/customer-verification.js');
+  assert.match(endpoint, /customer_support_email_codes/);
+  assert.match(endpoint, /code_hash TEXT NOT NULL/);
+  assert.match(endpoint, /randomSixDigitCode/);
+  assert.match(endpoint, /Wait one minute before sending another code/);
+  assert.match(endpoint, /Too many codes have been sent/);
+  assert.match(endpoint, /max_attempts INTEGER NOT NULL DEFAULT 5/);
+  assert.match(endpoint, /status='Verified'/);
+  assert.match(endpoint, /Registered-email support verification; not account MFA/);
+  assert.doesNotMatch(endpoint, /metadata[^\n]*code\b/);
+});
+
+test('Security Centre lets each administrator create or replace their own CRM PIN', async () => {
   const security = await read('src/pages/admin/security.tsx');
   assert.match(security, /Administrator CRM override PIN/);
   assert.match(security, /action: directorPinStatus\.configured \? 'reset' : 'setup'/);
@@ -53,11 +90,13 @@ test('Security Centre lets each administrator create or replace their CRM overri
   assert.match(security, /It never controls Admin Portal sign-in/);
 });
 
-
-test('all Microsoft-authorised admins can use their own CRM PIN without a role gate', async () => {
-  const api = await read('functions/admin/api.js');
-  assert.match(api, /eligible: true/);
-  assert.doesNotMatch(api, /Director access is required to use a CRM override PIN/);
-  assert.doesNotMatch(api, /Director access is required for a CRM override/);
-  assert.match(api, /action === "setup" \|\| action === "reset"/);
+test('all authorised CRM staff may own a PIN while override approval remains role-governed', async () => {
+  const legacyApi = await read('functions/admin/api.js');
+  const governedApi = await read('functions/api/admin/customer-verification.js');
+  assert.match(legacyApi, /eligible: true/);
+  assert.match(legacyApi, /action === "setup" \|\| action === "reset"/);
+  assert.match(governedApi, /canApprove/);
+  assert.match(governedApi, /approve_crm_identity_override/);
+  assert.match(governedApi, /Platform Owner/);
+  assert.match(governedApi, /Senior Administrator/);
 });
