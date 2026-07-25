@@ -19,6 +19,15 @@ const OIDC_ENV = {
   CUSTOMER_OIDC_CLIENT_SECRET: 'secret',
 };
 
+const VERIFIED_ADULT_PROFILE = {
+  stripe_customer_id: null,
+  age_band: '18+',
+  age_transition_at: '',
+  age_verified_at: '2026-07-25T00:00:00.000Z',
+  registration_eligible: 1,
+  minor_safeguards_enabled: 0,
+};
+
 function database(overrides = {}) {
   return {
     prepare(sql) {
@@ -26,6 +35,20 @@ function database(overrides = {}) {
         values: [],
         bind(...values) { this.values = values; return this; },
         async run() { return { success: true }; },
+        async all() {
+          if (sql.includes('PRAGMA table_info(profiles)')) {
+            return {
+              results: [
+                { name: 'age_band' },
+                { name: 'age_transition_at' },
+                { name: 'age_verified_at' },
+                { name: 'registration_eligible' },
+                { name: 'minor_safeguards_enabled' },
+              ],
+            };
+          }
+          return { results: [] };
+        },
         async first() {
           if (sql.includes('FROM site_settings')) return overrides[this.values[0]] ? { value: overrides[this.values[0]] } : null;
           if (sql.includes('FROM customer_oidc_sessions')) {
@@ -36,7 +59,7 @@ function database(overrides = {}) {
               name: 'Test Customer',
             };
           }
-          if (sql.includes('FROM profiles')) return null;
+          if (sql.includes('FROM profiles')) return { ...VERIFIED_ADULT_PROFILE };
           const id = this.values[0];
           const details = PLAN_DETAILS[id];
           if (!details || !sql.includes('FROM service_plans')) return null;
@@ -82,7 +105,7 @@ test('Admin-edited service plan Price ID takes priority over a legacy Explore ov
 });
 
 for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
-  test(`${plan} checkout includes trial and correct account catalogue metadata`, async () => {
+  test(`${plan} checkout includes trial, age assurance and correct account catalogue metadata`, async () => {
     const originalFetch = globalThis.fetch;
     let checkoutBody = '';
     globalThis.fetch = async (_url, options) => {
@@ -106,6 +129,7 @@ for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
       assert.equal(params.get('subscription_data[metadata][plan_code]'), plan);
       assert.equal(params.get('subscription_data[metadata][account_type]'), details[2]);
       assert.equal(params.get('subscription_data[metadata][catalogue]'), details[2] === 'organisation' ? 'business' : 'standard');
+      assert.equal(params.get('subscription_data[metadata][age_band]'), '18+');
     } finally {
       globalThis.fetch = originalFetch;
     }

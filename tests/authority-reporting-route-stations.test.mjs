@@ -17,9 +17,10 @@ test('Dedicated authority reporting URLs render the same protected Admin page', 
   assert.doesNotMatch(edgeRoute, /Location:/);
 });
 
-test('Authority reporting includes an official-source UK police station directory', async () => {
+test('Authority reporting includes an official-source server-backed UK police station directory', async () => {
   const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
   const directory = await read('src/components/admin/PoliceStationDirectory.tsx');
+  const endpoint = await read('functions/api/admin/police-directory.js');
 
   assert.match(embedded, /UK police station directory/);
   assert.match(embedded, /setInput\('authority-name'/);
@@ -27,13 +28,18 @@ test('Authority reporting includes an official-source UK police station director
   assert.match(embedded, /Official source:/);
   assert.match(embedded, /Checked:/);
 
-  assert.match(directory, /https:\/\/data\.police\.uk\/api/);
-  assert.match(directory, /\/neighbourhoods/);
-  assert.match(directory, /detail\?\.locations/);
+  assert.match(directory, /\/api\/admin\/police-directory/);
+  assert.doesNotMatch(directory, /fetch\(`https:\/\/data\.police\.uk/);
   assert.match(directory, /Search published stations/);
   assert.match(directory, /Station, town, address or postcode/);
   assert.match(directory, /Verified manual station entry/);
-  assert.match(directory, /Always verify the selected address/);
+  assert.match(directory, /Always verify public-access arrangements/);
+
+  assert.match(endpoint, /https:\/\/data\.police\.uk\/api/);
+  assert.match(endpoint, /\/neighbourhoods/);
+  assert.match(endpoint, /detail\?\.locations/);
+  assert.match(endpoint, /cacheTtl/);
+  assert.match(endpoint, /Administrator session required/);
 });
 
 test('Police directory covers every UK territorial and specialist force category without pretending unavailable data is complete', async () => {

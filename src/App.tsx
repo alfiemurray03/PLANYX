@@ -27,6 +27,7 @@ import './styles/accessibility-global.css';
 const StandardBusinessHomePage = lazy(() => import('./pages/home'));
 const StandardBusinessPlansPage = lazy(() => import('./pages/plans'));
 const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
+const YoungPersonSafetyPage = lazy(() => import('./pages/young-person-safety'));
 const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
 const AdminAuthorityReportingRoutePage = lazy(() => import('./pages/admin/authority-reporting-route'));
 
@@ -52,7 +53,7 @@ const rootElement = (
   </Suspense>
 );
 
-const retainedCustomerRoutes = routes.filter(route => !['/', '/pricing', '/support', '/help-centre'].includes(String(route.path || '')));
+const retainedCustomerRoutes = routes.filter(route => !['/', '/pricing', '/support', '/help-centre', '/safety'].includes(String(route.path || '')));
 const customerRoutes: RouteObject[] = [
   { path: '/', element: <StandardBusinessHomePage /> },
   { path: '/home', element: <StandardBusinessHomePage /> },
@@ -60,6 +61,8 @@ const customerRoutes: RouteObject[] = [
   { path: '/pricing', element: <StandardBusinessPlansPage /> },
   { path: '/support', element: <PublicHelpCentrePage /> },
   { path: '/help-centre', element: <PublicHelpCentrePage /> },
+  { path: '/safety', element: <YoungPersonSafetyPage /> },
+  { path: '/young-person-safety', element: <YoungPersonSafetyPage /> },
   ...retainedCustomerRoutes,
 ];
 
