@@ -53,7 +53,7 @@ function page({ returnTo = "/dashboard", error = "", denied = false, success = f
     ? "An account cannot be registered or used by anyone under 16 years of age."
     : success
       ? `Your ${ageBand === "16-17" ? "young-person" : "adult"} account safeguards have been applied.`
-      : "Planyx is a 16+ planning service. We use your date of birth to enforce the minimum age and apply the correct privacy safeguards.";
+      : "Planyx is a 16+ planning service. Your date of birth is checked to enforce the minimum age and apply the correct privacy safeguards.";
   return `<!doctype html>
 <html lang="en-GB" class="h-full"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -68,15 +68,15 @@ function page({ returnTo = "/dashboard", error = "", denied = false, success = f
 <div class="icon" aria-hidden="true">${denied ? "⛔" : success ? "✓" : "16+"}</div>
 <p class="eyebrow">Planyx age and safeguarding check</p><h1>${escapeHtml(title)}</h1><p class="lead">${escapeHtml(description)}</p>
 ${error ? `<div class="error" role="alert">${escapeHtml(error)}</div>` : ""}
-${denied ? `<div class="notice"><strong>Registration has not been permitted.</strong><br>Do not try to create or use an account for somebody under 16. Public pages may still be viewed without registering.</div><div class="actions"><a class="button secondary" href="/">Return to Planyx</a><a class="button secondary" href="/contact">Contact support</a></div>` : success ? `<div class="actions"><a class="button" href="${escapeHtml(returnTo)}">Continue to Planyx</a></div>` : `<form class="form" method="post" action="/age-check" novalidate>
+${denied ? `<div class="notice"><strong>Registration has not been permitted.</strong><br>Do not try to create or use an account for somebody under 16. Public pages may still be viewed without registering.</div><div class="actions"><a class="button secondary" href="/">Return to Planyx</a><a class="button secondary" href="/safety">Read safety guidance</a></div>` : success ? `<div class="actions"><a class="button" href="${escapeHtml(returnTo)}">Continue to Planyx</a></div>` : `<form class="form" method="post" action="/age-check" novalidate>
 <input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
 <label class="label" for="date_of_birth">Date of birth</label>
 <input class="input" id="date_of_birth" name="date_of_birth" type="date" max="${maximumEligibleBirthDate()}" autocomplete="bday" required aria-describedby="age-help">
-<p id="age-help" class="small">You must already be 16. People aged 16–17 receive enhanced privacy and safeguarding defaults. We do not ask for an identity document during this check.</p>
+<p id="age-help" class="small">You must already be 16. People aged 16–17 receive enhanced privacy and safeguarding defaults. A payment card is not accepted as proof of age.</p>
 <button class="button" type="submit">Confirm age and continue</button>
-</form><div class="notice"><strong>Privacy:</strong> your date of birth is used to enforce the 16+ rule, determine whether young-person safeguards apply and support account safety. It is not displayed publicly.</div>`}
+</form><div class="notice"><strong>Privacy:</strong> the date is checked on the server and converted to the minimum account record needed: eligibility, age band and—only for 16–17-year-olds—the date young-person safeguards end. Planyx does not need to keep the full date of birth in the customer profile.</div>`}
 </div></section></main>
-<footer>© ${new Date().getFullYear()} Planyx · Operated by JA Group Services Ltd · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/contact">Safeguarding support</a></footer>
+<footer>© ${new Date().getFullYear()} Planyx · Operated by JA Group Services Ltd · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/safety">16+ safety</a></footer>
 </div></body></html>`;
 }
 
@@ -108,8 +108,9 @@ export async function onRequestPost(context) {
   if (!assurance.eligible) {
     if (identity?.email && context.env.DB) {
       await persistAgeAssurance(context.env.DB, identity.email, {
-        dateOfBirth: assurance.dateOfBirth,
-        method: "Self-declared date of birth — account found to be under 16",
+        ageBand: "under-16",
+        adultOn: "",
+        method: "Self-declared age check — account found to be under 16",
         policyVersion: "planyx-16-plus-v1",
       }).catch(() => null);
     }
@@ -119,9 +120,7 @@ export async function onRequestPost(context) {
     return new Response(page({ returnTo, denied: true }), { status: 403, headers });
   }
 
-  if (identity?.email && context.env.DB) {
-    await persistAgeAssurance(context.env.DB, identity.email, assurance);
-  }
+  if (identity?.email && context.env.DB) await persistAgeAssurance(context.env.DB, identity.email, assurance);
   const next = identity?.email ? returnTo : `/account/login?return_to=${encodeURIComponent(returnTo)}`;
   const headers = new Headers({ Location: next, "Cache-Control": "no-store" });
   headers.append("Set-Cookie", ageAssuranceCookie(assurance.token));
