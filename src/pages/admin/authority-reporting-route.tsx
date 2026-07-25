@@ -4,6 +4,7 @@ import AuthorityReportingLibraryPage from '@/pages/admin/authority-reporting-lib
 import AuthorityReportTemplateBridge from '@/components/admin/AuthorityReportTemplateBridge';
 import EmbeddedAuthoritySelection from '@/components/admin/EmbeddedAuthoritySelection';
 import EmbeddedAuthorityReportLinking from '@/components/admin/EmbeddedAuthorityReportLinking';
+import PoliceDirectoryCacheMigration from '@/components/admin/PoliceDirectoryCacheMigration';
 
 export default function AdminAuthorityReportingRoutePage() {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ export default function AdminAuthorityReportingRoutePage() {
 
   return (
     <>
+      <PoliceDirectoryCacheMigration />
       <AdminAuthorityReportingPage />
       <AuthorityReportTemplateBridge />
       <EmbeddedAuthoritySelection />
