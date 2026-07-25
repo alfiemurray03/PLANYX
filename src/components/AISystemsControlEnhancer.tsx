@@ -1,9 +1,106 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AgeVerificationAIControl from '@/components/AgeVerificationAIControl';
 
 function text(element: Element | null) {
   return element?.textContent?.trim() || '';
+}
+
+function EmbeddedAgeVerificationControlCentre() {
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const [frameHeight, setFrameHeight] = useState(1200);
+
+  useEffect(() => () => cleanupRef.current?.(), []);
+
+  function prepareFrame() {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+
+    const frame = frameRef.current;
+    const document = frame?.contentDocument;
+    if (!frame || !document?.body) return;
+
+    try {
+      let style = document.getElementById('planyx-embedded-age-verification') as HTMLStyleElement | null;
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'planyx-embedded-age-verification';
+        style.textContent = `
+          html, body { background: transparent !important; }
+          body { margin: 0 !important; overflow: hidden !important; }
+          .admin-portal { min-height: 0 !important; background: transparent !important; }
+          .admin-portal > header,
+          .admin-portal > footer { display: none !important; }
+          .admin-portal > main {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      const resize = () => {
+        const nextHeight = Math.max(
+          900,
+          document.documentElement?.scrollHeight || 0,
+          document.body?.scrollHeight || 0,
+        );
+        setFrameHeight(nextHeight + 8);
+      };
+
+      resize();
+      const observer = new ResizeObserver(resize);
+      observer.observe(document.body);
+      window.addEventListener('resize', resize);
+      const interval = window.setInterval(resize, 750);
+
+      cleanupRef.current = () => {
+        observer.disconnect();
+        window.removeEventListener('resize', resize);
+        window.clearInterval(interval);
+      };
+    } catch {
+      setFrameHeight(1200);
+    }
+  }
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-border bg-muted/25 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div>
+          <h2 className="text-base font-bold text-foreground">Age Verification Control Centre</h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Manage the complete 16+ gate, customer design, provider readiness, safeguards, governance, diagnostics and events here.
+          </p>
+        </div>
+        <a
+          href="/admin/age-verification"
+          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background px-3 text-xs font-semibold text-foreground transition hover:bg-muted"
+        >
+          Open full page
+        </a>
+      </div>
+      <iframe
+        ref={frameRef}
+        src="/admin/age-verification?embedded=contact-age-ai"
+        title="Embedded Age Verification Control Centre"
+        className="block w-full border-0 bg-transparent"
+        style={{ height: `${frameHeight}px` }}
+        onLoad={prepareFrame}
+      />
+    </section>
+  );
+}
+
+function ContactAndAgeAiWorkspace() {
+  return (
+    <div className="space-y-6">
+      <AgeVerificationAIControl />
+      <EmbeddedAgeVerificationControlCentre />
+    </div>
+  );
 }
 
 export default function AISystemsControlEnhancer() {
@@ -76,5 +173,5 @@ export default function AISystemsControlEnhancer() {
     };
   }, []);
 
-  return portalTarget ? createPortal(<AgeVerificationAIControl />, portalTarget) : null;
+  return portalTarget ? createPortal(<ContactAndAgeAiWorkspace />, portalTarget) : null;
 }
