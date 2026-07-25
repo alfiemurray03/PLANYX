@@ -57,6 +57,19 @@ async function authorise(DB, identity, env) {
   return { authenticated: true, authorised: Boolean(permission), email, role: clean(row.role, 100) };
 }
 
+async function preserveLegacyHeadline(DB, config) {
+  try {
+    const [headline, highlight] = await Promise.all([
+      DB.prepare("SELECT value FROM site_settings WHERE key='coming_soon_headline'").first(),
+      DB.prepare("SELECT value FROM site_settings WHERE key='coming_soon_highlight'").first(),
+    ]);
+    if (headline && !highlight) config.launch.highlight = "";
+  } catch {
+    // The shared defaults remain safe if the compatibility lookup fails.
+  }
+  return config;
+}
+
 async function ensureAudit(DB) {
   await DB.prepare(`CREATE TABLE IF NOT EXISTS admin_audit_log (
     id TEXT PRIMARY KEY, actor_email TEXT, action TEXT, entity_type TEXT,
@@ -101,7 +114,7 @@ export async function onRequest(context) {
     if (!admin.authorised) return json({ success: false, error: "You do not have permission to manage the public website gates.", code: "FORBIDDEN", correlationId }, 403);
 
     if (request.method === "GET") {
-      const config = await readGateSettings(env.DB);
+      const config = await preserveLegacyHeadline(env.DB, await readGateSettings(env.DB));
       return json({ success: true, config, admin: { email: admin.email, role: admin.role }, correlationId });
     }
 
