@@ -2,9 +2,9 @@
   if (!window.location.pathname.startsWith('/admin')) return;
 
   const nativeFetch = window.fetch.bind(window);
-  const TIMEOUT_MS = 6500;
+  const TIMEOUT_MS = 7000;
 
-  function isAdminPinRequest(input) {
+  function adminPinRequest(input) {
     try {
       const raw = typeof input === 'string' ? input : input?.url;
       const url = new URL(raw, window.location.origin);
@@ -17,7 +17,7 @@
   }
 
   window.fetch = function guardedFetch(input, init = {}) {
-    if (!isAdminPinRequest(input)) return nativeFetch(input, init);
+    if (!adminPinRequest(input)) return nativeFetch(input, init);
 
     const controller = new AbortController();
     const callerSignal = init?.signal;
@@ -34,14 +34,16 @@
       else callerSignal.addEventListener('abort', forwardAbort, { once: true });
     }
 
-    return nativeFetch(input, { ...init, signal: controller.signal })
+    const replacementUrl = '/api/admin/pin';
+
+    return nativeFetch(replacementUrl, { ...init, signal: controller.signal })
       .catch((error) => {
         if (!timedOut) throw error;
         return new Response(JSON.stringify({
           success: false,
           configured: true,
           unlocked: false,
-          error: 'Administrator PIN verification timed out. The portal remained locked. Refresh the page or try again.'
+          error: 'Administrator PIN verification timed out. The Admin Centre remains securely locked. Refresh the page or sign in again.'
         }), {
           status: 503,
           headers: {
