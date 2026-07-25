@@ -8,7 +8,7 @@ import {
   Menu, ChevronRight, Shield, Bell, Send,
   Globe, Wrench, FileEdit, Palette, Activity, FileText, HeartPulse,
   X, UserCog, Clock, Mail, AlertTriangle, CircleDollarSign, PackagePlus, MoreHorizontal, Lock,
-  Bot, Moon, Sun, ChevronDown,
+  Bot, Moon, Sun, ChevronDown, BadgeCheck,
 } from 'lucide-react';
 import { useAdminTheme } from '@/lib/admin-theme-context';
 import { useBranding } from '@/lib/branding';
@@ -82,6 +82,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Site Status & Settings',
     items: [
       { label: 'AI Chatbot Control', href: '/admin/ai-chatbot', icon: Bot, section: 'systemsettings' },
+      { label: 'Age Verification', href: '/admin/age-verification', icon: BadgeCheck, section: 'systemsettings', badge: '16+' },
       { label: 'Site Status & Settings', href: '/admin/site-settings', icon: Settings, section: 'systemsettings' },
     ],
   },
@@ -307,6 +308,7 @@ function AdminLayoutInner({ children, title }: AdminLayoutInnerProps) {
                           >
                             <Icon className="h-4 w-4 shrink-0" />
                             <span>{item.label}</span>
+                            {item.badge && <span className={`ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-black ${active ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'}`}>{item.badge}</span>}
                           </Link>
                         );
                       })}
@@ -434,6 +436,7 @@ function AdminLayoutInner({ children, title }: AdminLayoutInnerProps) {
                   <Link to="/admin/legal" className="block text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">Legal policies</Link>
                   <Link to="/admin/branding" className="block text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">Branding</Link>
                   <Link to="/admin/site-settings" className="block text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">Site settings</Link>
+                  <Link to="/admin/age-verification" className="block text-slate-600 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400">Age verification</Link>
                 </div>
               </div>
               <div>
