@@ -38,6 +38,7 @@ export const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: 'Support',
     links: [
+      { label: '16+ Safety & Safeguarding', href: '/safety' },
       { label: 'Contact Us', href: '/contact' },
       { label: 'Contact Support', href: '/support' },
       { label: 'Service Status', href: '/status' },
@@ -70,9 +71,7 @@ function InstallAppLink({ label }: { label: string }) {
 }
 
 function FooterLinkItem({ link }: { link: FooterLink }) {
-  if (link.href === '__install__') {
-    return <InstallAppLink label={link.label} />;
-  }
+  if (link.href === '__install__') return <InstallAppLink label={link.label} />;
   if (link.external || link.href.startsWith('http')) {
     return (
       <a
@@ -85,11 +84,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
       </a>
     );
   }
-  return (
-    <Link to={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-      {link.label}
-    </Link>
-  );
+  return <Link to={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{link.label}</Link>;
 }
 
 export default function Footer() {
@@ -111,31 +106,20 @@ export default function Footer() {
     <footer className="border-t border-border bg-card" role="contentinfo">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-12 lg:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(300px,0.9fr)_minmax(0,2.1fr)] gap-12 lg:gap-16 xl:gap-20">
-          {/* Brand column */}
           <div className="max-w-sm">
             <Link to="/" className="inline-block mb-4">
               {branding.platform_logo_url ? (
-                <img
-                  src={branding.platform_logo_url}
-                  alt={branding.platform_name || 'Planyx'}
-                  className="h-9 w-auto object-contain"
-                />
+                <img src={branding.platform_logo_url} alt={branding.platform_name || 'Planyx'} className="h-9 w-auto object-contain" />
               ) : (
-                <span className="font-extrabold text-lg text-foreground">
-                  Planyx
-                </span>
+                <span className="font-extrabold text-lg text-foreground">Planyx</span>
               )}
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
               {branding.platform_description || 'Build destination, itinerary, experience, accessibility and practical travel plans with Planyx.'}
             </p>
+            <Link to="/safety" className="mb-3 inline-flex rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-black text-violet-700 hover:bg-violet-100 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">Strictly 16+ · Young-person safeguards</Link>
             {branding.support_email && (
-              <a
-                href={`mailto:${PLANYX_EMAIL}`}
-                className="text-sm text-primary hover:underline transition-colors font-medium leading-relaxed inline-block max-w-full break-words"
-              >
-                {PLANYX_EMAIL}
-              </a>
+              <a href={`mailto:${PLANYX_EMAIL}`} className="text-sm text-primary hover:underline transition-colors font-medium leading-relaxed inline-block max-w-full break-words">{PLANYX_EMAIL}</a>
             )}
             <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
               <a href={`mailto:${GROUP_CONTACT_EMAIL}`} className="block hover:text-foreground transition-colors">{GROUP_CONTACT_EMAIL}</a>
@@ -146,33 +130,20 @@ export default function Footer() {
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-10 xl:gap-x-10">
             {columns.map((col) => (
               <div key={col.heading} className="min-w-0">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
-                  {col.heading}
-                </h4>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">{col.heading}</h4>
                 <ul className="space-y-3">
-                  {col.links.map((link) => (
-                    <li key={link.href + link.label}>
-                      <FooterLinkItem link={link} />
-                    </li>
-                  ))}
+                  {col.links.map((link) => <li key={link.href + link.label}><FooterLinkItem link={link} /></li>)}
                 </ul>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="border-t border-border mt-10 pt-6 space-y-2">
-          <p className="text-sm text-muted-foreground">
-            © {year} {branding.platform_name || 'Planyx'}. All rights reserved.
-            {branding.footer_tagline ? ` ${branding.footer_tagline}.` : ''}
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
-            Planyx is a service brand operated by JA Group Services Ltd, a company registered in England and Wales. The service provides guided discovery, experience and practical planning tools and support.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Third-party bookings, availability, prices, refunds and provider terms remain the responsibility of the relevant provider.
-          </p>
+          <p className="text-sm text-muted-foreground">© {year} {branding.platform_name || 'Planyx'}. All rights reserved.{branding.footer_tagline ? ` ${branding.footer_tagline}.` : ''}</p>
+          <p className="text-xs font-semibold text-muted-foreground">Planyx customer accounts are available only to people aged 16 or over. Young people aged 16–17 receive enhanced privacy and safeguarding defaults.</p>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">Planyx is a service brand operated by JA Group Services Ltd, a company registered in England and Wales. The service provides guided discovery, experience and practical planning tools and support.</p>
+          <p className="text-xs text-muted-foreground">Third-party bookings, availability, prices, refunds and provider terms remain the responsibility of the relevant provider.</p>
         </div>
       </div>
     </footer>
