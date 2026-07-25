@@ -19,8 +19,6 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 export interface AdminUser {
   email:                 string;
   name:                  string;
@@ -37,9 +35,8 @@ interface AdminContextType {
   logout:    () => Promise<void>;
 }
 
-// ── localStorage cache helpers ────────────────────────────────────────────────
-
 const CACHE_KEY = 'ja_admin_profile';
+const SESSION_TIMEOUT_MS = 6000;
 
 function getCachedAdmin(): AdminUser | null {
   try {
@@ -71,54 +68,73 @@ async function recordAdminSession(action: 'heartbeat' | 'logout'): Promise<void>
 }
 
 function startAdminMicrosoftLogout(): void {
-  // Some legacy layout handlers perform a client-side navigation immediately
-  // after calling logout(). Schedule the terminal server navigation after that
-  // handler finishes so React cannot overwrite the Microsoft end-session flow.
   window.setTimeout(() => {
     window.location.replace('/admin/logout');
   }, 0);
 }
 
-// ── Context ───────────────────────────────────────────────────────────────────
-
 const AdminContext = createContext<AdminContextType | null>(null);
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const [admin, setAdmin]       = useState<AdminUser | null>(null);
+  const [admin, setAdmin] = useState<AdminUser | null>(() => getCachedAdmin());
   const [isLoading, setLoading] = useState(true);
 
-  // On mount: restore session from the httpOnly cookie via /me endpoint.
-  // Use localStorage cache for instant render while the request is in-flight.
   useEffect(() => {
+    let active = true;
     const cached = getCachedAdmin();
-    if (cached) setAdmin(cached); // optimistic render
+    if (cached) setAdmin(cached);
 
-    fetch('/api/admin/auth/me', { credentials: 'include', cache: 'no-store' })
-      .then(r => r.json())
-      .then((d: { success: boolean; admin?: AdminUser }) => {
-        if (d.success && d.admin) {
-          setCachedAdmin(d.admin);
-          setAdmin(d.admin);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      controller.abort();
+      if (active) setLoading(false);
+    }, SESSION_TIMEOUT_MS);
+
+    fetch('/api/admin/auth/me', {
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async response => {
+        const payload = await response.json().catch(() => ({ success: false })) as { success: boolean; admin?: AdminUser };
+        return { response, payload };
+      })
+      .then(({ response, payload }) => {
+        if (!active) return;
+        if (response.ok && payload.success && payload.admin) {
+          setCachedAdmin(payload.admin);
+          setAdmin(payload.admin);
           void recordAdminSession('heartbeat');
-        } else {
+          return;
+        }
+
+        // Only clear the cached profile when the server gave a definite authentication answer.
+        // Network timeouts and temporary service errors must not lock the whole Admin Centre.
+        if (response.status === 401 || response.status === 403) {
           clearCachedAdmin();
           setAdmin(null);
         }
       })
-      .catch(() => {
-        // Network error — keep cached value so UI doesn't flicker
+      .catch(error => {
+        if (!active || error?.name === 'AbortError') return;
+        // Keep the cached administrator during temporary network or service failures.
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        window.clearTimeout(timeout);
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   const logout = useCallback(async () => {
     await recordAdminSession('logout');
     clearCachedAdmin();
     setAdmin(null);
-
-    // /admin/logout revokes only the Admin OIDC session, clears only the
-    // ja_admin_session cookie and redirects to the staff tenant's Microsoft
-    // end_session_endpoint. It never clears the customer portal session.
     startAdminMicrosoftLogout();
   }, []);
 
