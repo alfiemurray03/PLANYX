@@ -33,7 +33,7 @@ test('Authority reporting includes an official-source server-backed UK police st
   assert.match(directory, /Search published stations/);
   assert.match(directory, /Station, town, address or postcode/);
   assert.match(directory, /Verified manual station entry/);
-  assert.match(directory, /Always verify the selected address/);
+  assert.match(directory, /Always verify public-access arrangements/);
 
   assert.match(endpoint, /https:\/\/data\.police\.uk\/api/);
   assert.match(endpoint, /\/neighbourhoods/);
