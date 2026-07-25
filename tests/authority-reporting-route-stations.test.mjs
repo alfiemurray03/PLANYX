@@ -82,6 +82,18 @@ test('Police directory covers every UK territorial and specialist force category
   assert.match(directory, /Use the official BTP finder/);
 });
 
+test('Published and manual station choices attach immediately and confirm the assignment', async () => {
+  const directory = await read('src/components/admin/PoliceStationDirectory.tsx');
+  const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
+
+  assert.match(directory, /onClick=\{\(\) => onSelect\(station\)\}/);
+  assert.match(directory, /onSelect\(\{ \.\.\.manual/);
+  assert.match(embedded, /assignedStation: station/);
+  assert.match(embedded, /setDirectoryOpen\(false\)/);
+  assert.match(embedded, /Police station assigned/);
+  assert.match(embedded, /Save the report to preserve the assignment/);
+});
+
 test('Station selection remains part of the saved report and PDF fields', async () => {
   const embedded = await read('src/components/admin/EmbeddedAuthorityReportLinking.tsx');
   const reportPage = await read('src/pages/admin/authority-reporting.tsx');
