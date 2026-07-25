@@ -42,6 +42,26 @@ test('Authority reporting includes an official-source server-backed UK police st
   assert.match(endpoint, /Administrator session required/);
 });
 
+test('Police directory falls back to official Home Office and GOV.UK station data when Police.uk is incomplete', async () => {
+  const endpoint = await read('functions/api/admin/police-directory.js');
+  const route = await read('src/pages/admin/authority-reporting-route.tsx');
+  const migration = await read('src/components/admin/PoliceDirectoryCacheMigration.tsx');
+
+  assert.match(endpoint, /GOVUK_CONTENT_API/);
+  assert.match(endpoint, /ninja-sword-surrender-and-compensation-scheme/);
+  assert.match(endpoint, /GOVUK_FORCE_HEADINGS/);
+  assert.match(endpoint, /METROPOLITAN_OFFICIAL_FALLBACK/);
+  assert.match(endpoint, /Bethnal Green Police Station/);
+  assert.match(endpoint, /Wembley Police Station/);
+  assert.match(endpoint, /loadGovUkFallback/);
+  assert.match(endpoint, /Official Home Office\/GOV\.UK designated-station directory/);
+  assert.match(endpoint, /Verify current opening hours, public-counter access/);
+
+  assert.match(route, /PoliceDirectoryCacheMigration/);
+  assert.match(migration, /planyx-police-stations-server-v2:/);
+  assert.match(migration, /localStorage\.removeItem/);
+});
+
 test('Police directory covers every UK territorial and specialist force category without pretending unavailable data is complete', async () => {
   const directory = await read('src/components/admin/PoliceStationDirectory.tsx');
 
