@@ -1,7 +1,21 @@
 import { readGateSettings, renderLaunchGate } from "../_shared/site-gates.js";
 
+async function preserveLegacyHeadline(DB, config) {
+  if (!DB) return config;
+  try {
+    const [headline, highlight] = await Promise.all([
+      DB.prepare("SELECT value FROM site_settings WHERE key='coming_soon_headline'").first(),
+      DB.prepare("SELECT value FROM site_settings WHERE key='coming_soon_highlight'").first(),
+    ]);
+    if (headline && !highlight) config.launch.highlight = "";
+  } catch {
+    // The shared defaults remain safe if the compatibility lookup fails.
+  }
+  return config;
+}
+
 export async function onRequestGet({ env }) {
-  const config = await readGateSettings(env.DB);
+  const config = await preserveLegacyHeadline(env.DB, await readGateSettings(env.DB));
   return new Response(renderLaunchGate(config), {
     status: 200,
     headers: {
