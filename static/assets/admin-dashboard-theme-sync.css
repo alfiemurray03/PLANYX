@@ -1,0 +1,71 @@
+/* Keep the Admin Dashboard command header aligned with the existing Admin Centre theme. */
+.admin-portal main section.bg-slate-950.rounded-3xl {
+  border: 1px solid transparent;
+  transition: background-color .2s ease, background-image .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl {
+  background-color: #ffffff !important;
+  background-image:
+    radial-gradient(circle at 12% 10%, rgba(37, 99, 235, .12), transparent 32%),
+    radial-gradient(circle at 90% 4%, rgba(34, 211, 238, .10), transparent 28%),
+    radial-gradient(circle at 75% 100%, rgba(124, 58, 237, .08), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #f8fbff 58%, #f6f4ff 100%) !important;
+  border-color: #dbe5f1 !important;
+  color: #0b172d !important;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, .10) !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl > .pointer-events-none {
+  background: none !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl h1 {
+  color: #0b172d !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl p.text-slate-300 {
+  color: #475569 !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl p.text-slate-400 {
+  color: #64748b !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl [class*="border-white/15"] {
+  border-color: #cbd5e1 !important;
+  background-color: rgba(255, 255, 255, .82) !important;
+  color: #334155 !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl [class*="border-emerald-400"] {
+  border-color: #a7f3d0 !important;
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl [class*="border-amber-400"] {
+  border-color: #fde68a !important;
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl [class*="border-red-400"] {
+  border-color: #fecaca !important;
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+}
+
+html:not(.dark) .admin-portal main section.bg-slate-950.rounded-3xl button.bg-blue-600 {
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, .22) !important;
+}
+
+html.dark .admin-portal main section.bg-slate-950.rounded-3xl {
+  border-color: rgba(148, 163, 184, .16);
+  color: #ffffff !important;
+}
+
+html.dark .admin-portal main section.bg-slate-950.rounded-3xl h1 {
+  color: #ffffff !important;
+}
