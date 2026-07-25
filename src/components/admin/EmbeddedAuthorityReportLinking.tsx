@@ -113,6 +113,7 @@ export default function EmbeddedAuthorityReportLinking() {
     ].filter(Boolean).join(' · '));
     setContext(current => ({ ...current, assignedStation: station }));
     setAppliedStation(`${station.stationName}, ${address}`);
+    setDirectoryOpen(false);
   }
 
   function applyUser(user: ReportContextUser, sessions: ReportContextSession[]): void {
@@ -233,14 +234,26 @@ export default function EmbeddedAuthorityReportLinking() {
         <div className="fixed inset-0 z-[130] flex justify-end bg-slate-950/65 backdrop-blur-sm" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setDirectoryOpen(false); }}>
           <section role="dialog" aria-modal="true" aria-labelledby="police-station-directory-title" className="h-full w-full max-w-3xl overflow-y-auto bg-slate-50 shadow-2xl dark:bg-slate-950">
             <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
-              <div><p className="text-xs font-black uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Authority Reporting Centre</p><h2 id="police-station-directory-title" className="mt-1 text-xl font-black text-slate-950 dark:text-white">UK police station directory</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Choose a published station or enter a verified station manually.</p></div>
+              <div><p className="text-xs font-black uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">Authority Reporting Centre</p><h2 id="police-station-directory-title" className="mt-1 text-xl font-black text-slate-950 dark:text-white">UK police station directory</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Select a published station to attach it immediately to the report, or enter a verified station manually.</p></div>
               <Button type="button" variant="outline" size="icon" onClick={() => setDirectoryOpen(false)} aria-label="Close police station directory"><X className="h-4 w-4" /></Button>
             </header>
             <div className="space-y-4 p-4 sm:p-6">
-              {appliedStation && <div role="status" className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">Station added to the report</p><p className="mt-1 text-sm">{appliedStation}</p></div></div>}
+              {appliedStation && <div role="status" className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /><div><p className="font-bold">Station attached to this report</p><p className="mt-1 text-sm">{appliedStation}</p></div></div>}
               <PoliceStationDirectory onSelect={applyStation} />
             </div>
           </section>
+        </div>
+      )}
+
+      {appliedStation && !directoryOpen && (
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-[140] flex max-w-md items-start gap-3 rounded-2xl border border-emerald-200 bg-white p-4 text-emerald-950 shadow-2xl dark:border-emerald-500/30 dark:bg-slate-900 dark:text-emerald-100">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-300" />
+          <div className="min-w-0 flex-1">
+            <p className="font-black">Police station assigned</p>
+            <p className="mt-1 break-words text-sm">{appliedStation}</p>
+            <p className="mt-1 text-xs opacity-80">The Authority and official submission fields have been updated. Save the report to preserve the assignment.</p>
+          </div>
+          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setAppliedStation('')} aria-label="Dismiss station assigned message"><X className="h-4 w-4" /></Button>
         </div>
       )}
     </>
