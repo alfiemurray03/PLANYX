@@ -10,21 +10,34 @@
     }
   }
 
-  function cloneAfter(link, href, title, label) {
-    if (document.querySelector(`a[href="${href}"]`)) return;
+  function findAllToolsMenu() {
+    return Array.from(document.querySelectorAll('header details')).find(details =>
+      /all admin tools/i.test(details.querySelector('summary')?.textContent || '')
+    ) || null;
+  }
+
+  function cloneAfterInToolsMenu(link, href, title, label) {
+    const toolsMenu = findAllToolsMenu();
+    if (!toolsMenu || !toolsMenu.contains(link) || toolsMenu.querySelector(`a[href="${href}"]`)) return;
+
     const clone = link.cloneNode(true);
     clone.setAttribute('href', href);
     clone.setAttribute('title', title);
     clone.removeAttribute('aria-current');
+
     const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
     let node;
     let changed = false;
     while ((node = walker.nextNode())) {
       const value = (node.textContent || '').trim();
-      if (value && !changed) { node.textContent = label; changed = true; }
+      if (value && !changed) {
+        node.textContent = label;
+        changed = true;
+      }
     }
+
     const item = link.closest('li');
-    if (item?.parentElement) {
+    if (item?.parentElement && toolsMenu.contains(item)) {
       const clonedItem = item.cloneNode(false);
       clonedItem.appendChild(clone);
       item.insertAdjacentElement('afterend', clonedItem);
@@ -33,17 +46,43 @@
     }
   }
 
+  function keepPrimaryHeaderStable() {
+    const primary = document.querySelector('nav[aria-label="Primary admin navigation"]');
+    if (!primary) return;
+
+    primary.style.flexWrap = 'nowrap';
+    primary.querySelectorAll(`a[href="${gatesHref}"]`).forEach(link => link.remove());
+    primary.querySelectorAll('a').forEach(link => {
+      link.style.whiteSpace = 'nowrap';
+      link.style.flexShrink = '0';
+    });
+
+    const toolsMenu = findAllToolsMenu();
+    if (toolsMenu) toolsMenu.style.flexShrink = '0';
+
+    document.querySelectorAll('header p').forEach(element => {
+      if ((element.textContent || '').trim().toLowerCase() === 'administrator') {
+        element.style.whiteSpace = 'nowrap';
+      }
+    });
+  }
+
   function enhanceSiteSettings() {
     if (window.location.pathname !== '/admin/site-settings') return;
+
     document.querySelectorAll('h3').forEach(heading => {
       if (!/Coming Soon Launch Gate|Dedicated Maintenance Page/i.test(heading.textContent || '')) return;
       const section = heading.closest('div.rounded-xl, section, [data-slot="card"]');
       if (section && !section.closest('#gate-settings-cta')) section.style.display = 'none';
     });
+
     if (document.getElementById('gate-settings-cta')) return;
-    const publicHeading = Array.from(document.querySelectorAll('h3')).find(node => /Public Website Status/i.test(node.textContent || ''));
+    const publicHeading = Array.from(document.querySelectorAll('h3')).find(node =>
+      /Public Website Status/i.test(node.textContent || '')
+    );
     const host = publicHeading?.closest('div.rounded-xl, section, [data-slot="card"]');
     if (!host?.parentElement) return;
+
     const panel = document.createElement('section');
     panel.id = 'gate-settings-cta';
     panel.style.cssText = 'margin-top:16px;padding:18px;border:1px solid #bfdbfe;border-radius:16px;background:linear-gradient(135deg,#eff6ff,#f5f3ff);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap';
@@ -52,25 +91,31 @@
   }
 
   function apply() {
+    keepPrimaryHeaderStable();
+
     document.querySelectorAll('a[href="/admin/age-verification"]').forEach(link => {
       const item = link.closest('li') || link.closest('[role="menuitem"]') || link;
       item.setAttribute('hidden', '');
       item.setAttribute('aria-hidden', 'true');
     });
 
-    document.querySelectorAll('a[href="/admin/website-builder-settings"]').forEach(link => link.setAttribute('href', settingsHref));
+    document.querySelectorAll('a[href="/admin/website-builder-settings"]').forEach(link => {
+      link.setAttribute('href', settingsHref);
+    });
 
     document.querySelectorAll('a[href="/admin/pages"]').forEach(link => {
       replaceLabel(link, 'Website Pages', 'AI Website Builder');
       link.setAttribute('title', 'AI Website Builder');
-      cloneAfter(link, settingsHref, 'Website Builder Settings', 'Builder Settings');
+      cloneAfterInToolsMenu(link, settingsHref, 'Website Builder Settings', 'Builder Settings');
     });
 
-    document.querySelectorAll('a[href="/admin/site-settings"]').forEach(link => {
-      cloneAfter(link, gatesHref, 'Launch & Maintenance Gate Control Centre', 'Gate Control Centre');
+    const toolsMenu = findAllToolsMenu();
+    toolsMenu?.querySelectorAll('a[href="/admin/site-settings"]').forEach(link => {
+      cloneAfterInToolsMenu(link, gatesHref, 'Launch & Maintenance Gate Control Centre', 'Gate Control Centre');
     });
 
     enhanceSiteSettings();
+    keepPrimaryHeaderStable();
   }
 
   apply();
