@@ -6,6 +6,8 @@ import AdminEnquiriesPage from '@/pages/admin/enquiries';
 import AdminPlansPage from '@/pages/admin/plans';
 import AdminSessionsPage from '@/pages/admin/sessions';
 import AdminAuthorityReportingPage from '@/pages/admin/authority-reporting';
+import AdminGateControlPage from '@/pages/admin/gate-control';
+import AdminPartnerGalleriesPage from '@/pages/admin/partner-galleries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,7 +23,7 @@ const DEFINITIONS: Record<string, SectionDefinition> = {
   '/admin/health': { section: 'health', title: 'Production Health', subtitle: 'Verified platform, database and integration signals.' },
   '/admin/operations': { section: 'operations', title: 'Operations', subtitle: 'Live customer and platform operations.' },
   '/admin/reports': { section: 'reports', title: 'Authority Reporting Centre', subtitle: 'Police, safeguarding, regulatory and local-authority reporting records.' },
-  '/admin/status': { section: 'status', title: 'Status Centre', subtitle: 'Current public website and service availability.' },
+  '/admin/status': { section: 'status', title: 'Gate Control Centre', subtitle: 'Manage the Launch Gate, Maintenance Gate and public website availability.' },
   '/admin/notifications': { section: 'notifications', title: 'Notifications', subtitle: 'Customer and administration communications.' },
   '/admin/system-reports': { section: 'systemreports', title: 'System Reports', subtitle: 'Reported platform issues and their resolution status.' },
   '/admin/closure-requests': { section: 'closures', title: 'Closure Requests', subtitle: 'Customer account closure requests and progress.' },
@@ -34,7 +36,7 @@ const DEFINITIONS: Record<string, SectionDefinition> = {
   '/admin/addons': { section: 'addons', title: 'Paid Add-Ons', subtitle: 'Optional paid features and customer entitlements.' },
   '/admin/plans': { section: 'plans', title: 'Subscription Plans', subtitle: 'Configured customer plans, pricing and availability.' },
   '/admin/branding': { section: 'branding', title: 'Branding & Appearance', subtitle: 'Browser-tab identity and complete Admin Portal appearance.' },
-  '/admin/affiliate-content': { section: 'affiliate', title: 'Affiliate Content', subtitle: 'Approved affiliate disclosures and website content.' },
+  '/admin/affiliate-content': { section: 'affiliate', title: 'Partner Galleries', subtitle: 'Manage the Headout and GetYourGuide destination galleries.' },
 };
 
 function titleCase(value: string) {
@@ -112,7 +114,9 @@ export default function AdminOperationalSection() {
   const isPlans = definition.section === 'plans';
   const isSessions = definition.section === 'sessions';
   const isAuthorityReporting = definition.section === 'reports';
-  const dedicatedPage = isBranding || isEnquiries || isPlans || isSessions || isAuthorityReporting;
+  const isGateControl = definition.section === 'status';
+  const isPartnerGalleries = definition.section === 'affiliate';
+  const dedicatedPage = isBranding || isEnquiries || isPlans || isSessions || isAuthorityReporting || isGateControl || isPartnerGalleries;
   const [data, setData] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(!dedicatedPage);
   const [error, setError] = useState('');
@@ -150,6 +154,8 @@ export default function AdminOperationalSection() {
   if (isPlans) return <AdminPlansPage />;
   if (isSessions) return <AdminSessionsPage />;
   if (isAuthorityReporting) return <AdminAuthorityReportingPage />;
+  if (isGateControl) return <AdminGateControlPage />;
+  if (isPartnerGalleries) return <AdminPartnerGalleriesPage />;
 
   return (
     <AdminLayout title={definition.title} subtitle={definition.subtitle}>
