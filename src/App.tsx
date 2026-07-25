@@ -11,6 +11,7 @@ import RouteErrorPage from '@/components/RouteErrorPage';
 import AccessibilityRuntime from '@/components/AccessibilityRuntime';
 import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
 import AdminSupportLauncher from '@/components/AdminSupportLauncher';
+import CustomerCrmAgeVerificationEnhancer from '@/components/CustomerCrmAgeVerificationEnhancer';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
 import { routes, adminRoutes, resellerRoutes } from './routes';
@@ -133,6 +134,7 @@ export default function App() {
                       <RouterProvider router={router} />
                       <AdminKeyboardShortcuts />
                       <AdminSupportLauncher />
+                      <CustomerCrmAgeVerificationEnhancer />
                       <CookieBannerErrorBoundary>
                         <Suspense fallback={null}>
                           <CookieBanner />
