@@ -74,6 +74,7 @@ jobs:
             tests/authority-report-user-session-linking.test.mjs \
             tests/authority-session-card-layout.test.mjs \
             tests/authority-report-template-library.test.mjs \
+            tests/admin-age-verification-control.test.mjs \
             tests/age-16-safeguarding.test.mjs 2>&1 | tee targeted-tests.log
 
       - name: Run full repository test baseline
