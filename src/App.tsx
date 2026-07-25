@@ -30,6 +30,7 @@ const PublicHelpCentrePage = lazy(() => import('./pages/help-centre'));
 const YoungPersonSafetyPage = lazy(() => import('./pages/young-person-safety'));
 const AdminManualsPage = lazy(() => import('./pages/admin/manuals'));
 const AdminAuthorityReportingRoutePage = lazy(() => import('./pages/admin/authority-reporting-route'));
+const AdminAgeVerificationPage = lazy(() => import('./pages/admin/age-verification'));
 
 const CookieBanner = lazy(() =>
   import('@/components/CookieBanner').catch((error) => {
@@ -82,6 +83,16 @@ const adminManualsRoute: RouteObject = {
   errorElement,
 };
 
+const adminAgeVerificationRoute: RouteObject = {
+  path: '/admin/age-verification',
+  element: (
+    <Suspense fallback={<SpinnerFallback />}>
+      <AdminAgeVerificationPage />
+    </Suspense>
+  ),
+  errorElement,
+};
+
 const adminAuthorityReportingRoutes: RouteObject[] = ['/admin/authority-reporting', '/admin/reports'].map(path => ({
   path,
   element: (
@@ -99,6 +110,7 @@ const routeTree: RouteObject[] = [
     children: customerRoutes,
   },
   adminManualsRoute,
+  adminAgeVerificationRoute,
   ...adminAuthorityReportingRoutes,
   ...adminRoutes.map(withErrorPage),
   ...resellerRoutes.map(withErrorPage),
