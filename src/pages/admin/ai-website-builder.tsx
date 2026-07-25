@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from '@dr.pogodin/react-helmet';
 import {
-  AlertTriangle, Bot, CheckCircle2, Code2, ExternalLink, FileCode2, Loader2,
-  Paintbrush, Plus, RefreshCw, Rocket, Save, Trash2, WandSparkles,
+  AlertTriangle, Bot, CheckCircle2, ChevronRight, Code2, ExternalLink, FileCode2,
+  FileJson2, FilePlus2, Files, Folder, History, Loader2, MessageSquare, PanelTop,
+  RefreshCw, Rocket, Save, Send, Settings2, Trash2, Volume2, VolumeX, WandSparkles,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
+import AIWebsiteBuilderPreview, { type WebsiteBuilderOperation } from '@/components/AIWebsiteBuilderPreview';
+import WebsiteBuilderSettingsPanel, { type WebsiteBuilderSettings } from '@/components/WebsiteBuilderSettingsPanel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 interface ManagedPage {
   id: string;
@@ -29,17 +31,14 @@ interface ManagedRule {
   selector: string;
   value: string;
   attribute_name: string;
+  status?: string;
+  updated_at?: string;
 }
 
-interface Operation {
-  type: string;
-  path?: string;
-  selector?: string;
-  value?: string;
-  attributeName?: string;
-  title?: string;
-  html?: string;
-  css?: string;
+interface ChangePlanData {
+  summary: string;
+  warnings?: string[];
+  operations: WebsiteBuilderOperation[];
 }
 
 interface ChangePlan {
@@ -49,240 +48,388 @@ interface ChangePlan {
   status: string;
   created_at?: string;
   created_by?: string;
-  plan: { summary: string; warnings?: string[]; operations: Operation[] };
+  published_at?: string;
+  plan: ChangePlanData;
 }
 
-interface Inventory {
+interface ChatMessage {
+  id?: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at?: string;
+}
+
+interface StudioInventory {
   success: boolean;
-  settings: { global_css: string };
+  settings: WebsiteBuilderSettings;
   pages: ManagedPage[];
   rules: ManagedRule[];
   plans: ChangePlan[];
-  aiAvailable: boolean;
+  diagnostics: { database: boolean; workersAi: boolean; model: string; serviceState: string };
   error?: string;
   correlationId?: string;
 }
 
-type Section = 'ai' | 'pages' | 'rules' | 'css' | 'history';
-type Busy = 'load' | 'generate' | 'publish' | 'save' | null;
+type WorkspaceTab = 'chat' | 'files' | 'code' | 'preview' | 'history' | 'settings';
+type Busy = 'load' | 'chat' | 'publish' | 'save' | 'discard' | null;
+type SelectedFile =
+  | { type: 'global-css'; path: 'website/styles/global.css' }
+  | { type: 'page-html'; path: string; pageId: string }
+  | { type: 'page-css'; path: string; pageId: string }
+  | { type: 'page-json'; path: string; pageId: string }
+  | { type: 'rule-json'; path: string; ruleId: string }
+  | { type: 'plan-json'; path: string; planId: string };
 
-const EMPTY_PAGE: ManagedPage = {
-  id: '', path: '/new-page', title: 'New page', status: 'draft', html: '', css: '',
-  seo_title: '', seo_description: '', noindex: 0,
+const DEFAULT_SETTINGS: WebsiteBuilderSettings = {
+  enabled: true,
+  maintenanceEnabled: false,
+  maintenanceMessage: 'The AI Website Builder is temporarily unavailable while maintenance is completed.',
+  maintenanceStart: '', maintenanceEnd: '', readOnly: false, acknowledgementSound: true,
+  previewEnabled: true, publishConfirmation: true, allowHtml: true, allowCss: true,
+  allowCreatePages: true, allowDeletePages: true, allowExistingPageRules: true,
+  maxHistory: 20, maxOperations: 30, model: '@cf/meta/llama-3.1-8b-instruct-fast',
+  systemInstructions: '', globalCss: '',
 };
 
-const EMPTY_RULE = {
-  path: '/', operation: 'replace_text', selector: 'main h1', value: '', attributeName: '', sortOrder: 100,
-};
-
-async function request<T>(body?: Record<string, unknown>): Promise<T> {
-  const response = await fetch('/api/admin/website-builder', {
-    method: body ? 'POST' : 'GET',
-    credentials: 'include',
-    cache: 'no-store',
+async function api<T>(body?: Record<string, unknown>): Promise<T> {
+  const response = await fetch('/api/admin/website-studio', {
+    method: body ? 'POST' : 'GET', credentials: 'include', cache: 'no-store',
     headers: { Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   const payload = await response.json().catch(() => ({})) as T & { success?: boolean; error?: string; correlationId?: string };
   if (!response.ok || payload.success === false) {
-    throw new Error(`${payload.error || 'The AI Website Builder could not complete the request.'}${payload.correlationId ? ` Reference: ${payload.correlationId}` : ''}`);
+    throw new Error(`${payload.error || 'The AI Website Studio could not complete the request.'}${payload.correlationId ? ` Reference: ${payload.correlationId}` : ''}`);
   }
   return payload;
 }
 
-function label(value: string) {
+function pretty(value: string) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
+function normalisePath(path: string) {
+  const trimmed = path.trim() || '/';
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+}
+
+function formatTime(value?: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? value : new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
+function fileSafePath(path: string) {
+  return path.replace(/^\//, '').replaceAll('/', '_') || 'homepage';
+}
+
 export default function AdminAIWebsiteBuilderPage() {
-  const [section, setSection] = useState<Section>('ai');
-  const [inventory, setInventory] = useState<Inventory | null>(null);
+  const initialSettingsView = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'settings';
+  const [tab, setTab] = useState<WorkspaceTab>(initialSettingsView ? 'settings' : 'chat');
+  const [inventory, setInventory] = useState<StudioInventory | null>(null);
+  const [settings, setSettings] = useState<WebsiteBuilderSettings>(DEFAULT_SETTINGS);
   const [busy, setBusy] = useState<Busy>('load');
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [prompt, setPrompt] = useState('');
+  const [notice, setNotice] = useState('');
   const [targetPath, setTargetPath] = useState('/');
-  const [activePlan, setActivePlan] = useState<ChangePlan | null>(null);
-  const [planJson, setPlanJson] = useState('');
-  const [page, setPage] = useState<ManagedPage>(EMPTY_PAGE);
-  const [rule, setRule] = useState(EMPTY_RULE);
-  const [globalCss, setGlobalCss] = useState('');
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: 'Hello Alfie. Tell me what you want to build or change. I will prepare it in the live draft preview, and nothing goes to production until you approve it.' },
+  ]);
+  const [conversationId, setConversationId] = useState('');
+  const [activePlan, setActivePlan] = useState<ChangePlanData | null>(null);
+  const [pageSnapshot, setPageSnapshot] = useState('');
+  const [previewRefresh, setPreviewRefresh] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<SelectedFile>({ type: 'global-css', path: 'website/styles/global.css' });
+  const [codeValue, setCodeValue] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundPreferenceLoaded, setSoundPreferenceLoaded] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  const load = useCallback(async () => {
-    setBusy('load');
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setBusy('load');
     setError('');
     try {
-      const data = await request<Inventory>();
+      const data = await api<StudioInventory>();
       setInventory(data);
-      setGlobalCss(data.settings?.global_css || '');
+      setSettings({ ...DEFAULT_SETTINGS, ...(data.settings || {}) });
+      if (!soundPreferenceLoaded) {
+        const stored = localStorage.getItem('planyx_builder_sound');
+        setSoundEnabled(stored === null ? Boolean(data.settings?.acknowledgementSound) : stored === '1');
+        setSoundPreferenceLoaded(true);
+      }
+      if (selectedFile.type === 'global-css') setCodeValue(data.settings?.globalCss || '');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The Website Studio could not be loaded.'); }
+    finally { if (!silent) setBusy(null); }
+  }, [selectedFile.type, soundPreferenceLoaded]);
+
+  useEffect(() => { void load(); }, []);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, [messages, busy]);
+
+  const draftOperations = activePlan?.operations || [];
+  const previewPath = useMemo(() => {
+    const managed = draftOperations.find(operation => ['create_page', 'update_page'].includes(operation.type) && operation.path);
+    return normalisePath(managed?.path || targetPath);
+  }, [draftOperations, targetPath]);
+
+  const draftPlans = useMemo(() => inventory?.plans.filter(plan => plan.status === 'draft') || [], [inventory]);
+
+  function flash(text: string) {
+    setNotice(text);
+    window.setTimeout(() => setNotice(''), 4500);
+  }
+
+  function playAcknowledgement() {
+    if (!soundEnabled || !settings.acknowledgementSound) return;
+    try {
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const context = new AudioContextClass();
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.32);
+      gain.connect(context.destination);
+      [659.25, 880].forEach((frequency, index) => {
+        const oscillator = context.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, context.currentTime + index * 0.08);
+        oscillator.connect(gain);
+        oscillator.start(context.currentTime + index * 0.08);
+        oscillator.stop(context.currentTime + 0.28 + index * 0.08);
+      });
+      window.setTimeout(() => void context.close(), 700);
+    } catch {
+      // Audio is an enhancement; browser restrictions must never block the builder.
+    }
+  }
+
+  function toggleSound() {
+    setSoundEnabled(current => {
+      const next = !current;
+      localStorage.setItem('planyx_builder_sound', next ? '1' : '0');
+      return next;
+    });
+  }
+
+  async function sendMessage() {
+    const message = chatInput.trim();
+    if (!message || busy) return;
+    setBusy('chat'); setError(''); setChatInput('');
+    setMessages(current => [...current, { role: 'user', content: message }]);
+    try {
+      const result = await api<{ success: boolean; conversationId: string; reply: string; plan: ChangePlanData; messages: ChatMessage[]; settings: WebsiteBuilderSettings }>({
+        action: 'chat', message, targetPath: normalisePath(targetPath), conversationId: conversationId || undefined,
+        currentPlan: activePlan || undefined, pageSnapshot,
+      });
+      setConversationId(result.conversationId);
+      setActivePlan(result.plan);
+      setMessages(result.messages?.length ? result.messages : current => [...current, { role: 'assistant', content: result.reply }]);
+      setSettings(current => ({ ...current, ...(result.settings || {}) }));
+      setPreviewRefresh(value => value + 1);
+      playAcknowledgement();
+      await load(true);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The builder could not be loaded.');
+      setError(reason instanceof Error ? reason.message : 'The builder could not answer that message.');
+      setMessages(current => [...current, { role: 'assistant', content: 'I could not complete that change. Check the error above, then reword the request or open Website Builder Settings.' }]);
     } finally { setBusy(null); }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
-
-  const drafts = useMemo(() => inventory?.plans.filter(item => item.status === 'draft') || [], [inventory]);
-
-  function notice(text: string) {
-    setMessage(text);
-    window.setTimeout(() => setMessage(''), 4000);
   }
 
-  function choosePlan(item: ChangePlan) {
-    setActivePlan(item);
-    setPlanJson(JSON.stringify(item.plan, null, 2));
-    setPrompt(item.prompt);
-    setTargetPath(item.target_path);
-    setSection('ai');
-  }
-
-  async function generate() {
-    setBusy('generate'); setError('');
+  async function openConversation(plan: ChangePlan) {
+    setBusy('load'); setError('');
     try {
-      const result = await request<{ success: boolean; plan: ChangePlan }>({ action: 'generate_plan', prompt, targetPath });
-      choosePlan(result.plan);
-      notice('Draft plan generated. Review it before publication.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'A plan could not be generated.'); }
+      const result = await api<{ success: boolean; conversation: ChangePlan; messages: ChatMessage[] }>({ action: 'get_conversation', id: plan.id });
+      setConversationId(plan.id);
+      setActivePlan(result.conversation.plan);
+      setMessages(result.messages?.length ? result.messages : [{ role: 'assistant', content: result.conversation.plan.summary }]);
+      setTargetPath(result.conversation.target_path || '/');
+      setTab('chat');
+      setPreviewRefresh(value => value + 1);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'That builder conversation could not be opened.'); }
     finally { setBusy(null); }
   }
 
-  async function savePlan() {
-    if (!activePlan) return;
-    setBusy('save'); setError('');
-    try {
-      const result = await request<{ success: boolean; plan: ChangePlan }>({ action: 'save_plan_json', id: activePlan.id, plan: planJson });
-      choosePlan(result.plan);
-      notice('Draft plan updated.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The plan could not be saved.'); }
-    finally { setBusy(null); }
+  function newConversation() {
+    setConversationId(''); setActivePlan(null); setChatInput(''); setTargetPath('/');
+    setMessages([{ role: 'assistant', content: 'New website conversation started. What would you like me to build or change?' }]);
+    setPreviewRefresh(value => value + 1); setTab('chat');
   }
 
-  async function publish() {
-    if (!activePlan || !window.confirm('Publish this approved plan to the live Planyx website now?')) return;
+  async function publishDraft() {
+    if (!conversationId || !activePlan) return;
+    if (settings.publishConfirmation && !window.confirm('Publish this approved draft to the live Planyx production website now?')) return;
     setBusy('publish'); setError('');
     try {
-      await request({ action: 'publish_plan', id: activePlan.id });
-      setActivePlan(null); setPlanJson('');
-      notice('Approved changes published to production.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The plan could not be published.'); }
+      await api({ action: 'publish_plan', id: conversationId });
+      flash('Draft published to the production website.');
+      setMessages(current => [...current, { role: 'assistant', content: 'The approved draft has now been published to production.' }]);
+      setActivePlan(null); setPreviewRefresh(value => value + 1); playAcknowledgement();
+      await load(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The draft could not be published.'); }
     finally { setBusy(null); }
   }
 
-  async function discard() {
-    if (!activePlan) return;
-    setBusy('save'); setError('');
+  async function discardDraft() {
+    if (!conversationId || !window.confirm('Discard this draft conversation and its unpublished website changes?')) return;
+    setBusy('discard'); setError('');
     try {
-      await request({ action: 'discard_plan', id: activePlan.id });
-      setActivePlan(null); setPlanJson('');
-      notice('Draft discarded.');
-      await load();
+      await api({ action: 'discard_plan', id: conversationId });
+      newConversation(); flash('Draft discarded.'); await load(true);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'The draft could not be discarded.'); }
     finally { setBusy(null); }
   }
 
-  async function savePage() {
+  function chooseFile(file: SelectedFile) {
+    setSelectedFile(file);
+    if (!inventory) return;
+    if (file.type === 'global-css') setCodeValue(settings.globalCss || '');
+    if (file.type.startsWith('page-')) {
+      const page = inventory.pages.find(item => item.id === file.pageId);
+      if (!page) return;
+      if (file.type === 'page-html') setCodeValue(page.html || '');
+      if (file.type === 'page-css') setCodeValue(page.css || '');
+      if (file.type === 'page-json') setCodeValue(JSON.stringify({ title: page.title, path: page.path, status: page.status, seoTitle: page.seo_title, seoDescription: page.seo_description, noindex: Boolean(page.noindex) }, null, 2));
+    }
+    if (file.type === 'rule-json') setCodeValue(JSON.stringify(inventory.rules.find(item => item.id === file.ruleId) || {}, null, 2));
+    if (file.type === 'plan-json') setCodeValue(JSON.stringify(inventory.plans.find(item => item.id === file.planId)?.plan || {}, null, 2));
+    setTab('code');
+  }
+
+  function createManagedPage() {
+    const page: ManagedPage = {
+      id: crypto.randomUUID(), path: `/new-page-${Date.now()}`, title: 'New page', status: 'draft',
+      html: '<main class="managed-page"><section><h1>New page</h1><p>Start editing this page.</p></section></main>',
+      css: '.managed-page{max-width:72rem;margin:0 auto;padding:4rem 1.5rem}', seo_title: 'New page — Planyx', seo_description: '', noindex: 1,
+    };
+    setInventory(current => current ? { ...current, pages: [page, ...current.pages] } : current);
+    setSelectedFile({ type: 'page-html', pageId: page.id, path: `website/pages/${fileSafePath(page.path)}/page.html` });
+    setCodeValue(page.html); setTab('code');
+  }
+
+  async function saveCode() {
+    if (!inventory) return;
     setBusy('save'); setError('');
     try {
-      await request({ action: 'save_page', page: { ...page, seoTitle: page.seo_title, seoDescription: page.seo_description, noindex: Boolean(page.noindex) } });
-      notice('Managed page saved.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The page could not be saved.'); }
+      if (selectedFile.type === 'global-css') {
+        await api({ action: 'save_global_css', css: codeValue });
+      } else if (selectedFile.type.startsWith('page-')) {
+        const page = inventory.pages.find(item => item.id === selectedFile.pageId);
+        if (!page) throw new Error('That page file could not be found.');
+        let updated = { ...page };
+        if (selectedFile.type === 'page-html') updated.html = codeValue;
+        if (selectedFile.type === 'page-css') updated.css = codeValue;
+        if (selectedFile.type === 'page-json') {
+          const metadata = JSON.parse(codeValue) as Record<string, unknown>;
+          updated = {
+            ...updated,
+            title: String(metadata.title || updated.title), path: normalisePath(String(metadata.path || updated.path)),
+            status: ['draft', 'published', 'archived'].includes(String(metadata.status)) ? String(metadata.status) as ManagedPage['status'] : updated.status,
+            seo_title: String(metadata.seoTitle || updated.seo_title), seo_description: String(metadata.seoDescription || updated.seo_description),
+            noindex: metadata.noindex ? 1 : 0,
+          };
+        }
+        await api({ action: 'save_page', page: updated });
+        setTargetPath(updated.path); setPreviewRefresh(value => value + 1);
+      } else if (selectedFile.type === 'plan-json') {
+        const plan = JSON.parse(codeValue) as ChangePlanData;
+        await api({ action: 'save_plan', id: selectedFile.planId, plan });
+        if (selectedFile.planId === conversationId) setActivePlan(plan);
+        setPreviewRefresh(value => value + 1);
+      } else {
+        throw new Error('Published rule files are read-only. Delete the rule and ask the AI to create a revised one.');
+      }
+      flash('File saved.'); await load(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The file could not be saved.'); }
     finally { setBusy(null); }
   }
 
-  async function deletePage(path: string) {
-    if (!window.confirm(`Delete ${path} and its managed rules?`)) return;
-    setBusy('save'); setError('');
-    try {
-      await request({ action: 'delete_page', path });
-      setPage(EMPTY_PAGE); notice('Managed page deleted.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The page could not be deleted.'); }
-    finally { setBusy(null); }
+  async function deleteSelected() {
+    if (!inventory) return;
+    if (selectedFile.type.startsWith('page-')) {
+      const page = inventory.pages.find(item => item.id === selectedFile.pageId);
+      if (!page || !window.confirm(`Delete managed page ${page.path}?`)) return;
+      await api({ action: 'delete_page', path: page.path });
+    } else if (selectedFile.type === 'rule-json') {
+      if (!window.confirm('Delete this published website rule?')) return;
+      await api({ action: 'delete_rule', id: selectedFile.ruleId });
+    } else return;
+    setSelectedFile({ type: 'global-css', path: 'website/styles/global.css' }); setCodeValue(settings.globalCss || '');
+    flash('Website file removed.'); await load(true);
   }
 
-  async function saveRule() {
-    setBusy('save'); setError('');
-    try {
-      await request({ action: 'save_rule', rule });
-      setRule(EMPTY_RULE); notice('Page change published.');
-      await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The page change could not be saved.'); }
-    finally { setBusy(null); }
-  }
-
-  async function deleteRule(id: string) {
-    if (!window.confirm('Remove this live website rule?')) return;
-    setBusy('save'); setError('');
-    try {
-      await request({ action: 'delete_rule', id }); notice('Page rule removed.'); await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The rule could not be removed.'); }
-    finally { setBusy(null); }
-  }
-
-  async function saveCss() {
-    setBusy('save'); setError('');
-    try {
-      await request({ action: 'save_global_css', css: globalCss }); notice('Global customer-site CSS published.'); await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Global CSS could not be saved.'); }
-    finally { setBusy(null); }
-  }
-
-  const tabs: Array<[Section, string, typeof Bot]> = [
-    ['ai', 'AI builder', WandSparkles], ['pages', 'Pages & HTML', FileCode2],
-    ['rules', 'Existing pages', Code2], ['css', 'Global CSS', Paintbrush], ['history', 'History', RefreshCw],
+  const tabs: Array<[WorkspaceTab, string, typeof MessageSquare]> = [
+    ['chat', 'Chat', MessageSquare], ['files', 'Files', Files], ['code', 'Code', Code2],
+    ['preview', 'Preview', PanelTop], ['history', 'History', History], ['settings', 'Settings', Settings2],
   ];
 
+  const builderUnavailable = !settings.enabled || settings.maintenanceEnabled;
+  const title = tab === 'settings' ? 'Website Builder Settings' : 'AI Website Studio';
+
   return (
-    <AdminLayout title="AI Website Builder">
-      <Helmet><title>AI Website Builder | Planyx Admin Centre</title></Helmet>
-      <div className="space-y-5">
-        <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-violet-600" />
-          <div className="flex flex-col gap-5 p-5 pt-7 sm:p-7 sm:pt-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white"><WandSparkles className="h-6 w-6" /></span>
-              <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">AI Website Builder</h1><span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Production managed</span></div><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Ask Planyx to change customer pages, create or remove pages, edit HTML and CSS, and publish approved changes without editing application code.</p><p className="mt-2 text-xs text-slate-500">Admin, API, authentication and secure signing routes remain protected. AI plans require your approval before going live.</p></div>
-            </div>
-            <Button variant="outline" onClick={() => void load()} disabled={busy !== null}><RefreshCw className={`mr-2 h-4 w-4 ${busy === 'load' ? 'animate-spin' : ''}`} />Refresh</Button>
+    <AdminLayout title={title}>
+      <Helmet><title>{title} | Planyx Admin Centre</title></Helmet>
+      <div className="space-y-4">
+        <header className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="h-1 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500" />
+          <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white"><WandSparkles className="h-5 w-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold text-slate-950 dark:text-white">Planyx AI Website Studio</h1><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${builderUnavailable ? 'bg-red-100 text-red-700' : settings.readOnly ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{!settings.enabled ? 'Offline' : settings.maintenanceEnabled ? 'Maintenance' : settings.readOnly ? 'Read-only' : 'Live'}</span>{activePlan && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase text-violet-700">Unpublished draft</span>}</div><p className="truncate text-xs text-slate-500">Chat, files, code and live website preview in one workspace.</p></div></div>
+            <div className="flex flex-wrap items-center gap-2"><Input aria-label="Target website path" value={targetPath} onChange={event => setTargetPath(event.target.value)} className="h-9 w-48 font-mono text-xs" /><Button variant="outline" size="sm" onClick={toggleSound} title={soundEnabled ? 'Acknowledgement sound on' : 'Acknowledgement sound off'}>{soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</Button><Button variant="outline" size="sm" onClick={() => void load()} disabled={busy !== null}><RefreshCw className={`h-4 w-4 ${busy === 'load' ? 'animate-spin' : ''}`} /></Button>{activePlan && <><Button variant="outline" size="sm" onClick={() => void discardDraft()} disabled={busy !== null}><Trash2 className="mr-1.5 h-4 w-4" />Discard</Button><Button size="sm" onClick={() => void publishDraft()} disabled={busy !== null || settings.readOnly}>{busy === 'publish' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Rocket className="mr-1.5 h-4 w-4" />}Publish</Button></>}</div>
           </div>
-        </section>
+          <nav className="flex overflow-x-auto border-t border-slate-200 px-2 dark:border-slate-800" aria-label="Website Studio workspace">
+            {tabs.map(([id, label, Icon]) => id === 'settings' ? <a key={id} href="/admin/website-builder-settings" className={`inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm font-semibold ${tab === id ? 'border-blue-600 text-blue-700 dark:text-blue-300' : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}><Icon className="mr-2 h-4 w-4" />{label}</a> : <button key={id} type="button" onClick={() => setTab(id)} className={`inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm font-semibold ${tab === id ? 'border-blue-600 text-blue-700 dark:text-blue-300' : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}><Icon className="mr-2 h-4 w-4" />{label}</button>)}
+          </nav>
+        </header>
 
-        <Alert className="rounded-2xl border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100"><AlertTriangle className="h-4 w-4" /><AlertDescription><strong>Review before publication:</strong> generated content is a drafting and publishing aid. Check wording, legal claims, privacy, safeguarding, links and mobile layout before approving it.</AlertDescription></Alert>
-        {message && <Alert className="rounded-2xl border-emerald-200 bg-emerald-50 text-emerald-950"><CheckCircle2 className="h-4 w-4" /><AlertDescription>{message}</AlertDescription></Alert>}
-        {error && <Alert variant="destructive" className="rounded-2xl"><AlertTriangle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert>}
+        {notice && <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900"><CheckCircle2 className="h-4 w-4" /><AlertDescription>{notice}</AlertDescription></Alert>}
+        {error && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert>}
+        {settings.maintenanceEnabled && tab !== 'settings' && <Alert className="border-amber-200 bg-amber-50 text-amber-950"><AlertTriangle className="h-4 w-4" /><AlertDescription><strong>Builder maintenance:</strong> {settings.maintenanceMessage}</AlertDescription></Alert>}
 
-        <nav className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-label="AI Website Builder sections">
-          {tabs.map(([id, text, Icon]) => <button key={id} type="button" onClick={() => setSection(id)} className={`inline-flex min-h-10 shrink-0 items-center rounded-xl px-3.5 text-sm font-semibold transition ${section === id ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}><Icon className="mr-2 h-4 w-4" />{text}</button>)}
-        </nav>
-
-        {busy === 'load' && !inventory ? <div className="flex min-h-72 items-center justify-center rounded-3xl border bg-white"><Loader2 className="h-7 w-7 animate-spin text-blue-600" /></div> : section === 'ai' ? (
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-              <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Tell the builder what to change</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-500">Include the page path, wording, section, colour or layout you want changed.</p>
-              <div className="mt-5"><Label htmlFor="builder-target">Target page</Label><Input id="builder-target" value={targetPath} onChange={event => setTargetPath(event.target.value)} className="mt-1 font-mono" placeholder="/age-check" /></div>
-              <div className="mt-4"><Label htmlFor="builder-prompt">Request</Label><textarea id="builder-prompt" value={prompt} onChange={event => setPrompt(event.target.value)} rows={8} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-3 text-sm leading-6" placeholder="On /age-check, make the wording clearer, add a privacy section and soften the background. Keep the 16+ safeguards." /></div>
-              <Button className="mt-4" onClick={() => void generate()} disabled={busy !== null || prompt.trim().length < 8}>{busy === 'generate' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}Generate draft plan</Button>
-
-              {activePlan && <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50/60 p-4 dark:border-blue-500/30 dark:bg-blue-500/10"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-xs font-semibold uppercase text-blue-700">Draft plan</p><h3 className="mt-1 font-semibold text-slate-950 dark:text-white">{activePlan.plan.summary}</h3></div><span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-blue-700">{activePlan.plan.operations.length} changes</span></div>{activePlan.plan.warnings?.map((warning, index) => <p key={index} className="mt-2 text-xs text-amber-800">⚠ {warning}</p>)}<div className="mt-4 space-y-2">{activePlan.plan.operations.map((operation, index) => <div key={index} className="rounded-xl border border-blue-100 bg-white p-3 text-sm dark:bg-slate-900"><strong>{index + 1}. {label(operation.type)}</strong>{operation.path && <code className="ml-2 text-xs">{operation.path}</code>}{operation.selector && <p className="mt-1 text-xs text-slate-500">Selector: {operation.selector}</p>}</div>)}</div><div className="mt-4"><Label htmlFor="plan-json">Advanced plan JSON</Label><textarea id="plan-json" value={planJson} onChange={event => setPlanJson(event.target.value)} rows={14} spellCheck={false} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-xs leading-5 text-slate-100" /></div><div className="mt-4 flex flex-wrap gap-2"><Button variant="outline" onClick={() => void savePlan()} disabled={busy !== null}><Save className="mr-2 h-4 w-4" />Save edited plan</Button><Button onClick={() => void publish()} disabled={busy !== null}>{busy === 'publish' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}Approve and publish live</Button><Button variant="ghost" onClick={() => void discard()} disabled={busy !== null}><Trash2 className="mr-2 h-4 w-4" />Discard</Button></div></div>}
+        {busy === 'load' && !inventory ? <div className="flex min-h-[600px] items-center justify-center rounded-2xl border bg-white dark:bg-slate-900"><Loader2 className="h-7 w-7 animate-spin text-blue-600" /></div> : tab === 'settings' ? (
+          <WebsiteBuilderSettingsPanel settings={settings} diagnostics={inventory?.diagnostics} counts={{ pages: inventory?.pages.length || 0, rules: inventory?.rules.length || 0, plans: inventory?.plans.length || 0 }} onSaved={saved => setSettings(saved)} />
+        ) : tab === 'chat' ? (
+          <div className={`grid min-h-0 gap-4 ${settings.previewEnabled ? 'xl:grid-cols-[minmax(360px,0.72fr)_minmax(520px,1.28fr)]' : ''}`}>
+            <section className="flex h-[calc(100vh-250px)] min-h-[620px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800"><div><h2 className="text-sm font-bold text-slate-950 dark:text-white">Conversation</h2><p className="text-xs text-slate-500">Talk naturally. Follow-up requests revise the same draft.</p></div><Button variant="ghost" size="sm" onClick={newConversation}><FilePlus2 className="mr-1.5 h-4 w-4" />New chat</Button></div>
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">{messages.map((item, index) => <div key={item.id || index} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 ${item.role === 'user' ? 'rounded-br-md bg-blue-600 text-white' : 'rounded-bl-md border border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'}`}>{item.content}</div></div>)}{busy === 'chat' && <div className="flex justify-start"><div className="flex items-center rounded-2xl rounded-bl-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reading the page and building your draft…</div></div>}<div ref={chatEndRef} /></div>
+              {activePlan && <div className="border-t border-violet-200 bg-violet-50 px-4 py-3 text-xs text-violet-900 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-100"><strong>{activePlan.summary}</strong><span className="ml-2">{activePlan.operations.length} draft changes</span>{activePlan.warnings?.map((warning, index) => <p key={index} className="mt-1 text-amber-700 dark:text-amber-200">⚠ {warning}</p>)}</div>}
+              <div className="border-t border-slate-200 p-3 dark:border-slate-800"><div className="relative"><textarea value={chatInput} onChange={event => setChatInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} rows={3} disabled={builderUnavailable} placeholder={builderUnavailable ? settings.maintenanceMessage : 'Ask the builder to change, add, remove or redesign anything…'} className="w-full resize-none rounded-2xl border border-slate-300 bg-white py-3 pl-4 pr-14 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-100 dark:border-slate-700 dark:bg-slate-950" /><button type="button" onClick={() => void sendMessage()} disabled={busy !== null || builderUnavailable || chatInput.trim().length < 2} className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white disabled:opacity-40" aria-label="Send builder message"><Send className="h-4 w-4" /></button></div><p className="mt-2 text-[10px] text-slate-500">Enter sends · Shift+Enter adds a new line · A soft chime plays after acknowledgement when enabled.</p></div>
             </section>
-            <aside className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h2 className="font-semibold text-slate-950 dark:text-white">Unpublished drafts</h2><div className="mt-3 space-y-2">{drafts.length ? drafts.map(item => <button key={item.id} type="button" onClick={() => choosePlan(item)} className="w-full rounded-xl border border-slate-200 p-3 text-left hover:border-blue-300 dark:border-slate-800"><p className="line-clamp-2 text-sm font-semibold">{item.plan.summary}</p><p className="mt-1 text-xs text-slate-500">{item.target_path} · {item.plan.operations.length} changes</p></button>) : <p className="text-sm text-slate-500">No draft plans.</p>}</div></aside>
+            {settings.previewEnabled && <AIWebsiteBuilderPreview path={previewPath} operations={draftOperations} refreshKey={previewRefresh} onSnapshot={setPageSnapshot} />}
           </div>
-        ) : section === 'pages' ? (
-          <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]"><section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between"><h2 className="font-semibold">Managed pages</h2><Button size="sm" onClick={() => setPage({ ...EMPTY_PAGE, id: crypto.randomUUID(), path: `/new-page-${Date.now()}` })}><Plus className="mr-1 h-4 w-4" />New</Button></div><div className="mt-3 space-y-2">{inventory?.pages.map(item => <button key={item.id} type="button" onClick={() => setPage({ ...item })} className={`w-full rounded-xl border p-3 text-left ${page.path === item.path ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-slate-200 dark:border-slate-800'}`}><strong className="text-sm">{item.title}</strong><code className="mt-1 block text-xs text-slate-500">{item.path}</code></button>)}</div></section><section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"><div className="flex items-start justify-between"><div><h2 className="text-lg font-semibold">Full page HTML and CSS</h2><p className="mt-1 text-sm text-slate-500">Create, edit, publish or remove a complete managed page.</p></div>{page.status === 'published' && <a href={page.path} target="_blank" rel="noreferrer" className="text-xs font-semibold text-blue-700">Open live <ExternalLink className="ml-1 inline h-3.5 w-3.5" /></a>}</div><div className="mt-5 grid gap-4 md:grid-cols-2"><div><Label>Title</Label><Input value={page.title} onChange={event => setPage(current => ({ ...current, title: event.target.value }))} className="mt-1" /></div><div><Label>Path</Label><Input value={page.path} onChange={event => setPage(current => ({ ...current, path: event.target.value }))} className="mt-1 font-mono" /></div></div><div className="mt-4 grid gap-4 md:grid-cols-2"><div><Label>Status</Label><select value={page.status} onChange={event => setPage(current => ({ ...current, status: event.target.value as ManagedPage['status'] }))} className="mt-1 h-10 w-full rounded-lg border border-input bg-background px-3"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div><label className="flex items-end gap-2 pb-2 text-sm"><input type="checkbox" checked={Boolean(page.noindex)} onChange={event => setPage(current => ({ ...current, noindex: event.target.checked ? 1 : 0 }))} /> No search indexing</label></div><div className="mt-4 grid gap-4 md:grid-cols-2"><div><Label>SEO title</Label><Input value={page.seo_title} onChange={event => setPage(current => ({ ...current, seo_title: event.target.value }))} className="mt-1" /></div><div><Label>SEO description</Label><Input value={page.seo_description} onChange={event => setPage(current => ({ ...current, seo_description: event.target.value }))} className="mt-1" /></div></div><div className="mt-4"><Label>HTML</Label><textarea value={page.html} onChange={event => setPage(current => ({ ...current, html: event.target.value }))} rows={18} spellCheck={false} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100" /></div><div className="mt-4"><Label>Page CSS</Label><textarea value={page.css} onChange={event => setPage(current => ({ ...current, css: event.target.value }))} rows={12} spellCheck={false} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100" /></div><div className="mt-4 flex gap-2"><Button onClick={() => void savePage()} disabled={busy !== null}><Save className="mr-2 h-4 w-4" />Save page</Button>{inventory?.pages.some(item => item.path === page.path) && <Button variant="destructive" onClick={() => void deletePage(page.path)} disabled={busy !== null}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}</div></section></div>
-        ) : section === 'rules' ? (
-          <div className="grid gap-5 xl:grid-cols-[minmax(340px,0.8fr)_minmax(0,1.2fr)]"><section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"><h2 className="text-lg font-semibold">Edit an existing page</h2><p className="mt-1 text-sm text-slate-500">Target existing website or customer-portal markup with HTML, text or CSS changes.</p><div className="mt-5"><Label>Path</Label><Input value={rule.path} onChange={event => setRule(current => ({ ...current, path: event.target.value }))} className="mt-1 font-mono" /></div><div className="mt-4"><Label>Change type</Label><select value={rule.operation} onChange={event => setRule(current => ({ ...current, operation: event.target.value }))} className="mt-1 h-10 w-full rounded-lg border border-input bg-background px-3"><option value="replace_text">Replace text</option><option value="replace_html">Replace HTML</option><option value="append_html">Add HTML</option><option value="hide">Hide/remove visually</option><option value="set_attribute">Set attribute</option><option value="add_class">Add CSS class</option><option value="set_page_css">Page CSS</option></select></div>{rule.operation !== 'set_page_css' && <div className="mt-4"><Label>CSS selector</Label><Input value={rule.selector} onChange={event => setRule(current => ({ ...current, selector: event.target.value }))} className="mt-1 font-mono" /></div>}{rule.operation === 'set_attribute' && <div className="mt-4"><Label>Attribute</Label><Input value={rule.attributeName} onChange={event => setRule(current => ({ ...current, attributeName: event.target.value }))} className="mt-1 font-mono" /></div>}<div className="mt-4"><Label>{rule.operation === 'set_page_css' ? 'CSS' : rule.operation.includes('html') ? 'HTML' : 'Value'}</Label><textarea value={rule.value} onChange={event => setRule(current => ({ ...current, value: event.target.value }))} rows={12} spellCheck={false} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100" /></div><Button className="mt-4" onClick={() => void saveRule()} disabled={busy !== null}><Rocket className="mr-2 h-4 w-4" />Publish change</Button></section><section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"><h2 className="text-lg font-semibold">Published page changes</h2><div className="mt-4 space-y-2">{inventory?.rules.length ? inventory.rules.map(item => <div key={item.id} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800"><div className="flex items-start justify-between gap-2"><div><strong className="text-sm">{label(item.operation)}</strong><code className="ml-2 text-xs">{item.path_pattern}</code>{item.selector && <p className="mt-1 text-xs text-slate-500">{item.selector}</p>}<p className="mt-1 line-clamp-2 text-xs text-slate-500">{item.value}</p></div><Button size="sm" variant="ghost" onClick={() => void deleteRule(item.id)}><Trash2 className="h-4 w-4" /></Button></div></div>) : <p className="text-sm text-slate-500">No published rules.</p>}</div></section></div>
-        ) : section === 'css' ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"><h2 className="text-lg font-semibold">Global customer-site CSS</h2><p className="mt-1 text-sm text-slate-500">Applies across public and signed-in customer pages, excluding protected admin, API, authentication and signing routes.</p><textarea value={globalCss} onChange={event => setGlobalCss(event.target.value)} rows={28} spellCheck={false} className="mt-5 w-full rounded-xl border border-slate-700 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100" /><Button className="mt-4" onClick={() => void saveCss()} disabled={busy !== null}><Save className="mr-2 h-4 w-4" />Publish global CSS</Button></section>
+        ) : tab === 'files' ? (
+          <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]"><FileExplorer inventory={inventory} settings={settings} onChoose={chooseFile} onCreate={createManagedPage} /><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"><Files className="h-8 w-8 text-blue-600" /><h2 className="mt-4 text-xl font-bold">Website file workspace</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Choose a file from the explorer. HTML, CSS, page metadata, website rules and AI drafts are represented as managed files. Selecting one opens it in the Code tab.</p><div className="mt-6 grid gap-3 sm:grid-cols-3"><SummaryCard title="Managed pages" value={inventory?.pages.length || 0} /><SummaryCard title="Live rules" value={inventory?.rules.length || 0} /><SummaryCard title="Builder history" value={inventory?.plans.length || 0} /></div></section></div>
+        ) : tab === 'code' ? (
+          <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]"><FileExplorer inventory={inventory} settings={settings} onChoose={chooseFile} onCreate={createManagedPage} compact /><section className="flex min-h-[680px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-slate-900 px-4 py-3"><div className="flex min-w-0 items-center gap-2 text-slate-200"><FileCode2 className="h-4 w-4 text-blue-400" /><code className="truncate text-xs">{selectedFile.path}</code>{selectedFile.type === 'rule-json' && <span className="rounded bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">READ ONLY</span>}</div><div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => setTab('preview')}><PanelTop className="mr-1.5 h-4 w-4" />Preview</Button>{(selectedFile.type.startsWith('page-') || selectedFile.type === 'rule-json') && <Button variant="destructive" size="sm" onClick={() => void deleteSelected()} disabled={busy !== null || settings.readOnly}><Trash2 className="h-4 w-4" /></Button>}<Button size="sm" onClick={() => void saveCode()} disabled={busy !== null || selectedFile.type === 'rule-json' || settings.readOnly}>{busy === 'save' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}Save file</Button></div></div><textarea value={codeValue} onChange={event => setCodeValue(event.target.value)} readOnly={selectedFile.type === 'rule-json'} spellCheck={false} className="min-h-0 flex-1 resize-none border-0 bg-slate-950 p-5 font-mono text-xs leading-6 text-slate-100 outline-none" /></section></div>
+        ) : tab === 'preview' ? (
+          <AIWebsiteBuilderPreview path={previewPath} operations={draftOperations} refreshKey={previewRefresh} onSnapshot={setPageSnapshot} />
         ) : (
-          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"><h2 className="text-lg font-semibold">Website change history</h2><div className="mt-4 space-y-2">{inventory?.plans.map(item => <button key={item.id} type="button" onClick={() => choosePlan(item)} className="w-full rounded-xl border border-slate-200 p-4 text-left dark:border-slate-800"><div className="flex items-start justify-between gap-2"><div><strong>{item.plan.summary}</strong><p className="mt-1 text-xs text-slate-500">{item.target_path} · {item.created_by || 'Administrator'} · {item.created_at || ''}</p></div><span className="rounded-full border px-2.5 py-1 text-xs font-semibold">{item.status}</span></div></button>)}</div></section>
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold">Builder conversations and history</h2><p className="mt-1 text-sm text-slate-500">Reopen an unpublished conversation, inspect a published plan or continue refining a draft.</p></div><Button variant="outline" onClick={newConversation}><FilePlus2 className="mr-1.5 h-4 w-4" />New conversation</Button></div><div className="mt-5 space-y-2">{inventory?.plans.length ? inventory.plans.map(plan => <button key={plan.id} type="button" onClick={() => void openConversation(plan)} className="flex w-full items-start justify-between gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50/40 dark:border-slate-800 dark:hover:bg-blue-500/5"><div className="min-w-0"><p className="font-semibold text-slate-950 dark:text-white">{plan.plan.summary || plan.prompt}</p><p className="mt-1 text-xs text-slate-500">{plan.target_path} · {plan.plan.operations.length} changes · {formatTime(plan.created_at)}</p></div><div className="flex shrink-0 items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${plan.status === 'published' ? 'bg-emerald-100 text-emerald-700' : plan.status === 'draft' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'}`}>{plan.status}</span><ChevronRight className="h-4 w-4 text-slate-400" /></div></button>) : <p className="py-12 text-center text-sm text-slate-500">No builder history yet.</p>}</div></section>
         )}
       </div>
     </AdminLayout>
   );
+}
+
+function SummaryCard({ title, value }: { title: string; value: number }) {
+  return <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p><p className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">{value}</p></div>;
+}
+
+function FileExplorer({ inventory, settings, onChoose, onCreate, compact = false }: {
+  inventory: StudioInventory | null; settings: WebsiteBuilderSettings; onChoose: (file: SelectedFile) => void; onCreate: () => void; compact?: boolean;
+}) {
+  return (
+    <aside className={`${compact ? 'max-h-[680px]' : 'min-h-[620px]'} overflow-y-auto rounded-2xl border border-slate-200 bg-slate-950 p-3 text-slate-200 shadow-sm`}>
+      <div className="flex items-center justify-between px-2 py-2"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Explorer</p><p className="mt-0.5 text-[10px] text-slate-500">Managed website files</p></div><Button size="sm" variant="outline" onClick={onCreate} disabled={!settings.allowCreatePages || settings.readOnly}><FilePlus2 className="h-4 w-4" /></Button></div>
+      <div className="mt-2 space-y-1 text-xs"><ExplorerFolder label="website" defaultOpen><ExplorerFolder label="styles" defaultOpen><ExplorerFile label="global.css" icon={Code2} onClick={() => onChoose({ type: 'global-css', path: 'website/styles/global.css' })} /></ExplorerFolder><ExplorerFolder label={`pages (${inventory?.pages.length || 0})`} defaultOpen>{inventory?.pages.map(page => <ExplorerFolder key={page.id} label={`${fileSafePath(page.path)} ${page.status === 'published' ? '●' : '○'}`}><ExplorerFile label="page.html" icon={FileCode2} onClick={() => onChoose({ type: 'page-html', pageId: page.id, path: `website/pages/${fileSafePath(page.path)}/page.html` })} /><ExplorerFile label="page.css" icon={Code2} onClick={() => onChoose({ type: 'page-css', pageId: page.id, path: `website/pages/${fileSafePath(page.path)}/page.css` })} /><ExplorerFile label="page.json" icon={FileJson2} onClick={() => onChoose({ type: 'page-json', pageId: page.id, path: `website/pages/${fileSafePath(page.path)}/page.json` })} /></ExplorerFolder>)}</ExplorerFolder><ExplorerFolder label={`rules (${inventory?.rules.length || 0})`}>{inventory?.rules.map(rule => <ExplorerFile key={rule.id} label={`${fileSafePath(rule.path_pattern)}-${rule.operation}.json`} icon={FileJson2} onClick={() => onChoose({ type: 'rule-json', ruleId: rule.id, path: `website/rules/${rule.id}.json` })} />)}</ExplorerFolder><ExplorerFolder label={`drafts (${inventory?.plans.length || 0})`}>{inventory?.plans.map(plan => <ExplorerFile key={plan.id} label={`${plan.id.slice(0, 8)}-${plan.status}.json`} icon={FileJson2} onClick={() => onChoose({ type: 'plan-json', planId: plan.id, path: `website/drafts/${plan.id}.json` })} />)}</ExplorerFolder></ExplorerFolder></div>
+    </aside>
+  );
+}
+
+function ExplorerFolder({ label, children, defaultOpen = false }: { label: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return <div><button type="button" onClick={() => setOpen(current => !current)} className="flex w-full items-center rounded px-2 py-1.5 text-left text-slate-300 hover:bg-slate-800"><ChevronRight className={`mr-1 h-3.5 w-3.5 transition ${open ? 'rotate-90' : ''}`} /><Folder className="mr-1.5 h-3.5 w-3.5 text-blue-400" />{label}</button>{open && <div className="ml-3 border-l border-slate-800 pl-2">{children}</div>}</div>;
+}
+
+function ExplorerFile({ label, icon: Icon, onClick }: { label: string; icon: typeof Code2; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="flex w-full items-center rounded px-2 py-1.5 text-left text-slate-400 hover:bg-slate-800 hover:text-white"><Icon className="mr-2 h-3.5 w-3.5 text-slate-500" />{label}</button>;
 }
