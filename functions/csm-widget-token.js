@@ -93,7 +93,7 @@ async function exchangeAssertion(assertion, clientId, clientSecret) {
     console.error(JSON.stringify({
       event: "atlassian_csm_widget_token_exchange_failed",
       http_status: response.status,
-      response_preview: responseText.slice(0, 500)
+      error_code: String(payload?.error || "").slice(0, 120)
     }));
     return { ok: false, status: response.status };
   }
@@ -137,10 +137,7 @@ export async function onRequestPost(context) {
 
   const { clientId, clientSecret } = widgetCredentials(context.env);
   if (!clientId || !clientSecret) {
-    console.error(JSON.stringify({
-      event: "atlassian_csm_widget_credentials_missing",
-      customer_email: email
-    }));
+    console.error(JSON.stringify({ event: "atlassian_csm_widget_credentials_missing" }));
     return json({ error: "Personalised support is not configured." }, 501);
   }
 
@@ -154,7 +151,6 @@ export async function onRequestPost(context) {
   } catch (error) {
     console.error(JSON.stringify({
       event: "atlassian_csm_widget_token_error",
-      customer_email: email,
       message: error instanceof Error ? error.message : "Unknown token error"
     }));
     return json({ error: "Personalised support authentication failed." }, 500);
