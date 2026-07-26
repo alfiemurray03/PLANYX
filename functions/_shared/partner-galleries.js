@@ -17,7 +17,7 @@ const DEFAULT_PROVIDER = {
   showMore: true,
   partnerId: "",
   affiliateCode: "",
-  affiliateWebsite: "https://japlanstudio.jagroupservices.co.uk",
+  affiliateWebsite: "https://planyx.jagroupservices.co.uk",
   campaign: "planyx-discovery",
   destinations: [],
 };

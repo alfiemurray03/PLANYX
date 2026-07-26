@@ -90,7 +90,7 @@ function seededConfig(provider: Provider): ProviderGalleryConfig {
     showMore: true,
     partnerId: isHeadout ? '' : 'ZSEVDSG',
     affiliateCode: isHeadout ? 'JL2D9u' : '',
-    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://japlanstudio.jagroupservices.co.uk',
+    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://planyx.jagroupservices.co.uk',
     campaign: 'planyx-discovery',
     destinations: providerDestinations,
   };
