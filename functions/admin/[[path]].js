@@ -1,21 +1,14 @@
-const ADMIN_SHELL_VERSION = "2026-07-26-v11";
-const ADMIN_SHELL_COOKIE = "planyx_admin_shell";
+import { getNativeSession } from "../_shared/oidc.js";
 
-function readCookie(request, name) {
-  const prefix = `${name}=`;
-  const entry = (request.headers.get("Cookie") || "")
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(prefix));
-  return entry ? decodeURIComponent(entry.slice(prefix.length)) : "";
-}
+const DEFAULT_ADMIN_EMAIL = "alfieholywoodmurray@jagroupservices.co.uk";
+const LEGACY_QUERY_KEYS = ["portal", "release", "__reset_admin", "__admin_shell"];
 
 function noStoreHeaders(source) {
   const headers = new Headers(source || {});
   headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   headers.set("Pragma", "no-cache");
   headers.set("Expires", "0");
-  headers.set("X-Planyx-Admin-Shell", ADMIN_SHELL_VERSION);
+  headers.set("X-Planyx-Admin-Shell", "server-bootstrap-v1");
   headers.delete("Content-Length");
   return headers;
 }
@@ -27,69 +20,109 @@ function isDocumentRequest(request) {
   return destination === "document" || accept.includes("text/html");
 }
 
-function resetDocument(returnUrl) {
-  const safeReturn = JSON.stringify(returnUrl);
-  const version = JSON.stringify(ADMIN_SHELL_VERSION);
-  return `<!doctype html>
-<html lang="en-GB">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Resetting Planyx Admin Centre</title>
-  <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f8fafc;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.card{width:min(440px,calc(100% - 2rem));padding:2rem;border:1px solid #dbe4f0;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.12);text-align:center}.spinner{width:38px;height:38px;margin:0 auto 1.25rem;border:3px solid #dbeafe;border-top-color:#2563eb;border-radius:999px;animation:spin .8s linear infinite}h1{margin:0;font-size:1.35rem}p{margin:.75rem 0 0;color:#64748b;font-size:.92rem;line-height:1.6}.fallback{display:none;margin-top:1.25rem;color:#1d4ed8;font-weight:700;text-decoration:none}@keyframes spin{to{transform:rotate(360deg)}}
-  </style>
-</head>
-<body>
-  <main class="card" role="status" aria-live="polite">
-    <div class="spinner" aria-hidden="true"></div>
-    <h1>Resetting Admin Centre</h1>
-    <p>Removing the outdated portal shell and loading the current secure version.</p>
-    <a class="fallback" id="fallback" href=${safeReturn}>Continue to Admin Centre</a>
-  </main>
-  <script>
-    (async function () {
-      var destination = ${safeReturn};
-      var version = ${version};
-      try {
-        document.cookie = '${ADMIN_SHELL_COOKIE}=' + encodeURIComponent(version) + '; Path=/admin; Max-Age=31536000; SameSite=Lax; Secure';
-        if ('serviceWorker' in navigator) {
-          var registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
-        }
-        if ('caches' in window) {
-          var keys = await caches.keys();
-          await Promise.all(keys.map(function (key) { return caches.delete(key); }));
-        }
-        try {
-          localStorage.removeItem('planyx_admin_asset_version');
-          sessionStorage.setItem('planyx_admin_shell_version', version);
-        } catch (e) {}
-      } catch (e) {
-        console.warn('Admin shell reset completed with a recoverable warning.', e);
-      }
-      var url = new URL(destination, location.origin);
-      url.searchParams.set('__admin_shell', version);
-      location.replace(url.pathname + url.search + url.hash);
-    })();
-    setTimeout(function () { document.getElementById('fallback').style.display = 'inline-block'; }, 8000);
-  </script>
-</body>
-</html>`;
+function configuredAdmins(env) {
+  const raw = env.ADMIN_EMAILS || env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  return String(raw)
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
 }
 
-function injectAdminBootstrap(html) {
-  const bootstrap = `<script>
-    window.__PLANYX_ADMIN_SHELL_VERSION__=${JSON.stringify(ADMIN_SHELL_VERSION)};
-    try {
-      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));});
-      if ('caches' in window) caches.keys().then(function(keys){return Promise.all(keys.map(function(key){return caches.delete(key);}));});
-    } catch (e) {}
+function appRole(role) {
+  const normalized = String(role || "").trim().toLowerCase();
+  if (normalized === "platform owner") return "PlatformOwner";
+  if (normalized === "system administrator") return "SystemAdministrator";
+  if (normalized === "administrator" || normalized === "admin") return "Admin";
+  if (normalized === "support admin") return "SupportAdmin";
+  return "";
+}
+
+function escapeAttribute(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+async function withTimeout(promise, timeoutMs) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function resolveAdminBootstrap(request, env) {
+  try {
+    const identity = await withTimeout(getNativeSession(request, env, "admin"), 3000);
+    if (!identity) return null;
+
+    const email = String(identity.email || "").trim().toLowerCase();
+    const configured = configuredAdmins(env).includes(email);
+    let adminRecord = null;
+
+    if (env.DB) {
+      adminRecord = await withTimeout(
+        env.DB.prepare(`SELECT role, status FROM admin_users WHERE lower(email) = lower(?)`)
+          .bind(email)
+          .first()
+          .catch(() => null),
+        1500
+      );
+    }
+
+    const status = String(adminRecord?.status || "Active").trim().toLowerCase();
+    const disabled = ["blocked", "closed", "disabled", "inactive", "suspended"].includes(status);
+    if (disabled || (!configured && !adminRecord)) return null;
+
+    const role = appRole(adminRecord?.role);
+    const roles = role ? [role] : [];
+
+    return {
+      email,
+      name: identity.name || email,
+      roles,
+      tid: identity.tenantId || "",
+      isSystemAdministrator: configured || roles.includes("PlatformOwner") || roles.includes("SystemAdministrator"),
+      authMethod: "oidc",
+      operator: "JA Group Services Ltd"
+    };
+  } catch (error) {
+    console.error(JSON.stringify({
+      event: "admin_document_bootstrap_failed",
+      message: error instanceof Error ? error.message : "Unknown error"
+    }));
+    return null;
+  }
+}
+
+function injectBootstrap(html, admin) {
+  const adminMeta = admin
+    ? `<meta name="planyx-admin-bootstrap" content="${escapeAttribute(JSON.stringify(admin))}">`
+    : "";
+
+  const cleanupScript = `<script>
+    (function(){
+      try {
+        var url = new URL(location.href);
+        ['portal','release','__reset_admin','__admin_shell'].forEach(function(key){url.searchParams.delete(key);});
+        if (url.href !== location.href) history.replaceState(null,'',url.pathname + url.search + url.hash);
+        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function(items){return Promise.all(items.map(function(item){return item.unregister();}));}).catch(function(){});
+        if ('caches' in window) caches.keys().then(function(keys){return Promise.all(keys.filter(function(key){return key.indexOf('planyx-shell-')===0;}).map(function(key){return caches.delete(key);}));}).catch(function(){});
+      } catch (e) {}
+    })();
   </script>`;
-  const meta = `<meta name="planyx-admin-shell" content="${ADMIN_SHELL_VERSION}">`;
-  if (html.includes("</head>")) return html.replace("</head>", `${meta}${bootstrap}</head>`);
-  return `${meta}${bootstrap}${html}`;
+
+  const injection = `${adminMeta}<meta name="planyx-admin-shell" content="server-bootstrap-v1">${cleanupScript}`;
+  if (html.includes("</head>")) return html.replace("</head>", `${injection}</head>`);
+  return `${injection}${html}`;
 }
 
 export async function onRequest(context) {
@@ -97,30 +130,25 @@ export async function onRequest(context) {
   if (!isDocumentRequest(request)) return context.next();
 
   const url = new URL(request.url);
-  const currentCookie = readCookie(request, ADMIN_SHELL_COOKIE);
-  const requestedVersion = url.searchParams.get("__admin_shell") || "";
-  const forceReset = url.searchParams.get("__reset_admin") === "1";
-
-  if (forceReset || (currentCookie !== ADMIN_SHELL_VERSION && requestedVersion !== ADMIN_SHELL_VERSION)) {
-    const destination = new URL(url);
-    destination.searchParams.delete("__reset_admin");
-    destination.searchParams.delete("__admin_shell");
-    const returnPath = `${destination.pathname}${destination.search}${destination.hash}`;
-    const headers = noStoreHeaders({
-      "Content-Type": "text/html; charset=utf-8",
-      "Clear-Site-Data": '"cache"',
-      "Set-Cookie": `${ADMIN_SHELL_COOKIE}=${encodeURIComponent(ADMIN_SHELL_VERSION)}; Path=/admin; Max-Age=31536000; Secure; SameSite=Lax`
+  const hasLegacyQuery = LEGACY_QUERY_KEYS.some((key) => url.searchParams.has(key));
+  if (hasLegacyQuery) {
+    for (const key of LEGACY_QUERY_KEYS) url.searchParams.delete(key);
+    const destination = `${url.pathname}${url.search}${url.hash}` || "/admin/dashboard/";
+    return new Response(null, {
+      status: 302,
+      headers: noStoreHeaders({ Location: destination })
     });
-    return new Response(resetDocument(returnPath), { status: 200, headers });
   }
 
+  const admin = await resolveAdminBootstrap(request, context.env);
   const shellUrl = new URL("/index.html", url.origin);
-  shellUrl.searchParams.set("admin_shell_asset", ADMIN_SHELL_VERSION);
+  shellUrl.searchParams.set("admin_document", "server-bootstrap-v1");
   const shellRequest = new Request(shellUrl, {
     method: "GET",
     headers: request.headers,
     redirect: "follow"
   });
+
   const response = await context.next(shellRequest);
   const contentType = response.headers.get("Content-Type") || "";
   if (!contentType.includes("text/html")) {
@@ -130,10 +158,9 @@ export async function onRequest(context) {
     });
   }
 
-  const html = injectAdminBootstrap(await response.text());
+  const html = injectBootstrap(await response.text(), admin);
   const headers = noStoreHeaders(response.headers);
   headers.set("Content-Type", "text/html; charset=utf-8");
-  headers.set("Set-Cookie", `${ADMIN_SHELL_COOKIE}=${encodeURIComponent(ADMIN_SHELL_VERSION)}; Path=/admin; Max-Age=31536000; Secure; SameSite=Lax`);
   return new Response(request.method === "HEAD" ? null : html, {
     status: 200,
     headers
