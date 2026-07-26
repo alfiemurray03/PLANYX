@@ -1,0 +1,99 @@
+name: Verify live robots policy
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/verify-live-robots.yml
+  push:
+    branches:
+      - main
+    paths:
+      - public/robots.txt
+      - .github/workflows/verify-live-robots.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live-robots:
+    name: Verify production robots.txt
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+
+    steps:
+      - name: Check HTTP status, content type and crawler policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          url="https://planyx.jagroupservices.co.uk/robots.txt"
+
+          for attempt in $(seq 1 20); do
+            rm -f robots-body.txt robots-headers.txt atlassian-group.txt
+
+            status="$({
+              curl \
+                --silent \
+                --show-error \
+                --location \
+                --max-time 20 \
+                --dump-header robots-headers.txt \
+                --output robots-body.txt \
+                --write-out '%{http_code}' \
+                "$url"
+            } || true)"
+
+            content_type="$(awk '
+              BEGIN { IGNORECASE = 1 }
+              /^content-type:/ {
+                gsub("\r", "")
+                value = $0
+              }
+              END {
+                sub(/^[^:]+:[[:space:]]*/, "", value)
+                print value
+              }
+            ' robots-headers.txt 2>/dev/null || true)"
+
+            awk '
+              BEGIN { capture = 0 }
+              tolower($0) == "user-agent: atlassian-bot" {
+                capture = 1
+              }
+              capture && tolower($0) ~ /^user-agent:/ && tolower($0) != "user-agent: atlassian-bot" {
+                exit
+              }
+              capture { print }
+            ' robots-body.txt 2>/dev/null > atlassian-group.txt || true
+
+            valid=true
+            [[ "$status" == "200" ]] || valid=false
+            [[ "$content_type" == text/plain* ]] || valid=false
+            grep -Fqx 'User-agent: atlassian-bot' atlassian-group.txt || valid=false
+            grep -Fqx 'Allow: /' atlassian-group.txt || valid=false
+            if grep -Fqx 'Disallow: /' atlassian-group.txt; then valid=false; fi
+
+            for private_path in /admin /api /dashboard /builders /settings /support /signing /sign/ /reseller /checkout /billing /account; do
+              grep -Fqx "Disallow: ${private_path}" atlassian-group.txt || valid=false
+            done
+
+            if [[ "$valid" == "true" ]]; then
+              echo "Verified $url"
+              echo "HTTP status: $status"
+              echo "Content-Type: $content_type"
+              echo
+              cat robots-body.txt
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/20 not ready: status=${status:-none}, content-type=${content_type:-none}"
+            sleep 15
+          done
+
+          echo "Live robots.txt did not pass verification."
+          echo "--- response headers ---"
+          cat robots-headers.txt 2>/dev/null || true
+          echo "--- response body ---"
+          cat robots-body.txt 2>/dev/null || true
+          exit 1
