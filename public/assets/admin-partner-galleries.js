@@ -22,7 +22,7 @@
       galleryLabel: 'Destination gallery', galleryHeading: 'Where would you like to explore?', searchPlaceholder: 'Search city or country',
       allDestinationsLabel: 'All destinations', cardButtonLabel: 'Open live gallery', liveGalleryLabel: `Live ${headout ? 'Headout' : 'GetYourGuide'} gallery for`,
       currency: 'GBP', language: 'en', locale: 'en-GB', resultCount: 5, maxCount: 100, showMore: true,
-      partnerId: headout ? '' : 'ZSEVDSG', affiliateCode: headout ? 'JL2D9u' : '', affiliateWebsite: headout ? 'https://tours.jagroupservices.co.uk' : 'https://japlanstudio.jagroupservices.co.uk', campaign: 'planyx-discovery',
+      partnerId: headout ? '' : 'ZSEVDSG', affiliateCode: headout ? 'JL2D9u' : '', affiliateWebsite: headout ? 'https://tours.jagroupservices.co.uk' : 'https://planyx.jagroupservices.co.uk', campaign: 'planyx-discovery',
       destinations: (items || []).map((item, index) => ({ ...item, sortOrder: index })),
     };
   }
