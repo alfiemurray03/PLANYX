@@ -1,0 +1,296 @@
+/*
+ * Final Admin Centre appearance safety layer.
+ *
+ * Older Admin pages still contain explicit light utility classes and coloured
+ * 50/100 tint surfaces. The Admin theme class is applied to #admin-theme-root,
+ * so these rules are deliberately scoped to that root and cannot affect the
+ * public Planyx website.
+ */
+
+#admin-theme-root.dark {
+  color-scheme: dark;
+  background: #020617;
+}
+
+#admin-theme-root.dark .admin-portal,
+#admin-theme-root.dark .admin-portal main,
+#admin-theme-root.dark .admin-portal footer {
+  color: #e2e8f0;
+}
+
+/* Neutral surfaces, including older cards, drawers, dropdowns and toolbars. */
+#admin-theme-root.dark :where(
+  .bg-white,
+  .bg-card,
+  .bg-popover,
+  [class~="bg-white/80"],
+  [class~="bg-white/90"],
+  [class~="bg-white/95"],
+  [class~="bg-white/98"]
+) {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+#admin-theme-root.dark :where(
+  .bg-slate-50,
+  .bg-gray-50,
+  .bg-zinc-50,
+  .bg-neutral-50,
+  .bg-stone-50,
+  [class~="bg-slate-50/50"],
+  [class~="bg-gray-50/50"],
+  [class~="bg-slate-50/70"],
+  [class~="bg-gray-50/70"]
+) {
+  background-color: #020617 !important;
+  color: #e2e8f0 !important;
+}
+
+#admin-theme-root.dark :where(
+  .bg-slate-100,
+  .bg-gray-100,
+  .bg-zinc-100,
+  .bg-neutral-100,
+  .bg-stone-100,
+  .bg-muted
+) {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+#admin-theme-root.dark :where(
+  .bg-slate-200,
+  .bg-gray-200,
+  .bg-zinc-200,
+  .bg-neutral-200,
+  .bg-stone-200
+) {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Coloured light-only cards and notices become restrained dark tints. */
+#admin-theme-root.dark :where(.bg-blue-50, .bg-blue-100, [class~="bg-blue-50/50"], [class~="bg-blue-100/50"]) {
+  background-color: rgb(30 64 175 / 0.18) !important;
+}
+#admin-theme-root.dark :where(.bg-cyan-50, .bg-cyan-100, .bg-sky-50, .bg-sky-100, [class~="bg-cyan-50/50"], [class~="bg-sky-50/50"]) {
+  background-color: rgb(8 145 178 / 0.16) !important;
+}
+#admin-theme-root.dark :where(.bg-indigo-50, .bg-indigo-100, .bg-violet-50, .bg-violet-100, .bg-purple-50, .bg-purple-100) {
+  background-color: rgb(109 40 217 / 0.17) !important;
+}
+#admin-theme-root.dark :where(.bg-emerald-50, .bg-emerald-100, .bg-green-50, .bg-green-100, .bg-teal-50, .bg-teal-100) {
+  background-color: rgb(5 150 105 / 0.16) !important;
+}
+#admin-theme-root.dark :where(.bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100) {
+  background-color: rgb(217 119 6 / 0.16) !important;
+}
+#admin-theme-root.dark :where(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100, .bg-pink-50, .bg-pink-100) {
+  background-color: rgb(220 38 38 / 0.15) !important;
+}
+
+/* Light gradients used by command panels and content cards. */
+#admin-theme-root.dark [class*="from-white"] {
+  --tw-gradient-from: #0f172a var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(15 23 42 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+#admin-theme-root.dark [class*="via-blue-50"],
+#admin-theme-root.dark [class*="via-sky-50"],
+#admin-theme-root.dark [class*="via-cyan-50"] {
+  --tw-gradient-to: rgb(8 47 73 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #082f49 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+#admin-theme-root.dark [class*="via-violet-50"],
+#admin-theme-root.dark [class*="via-purple-50"],
+#admin-theme-root.dark [class*="via-indigo-50"] {
+  --tw-gradient-to: rgb(30 27 75 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #1e1b4b var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+#admin-theme-root.dark [class*="to-blue-50"],
+#admin-theme-root.dark [class*="to-sky-50"],
+#admin-theme-root.dark [class*="to-cyan-50"] {
+  --tw-gradient-to: #082f49 var(--tw-gradient-to-position) !important;
+}
+#admin-theme-root.dark [class*="to-violet-50"],
+#admin-theme-root.dark [class*="to-purple-50"],
+#admin-theme-root.dark [class*="to-indigo-50"] {
+  --tw-gradient-to: #1e1b4b var(--tw-gradient-to-position) !important;
+}
+
+/* Hard-coded dark text is always readable on dark Admin surfaces. */
+#admin-theme-root.dark :where(
+  .text-black,
+  .text-slate-950,
+  .text-slate-900,
+  .text-slate-800,
+  .text-gray-950,
+  .text-gray-900,
+  .text-gray-800,
+  .text-zinc-950,
+  .text-zinc-900,
+  .text-neutral-950,
+  .text-neutral-900
+) {
+  color: #f8fafc !important;
+}
+
+#admin-theme-root.dark :where(
+  .text-slate-700,
+  .text-slate-600,
+  .text-gray-700,
+  .text-gray-600,
+  .text-zinc-700,
+  .text-zinc-600,
+  .text-neutral-700,
+  .text-neutral-600
+) {
+  color: #cbd5e1 !important;
+}
+
+#admin-theme-root.dark :where(
+  .text-slate-500,
+  .text-slate-400,
+  .text-gray-500,
+  .text-gray-400,
+  .text-zinc-500,
+  .text-zinc-400,
+  .text-neutral-500,
+  .text-neutral-400,
+  .text-muted-foreground
+) {
+  color: #94a3b8 !important;
+}
+
+/* Coloured copy on tinted cards. */
+#admin-theme-root.dark :where(.text-blue-950, .text-blue-900, .text-blue-800, .text-blue-700) { color: #93c5fd !important; }
+#admin-theme-root.dark :where(.text-cyan-950, .text-cyan-900, .text-cyan-800, .text-cyan-700, .text-sky-900, .text-sky-800, .text-sky-700) { color: #67e8f9 !important; }
+#admin-theme-root.dark :where(.text-indigo-950, .text-indigo-900, .text-indigo-800, .text-indigo-700, .text-violet-900, .text-violet-800, .text-violet-700, .text-purple-900, .text-purple-800, .text-purple-700) { color: #c4b5fd !important; }
+#admin-theme-root.dark :where(.text-emerald-950, .text-emerald-900, .text-emerald-800, .text-emerald-700, .text-green-900, .text-green-800, .text-green-700, .text-teal-900, .text-teal-800, .text-teal-700) { color: #6ee7b7 !important; }
+#admin-theme-root.dark :where(.text-amber-950, .text-amber-900, .text-amber-800, .text-amber-700, .text-yellow-900, .text-yellow-800, .text-yellow-700, .text-orange-900, .text-orange-800, .text-orange-700) { color: #fcd34d !important; }
+#admin-theme-root.dark :where(.text-red-950, .text-red-900, .text-red-800, .text-red-700, .text-rose-900, .text-rose-800, .text-rose-700, .text-pink-900, .text-pink-800, .text-pink-700) { color: #fca5a5 !important; }
+
+/* Light borders and coloured notice borders. */
+#admin-theme-root.dark :where(
+  .border-white,
+  .border-slate-100,
+  .border-slate-200,
+  .border-slate-300,
+  .border-gray-100,
+  .border-gray-200,
+  .border-gray-300,
+  .border-zinc-100,
+  .border-zinc-200,
+  .border-neutral-100,
+  .border-neutral-200,
+  .border-border
+) {
+  border-color: #334155 !important;
+}
+#admin-theme-root.dark :where(.border-blue-100, .border-blue-200, .border-blue-300) { border-color: rgb(96 165 250 / 0.38) !important; }
+#admin-theme-root.dark :where(.border-cyan-100, .border-cyan-200, .border-sky-100, .border-sky-200) { border-color: rgb(34 211 238 / 0.34) !important; }
+#admin-theme-root.dark :where(.border-indigo-100, .border-indigo-200, .border-violet-100, .border-violet-200, .border-purple-100, .border-purple-200) { border-color: rgb(167 139 250 / 0.34) !important; }
+#admin-theme-root.dark :where(.border-emerald-100, .border-emerald-200, .border-green-100, .border-green-200, .border-teal-100, .border-teal-200) { border-color: rgb(52 211 153 / 0.34) !important; }
+#admin-theme-root.dark :where(.border-amber-100, .border-amber-200, .border-yellow-100, .border-yellow-200, .border-orange-100, .border-orange-200) { border-color: rgb(251 191 36 / 0.34) !important; }
+#admin-theme-root.dark :where(.border-red-100, .border-red-200, .border-rose-100, .border-rose-200, .border-pink-100, .border-pink-200) { border-color: rgb(248 113 113 / 0.34) !important; }
+
+/* Forms and native browser controls. */
+#admin-theme-root.dark :where(input, textarea, select, option, [contenteditable="true"], [role="combobox"], [role="spinbutton"]) {
+  border-color: #475569 !important;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  caret-color: #f8fafc;
+}
+#admin-theme-root.dark :where(input, textarea)::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+#admin-theme-root.dark :where(input, textarea, select, [contenteditable="true"], [role="combobox"]):focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.18) !important;
+}
+#admin-theme-root.dark input[type="date"],
+#admin-theme-root.dark input[type="datetime-local"],
+#admin-theme-root.dark input[type="time"] {
+  color-scheme: dark;
+}
+
+/* Dropdowns, dialogs, popovers and command menus, including React portals. */
+#admin-theme-root.dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [data-radix-popper-content-wrapper] > div,
+  [data-side][data-align],
+  .popover,
+  .dropdown-menu
+) {
+  border-color: #334155 !important;
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+#admin-theme-root.dark :where([role="menuitem"], [role="option"], [role="treeitem"]):is(:hover, :focus, [data-highlighted]) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+#admin-theme-root.dark [data-state="open"][class*="bg-white"] {
+  background-color: #0f172a !important;
+}
+
+/* Tables and list rows. */
+#admin-theme-root.dark :where(table, thead, tbody, tr, th, td) {
+  border-color: #334155;
+}
+#admin-theme-root.dark table {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+#admin-theme-root.dark thead,
+#admin-theme-root.dark th {
+  background-color: #111c30 !important;
+  color: #cbd5e1 !important;
+}
+#admin-theme-root.dark tbody tr:nth-child(odd) { background-color: #0f172a !important; }
+#admin-theme-root.dark tbody tr:nth-child(even) { background-color: #111827 !important; }
+#admin-theme-root.dark tbody tr:hover { background-color: #1e293b !important; }
+
+/* Code editors, JSON previews and technical output. */
+#admin-theme-root.dark :where(pre, code, kbd, samp) {
+  border-color: #334155 !important;
+  background-color: #020617 !important;
+  color: #dbeafe !important;
+}
+
+/* Inactive, disabled and skeleton states should not look like white holes. */
+#admin-theme-root.dark :where([disabled], [aria-disabled="true"]) {
+  opacity: 0.62;
+}
+#admin-theme-root.dark :where(.animate-pulse, [data-loading="true"]) .bg-slate-100,
+#admin-theme-root.dark :where(.animate-pulse, [data-loading="true"]) .bg-gray-100 {
+  background-color: #334155 !important;
+}
+
+/* Theme-consistent shadows and focus visibility. */
+#admin-theme-root.dark :where(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  --tw-shadow-color: rgb(0 0 0 / 0.48) !important;
+}
+#admin-theme-root.dark :focus-visible {
+  outline-color: #60a5fa !important;
+}
+
+/* Keep browser autofill from reintroducing a bright field. */
+#admin-theme-root.dark input:-webkit-autofill,
+#admin-theme-root.dark input:-webkit-autofill:hover,
+#admin-theme-root.dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+  caret-color: #f8fafc !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #admin-theme-root.dark * {
+    transition-duration: 0.01ms !important;
+  }
+}
