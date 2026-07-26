@@ -14,7 +14,7 @@ import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
 import AdminSupportLauncher from '@/components/AdminSupportLauncher';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
-import AdminDashboardPage from './pages/admin/dashboard';
+import AdminDashboardPage from './pages/admin/dashboard-stable';
 import { routes, adminRoutes, resellerRoutes } from './routes';
 import { AuthProvider } from './lib/auth-context';
 import { AdminProvider, useAdmin } from './lib/admin-context';
@@ -51,11 +51,7 @@ const SpinnerFallback = () => (
 function AdminDashboardEntry() {
   const { admin, isLoading } = useAdmin();
 
-  // A server-bootstrapped or cached Microsoft administrator must be allowed to
-  // render immediately. Background verification must never cover the dashboard
-  // with the legacy full-screen spinner.
   if (admin) return <AdminDashboardPage />;
-
   if (!isLoading) return <Navigate to="/admin" replace />;
 
   return (
