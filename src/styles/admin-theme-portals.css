@@ -1,0 +1,98 @@
+/* Admin overlays mounted directly beneath <body>. */
+body.planyx-admin-theme-dark {
+  color-scheme: dark;
+  background: #020617;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [role="tooltip"],
+  [data-radix-popper-content-wrapper] > div,
+  [data-side][data-align],
+  [data-radix-portal] > div,
+  .popover,
+  .dropdown-menu
+) {
+  border-color: #334155 !important;
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(.bg-white, .bg-card, .bg-popover, .bg-slate-50, .bg-gray-50) {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(.text-black, .text-slate-950, .text-slate-900, .text-slate-800, .text-gray-950, .text-gray-900, .text-gray-800) {
+  color: #f8fafc !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
+  color: #cbd5e1 !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tree"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(.border-slate-100, .border-slate-200, .border-slate-300, .border-gray-100, .border-gray-200, .border-gray-300, .border-border) {
+  border-color: #334155 !important;
+}
+
+body.planyx-admin-theme-dark :where([role="menuitem"], [role="option"], [role="treeitem"]):is(:hover, :focus, [data-highlighted]) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(input, textarea, select, option, [role="combobox"]) {
+  border-color: #475569 !important;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+body.planyx-admin-theme-dark :where(
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal]
+) :where(input, textarea)::placeholder {
+  color: #64748b !important;
+}
+
+body.planyx-admin-theme-dark [data-state="open"][class*="bg-white"] {
+  background-color: #0f172a !important;
+}
