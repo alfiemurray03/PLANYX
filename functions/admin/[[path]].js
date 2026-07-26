@@ -1,4 +1,4 @@
-const ADMIN_SHELL_VERSION = "2026-07-26-v10";
+const ADMIN_SHELL_VERSION = "2026-07-26-v11";
 const ADMIN_SHELL_COOKIE = "planyx_admin_shell";
 
 function readCookie(request, name) {
@@ -99,14 +99,19 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const currentCookie = readCookie(request, ADMIN_SHELL_COOKIE);
   const requestedVersion = url.searchParams.get("__admin_shell") || "";
+  const forceReset = url.searchParams.get("__reset_admin") === "1";
 
-  if (currentCookie !== ADMIN_SHELL_VERSION && requestedVersion !== ADMIN_SHELL_VERSION) {
+  if (forceReset || (currentCookie !== ADMIN_SHELL_VERSION && requestedVersion !== ADMIN_SHELL_VERSION)) {
+    const destination = new URL(url);
+    destination.searchParams.delete("__reset_admin");
+    destination.searchParams.delete("__admin_shell");
+    const returnPath = `${destination.pathname}${destination.search}${destination.hash}`;
     const headers = noStoreHeaders({
       "Content-Type": "text/html; charset=utf-8",
       "Clear-Site-Data": '"cache"',
       "Set-Cookie": `${ADMIN_SHELL_COOKIE}=${encodeURIComponent(ADMIN_SHELL_VERSION)}; Path=/admin; Max-Age=31536000; Secure; SameSite=Lax`
     });
-    return new Response(resetDocument(url.pathname + url.search + url.hash), { status: 200, headers });
+    return new Response(resetDocument(returnPath), { status: 200, headers });
   }
 
   const shellUrl = new URL("/index.html", url.origin);
