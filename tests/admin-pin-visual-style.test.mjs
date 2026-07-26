@@ -45,12 +45,20 @@ test('generated production CSS contains the corrected Admin PIN card', async () 
   assert.doesNotMatch(compiledCss, /Administrator verification/);
 });
 
-test('Admin PIN restyle does not replace authentication or lockout handling', async () => {
+test('Admin PIN restyle preserves authentication, timeout and lockout handling', async () => {
   const layout = await read('src/components/AdminLayout.tsx');
+  const endpoint = await read('functions/api/admin/pin.js');
 
-  assert.match(layout, /fetch\('\/admin\/api\?section=adminpin'/);
+  assert.match(layout, /fetch\('\/api\/admin\/pin'/);
   assert.match(layout, /action: pinState\.configured \? 'verify' : 'setup'/);
   assert.match(layout, /pinState\.lockedUntil/);
+  assert.match(layout, /ADMIN_PIN_TIMEOUT_MS = 7000/);
   assert.match(layout, /event\.target\.value\.replace\(\/\\D\/g, ''\)\.slice\(0, 4\)/);
   assert.match(layout, /id="admin-security-pin"/);
+  assert.match(layout, /The Admin Centre remains securely locked/);
+
+  assert.match(endpoint, /MAX_ATTEMPTS = 5/);
+  assert.match(endpoint, /LOCK_MINUTES = 15/);
+  assert.match(endpoint, /ja_admin_pin_session/);
+  assert.match(endpoint, /HttpOnly; Secure; SameSite=Strict/);
 });
