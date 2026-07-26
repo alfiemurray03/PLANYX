@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 
 type CSMTokenResponse = { access_token: string };
@@ -11,6 +11,7 @@ type CSMWidgetDefinition = {
 type CSMWidgetSettings = CSMWidgetDefinition & {
   authenticate?: () => Promise<CSMTokenResponse>;
 };
+type CustomerWidgetMode = 'checking' | 'public' | 'authenticated';
 
 declare global {
   interface Window {
@@ -68,16 +69,59 @@ async function authenticateLoggedInCustomer(): Promise<CSMTokenResponse> {
   return { access_token: payload.access_token };
 }
 
+async function detectCustomerWidgetMode(signal: AbortSignal): Promise<CustomerWidgetMode> {
+  const response = await fetch('/csm-widget-session', {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) return 'public';
+  const payload = await response.json().catch(() => ({})) as { authenticated?: boolean };
+  return payload.authenticated === true ? 'authenticated' : 'public';
+}
+
 export default function AtlassianCustomerServiceWidget() {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
+  const [customerMode, setCustomerMode] = useState<CustomerWidgetMode>(user ? 'authenticated' : 'checking');
 
   useEffect(() => {
-    if (isLoading) return;
+    if (user) {
+      setCustomerMode('authenticated');
+      return;
+    }
 
-    const widget = user ? ATLASSIAN_CSM_AUTHENTICATED_WIDGET : ATLASSIAN_CSM_PUBLIC_WIDGET;
-    window.csmWidgetSettings = user
+    const controller = new AbortController();
+    let active = true;
+    setCustomerMode('checking');
+
+    detectCustomerWidgetMode(controller.signal)
+      .then((mode) => {
+        if (active) setCustomerMode(mode);
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted && active) {
+          console.warn('Planyx could not confirm the customer session for personalised support.', error);
+          setCustomerMode('public');
+        }
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (customerMode === 'checking') return;
+
+    const authenticated = customerMode === 'authenticated';
+    const widget = authenticated ? ATLASSIAN_CSM_AUTHENTICATED_WIDGET : ATLASSIAN_CSM_PUBLIC_WIDGET;
+    window.csmWidgetSettings = authenticated
       ? { ...widget, authenticate: authenticateLoggedInCustomer }
       : { ...widget };
+    document.documentElement.dataset.csmCustomerMode = customerMode;
     ensureCSMQueue();
 
     let cancelled = false;
@@ -100,7 +144,7 @@ export default function AtlassianCustomerServiceWidget() {
       script.src = scriptSource(widget);
       script.referrerPolicy = 'strict-origin-when-cross-origin';
       script.dataset.widgetId = widget.widgetId;
-      script.dataset.customerMode = user ? 'authenticated' : 'public';
+      script.dataset.customerMode = customerMode;
       script.addEventListener('error', () => {
         console.error('Planyx could not load the Atlassian Customer Service AI widget.');
       }, { once: true });
@@ -117,7 +161,7 @@ export default function AtlassianCustomerServiceWidget() {
       cancelled = true;
       window.removeEventListener('load', loadWidget);
     };
-  }, [isLoading, user?.email]);
+  }, [customerMode]);
 
   return null;
 }
