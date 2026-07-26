@@ -3,10 +3,12 @@ import { useAuth } from '@/lib/auth-context';
 
 type CSMTokenResponse = { access_token: string };
 type CSMQueueFunction = ((...args: unknown[]) => void) & { __q__: unknown[][] };
-type CSMWidgetSettings = {
+type CSMWidgetDefinition = {
   widgetId: string;
   site: string;
   cloudId: string;
+};
+type CSMWidgetSettings = CSMWidgetDefinition & {
   authenticate?: () => Promise<CSMTokenResponse>;
 };
 
@@ -17,13 +19,13 @@ declare global {
   }
 }
 
-export const ATLASSIAN_CSM_PUBLIC_WIDGET = Object.freeze({
+export const ATLASSIAN_CSM_PUBLIC_WIDGET: Readonly<CSMWidgetDefinition> = Object.freeze({
   widgetId: '2e5cd7dc-e84b-41b5-a6c8-805909741566',
   site: 'jagroupservices.atlassian.net',
   cloudId: 'b3c01f24-8059-47ab-b1fb-52544f659458',
 });
 
-export const ATLASSIAN_CSM_AUTHENTICATED_WIDGET = Object.freeze({
+export const ATLASSIAN_CSM_AUTHENTICATED_WIDGET: Readonly<CSMWidgetDefinition> = Object.freeze({
   widgetId: '7e246b9d-dc9b-46e1-b41b-2997edbfe4da',
   site: 'jagroupservices.atlassian.net',
   cloudId: 'b3c01f24-8059-47ab-b1fb-52544f659458',
@@ -34,7 +36,7 @@ export const ATLASSIAN_CSM_WIDGET = ATLASSIAN_CSM_PUBLIC_WIDGET;
 
 const SCRIPT_ID = 'planyx-atlassian-csm-widget';
 
-function scriptSource(widget: typeof ATLASSIAN_CSM_PUBLIC_WIDGET) {
+function scriptSource(widget: CSMWidgetDefinition) {
   return `https://${widget.site}/csm/widget/script.js?widgetId=${encodeURIComponent(widget.widgetId)}&site=${encodeURIComponent(widget.site)}&cloudId=${encodeURIComponent(widget.cloudId)}`;
 }
 
