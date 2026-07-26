@@ -93,9 +93,19 @@ export function AdminThemeProvider({ children }: { children: React.ReactNode }) 
 
     const syncTheme = () => {
       const adminRouteActive = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
-      root.classList.toggle('dark', adminRouteActive && resolvedTheme === 'dark');
-      root.classList.toggle('light', adminRouteActive && resolvedTheme === 'light');
+      const darkActive = adminRouteActive && resolvedTheme === 'dark';
+      const lightActive = adminRouteActive && resolvedTheme === 'light';
+
+      root.classList.toggle('dark', darkActive);
+      root.classList.toggle('light', lightActive);
       root.dataset.adminTheme = adminRouteActive ? resolvedTheme : 'inactive';
+
+      // Portal content from dialogs, dropdowns, date pickers and command menus
+      // is often mounted directly beneath <body>, outside #admin-theme-root.
+      // Keep a body marker in sync so those surfaces follow the Admin mode too.
+      document.body.classList.toggle('planyx-admin-theme-dark', darkActive);
+      document.body.classList.toggle('planyx-admin-theme-light', lightActive);
+      document.body.dataset.adminTheme = adminRouteActive ? resolvedTheme : 'inactive';
 
       // Tailwind's class strategy and the shared header tokens both resolve
       // against the document root. Keep it in step with the Admin wrapper so
@@ -116,6 +126,8 @@ export function AdminThemeProvider({ children }: { children: React.ReactNode }) 
       window.removeEventListener('popstate', syncTheme);
       root.classList.remove('light', 'dark');
       delete root.dataset.adminTheme;
+      document.body.classList.remove('planyx-admin-theme-dark', 'planyx-admin-theme-light');
+      delete document.body.dataset.adminTheme;
     };
   }, [resolvedTheme]);
 
