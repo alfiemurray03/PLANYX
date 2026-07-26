@@ -6,6 +6,7 @@ Allow: /
 Allow: /reseller/apply
 Disallow: /admin
 Disallow: /api
+Disallow: /csm-widget-token
 Disallow: /auth/
 Disallow: /login
 Disallow: /sign-in
@@ -36,6 +37,7 @@ Allow: /
 Allow: /reseller/apply
 Disallow: /admin
 Disallow: /api
+Disallow: /csm-widget-token
 Disallow: /auth/
 Disallow: /login
 Disallow: /sign-in

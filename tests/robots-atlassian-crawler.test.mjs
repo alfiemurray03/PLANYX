@@ -15,6 +15,7 @@ function groupFor(userAgent) {
 const protectedPaths = [
   '/admin',
   '/api',
+  '/csm-widget-token',
   '/auth/',
   '/dashboard',
   '/documents',

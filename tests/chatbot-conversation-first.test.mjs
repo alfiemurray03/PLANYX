@@ -8,9 +8,10 @@ async function read(path) {
   return readFile(new URL(path, root), 'utf8');
 }
 
-test('runtime uses the Atlassian Customer Service AI widget', async () => {
+test('runtime uses the correct Atlassian Customer Service AI widget for each customer state', async () => {
   const runtime = await read('src/components/AIHelpChatbotRuntime.tsx');
   const widget = await read('src/components/AtlassianCustomerServiceWidget.tsx');
+  const tokenEndpoint = await read('functions/csm-widget-token.js');
 
   assert.match(runtime, /import AtlassianCustomerServiceWidget from '\.\/AtlassianCustomerServiceWidget'/);
   assert.match(runtime, /return <AtlassianCustomerServiceWidget\s*\/>/);
@@ -19,13 +20,30 @@ test('runtime uses the Atlassian Customer Service AI widget', async () => {
   assert.match(runtime, /window\.location\.pathname\.startsWith\('\/reseller'\)/);
   assert.match(runtime, /if \(config\.maintenanceEnabled\) return <MaintenanceWidget config=\{config\} \/>/);
 
+  assert.match(widget, /ATLASSIAN_CSM_PUBLIC_WIDGET/);
   assert.match(widget, /2e5cd7dc-e84b-41b5-a6c8-805909741566/);
+  assert.match(widget, /ATLASSIAN_CSM_AUTHENTICATED_WIDGET/);
+  assert.match(widget, /7e246b9d-dc9b-46e1-b41b-2997edbfe4da/);
   assert.match(widget, /jagroupservices\.atlassian\.net/);
   assert.match(widget, /b3c01f24-8059-47ab-b1fb-52544f659458/);
+  assert.match(widget, /const \{ user, isLoading \} = useAuth\(\)/);
+  assert.match(widget, /user \? ATLASSIAN_CSM_AUTHENTICATED_WIDGET : ATLASSIAN_CSM_PUBLIC_WIDGET/);
+  assert.match(widget, /authenticate: authenticateLoggedInCustomer/);
+  assert.match(widget, /fetch\('\/csm-widget-token'/);
+  assert.match(widget, /credentials: 'include'/);
   assert.match(widget, /csm\/widget\/script\.js/);
   assert.match(widget, /window\.csmWidgetSettings/);
   assert.match(widget, /document\.body\.appendChild\(script\)/);
   assert.match(widget, /document\.getElementById\(SCRIPT_ID\)/);
+  assert.match(widget, /script\.dataset\.customerMode = user \? 'authenticated' : 'public'/);
+
+  assert.match(tokenEndpoint, /getNativeSession\(context\.request, context\.env, "customer"\)/);
+  assert.match(tokenEndpoint, /CSM_WIDGET_CLIENT_ID/);
+  assert.match(tokenEndpoint, /CSM_WIDGET_CLIENT_SECRET/);
+  assert.match(tokenEndpoint, /csm:atlassian-internal/);
+  assert.match(tokenEndpoint, /urn:ietf:params:oauth:grant-type:jwt-bearer/);
+  assert.match(tokenEndpoint, /https:\/\/auth\.atlassian\.com\/oauth\/token/);
+  assert.doesNotMatch(tokenEndpoint, /request\.json\(\).*email/s);
 });
 
 test('legacy conversation-first implementation remains available for controlled fallback work', async () => {
