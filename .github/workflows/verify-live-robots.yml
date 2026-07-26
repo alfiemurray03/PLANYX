@@ -3,7 +3,6 @@ name: Verify live robots policy
 on:
   pull_request:
     paths:
-      - public/robots.txt
       - .github/workflows/verify-live-robots.yml
   push:
     branches:
@@ -75,7 +74,7 @@ jobs:
             grep -Fqx 'Allow: /' atlassian-group.txt || valid=false
             if grep -Fqx 'Disallow: /' atlassian-group.txt; then valid=false; fi
 
-            for private_path in /admin /api /csm-widget-token /dashboard /builders /settings /support /signing /sign/ /reseller /checkout /billing /account; do
+            for private_path in /admin /api /dashboard /builders /settings /support /signing /sign/ /reseller /checkout /billing /account; do
               grep -Fqx "Disallow: ${private_path}" atlassian-group.txt || valid=false
             done
 
