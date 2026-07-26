@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, LifeBuoy, Mail, Phone, Wrench, X } from 'lucide-react';
-import ConversationalAIHelpChatbot from './ConversationalAIHelpChatbot';
+import AtlassianCustomerServiceWidget from './AtlassianCustomerServiceWidget';
 
 type ContactStatus = 'online' | 'maintenance' | 'offline';
 
@@ -163,5 +163,5 @@ export default function AIHelpChatbotRuntime() {
 
   if (!ready || hiddenForPortal || !config.enabled) return null;
   if (config.maintenanceEnabled) return <MaintenanceWidget config={config} />;
-  return <ConversationalAIHelpChatbot />;
+  return <AtlassianCustomerServiceWidget />;
 }
