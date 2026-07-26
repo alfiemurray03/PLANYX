@@ -1,2 +1,64 @@
+# Planyx public website crawler policy
+# Public marketing, legal, help and discovery pages may be indexed.
+
+User-agent: atlassian-bot
+Allow: /
+Allow: /reseller/apply
+Disallow: /admin
+Disallow: /api
+Disallow: /auth/
+Disallow: /login
+Disallow: /sign-in
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /documents
+Disallow: /builders
+Disallow: /settings
+Disallow: /support
+Disallow: /privacy-settings
+Disallow: /org/
+Disallow: /signing
+Disallow: /sign/
+Disallow: /affiliate/dashboard
+Disallow: /reseller
+Disallow: /checkout
+Disallow: /payment
+Disallow: /billing
+Disallow: /account
+Disallow: /customer
+Disallow: /invoices
+Disallow: /subscriptions
+
 User-agent: *
-Disallow: /
+Allow: /
+Allow: /reseller/apply
+Disallow: /admin
+Disallow: /api
+Disallow: /auth/
+Disallow: /login
+Disallow: /sign-in
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /documents
+Disallow: /builders
+Disallow: /settings
+Disallow: /support
+Disallow: /privacy-settings
+Disallow: /org/
+Disallow: /signing
+Disallow: /sign/
+Disallow: /affiliate/dashboard
+Disallow: /reseller
+Disallow: /checkout
+Disallow: /payment
+Disallow: /billing
+Disallow: /account
+Disallow: /customer
+Disallow: /invoices
+Disallow: /subscriptions
+
+Sitemap: https://planyx.jagroupservices.co.uk/sitemap.xml
