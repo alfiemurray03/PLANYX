@@ -1,23 +1,11 @@
 /**
  * Admin authentication context — Microsoft Entra ID only.
  *
- * Authentication is handled entirely by Microsoft. There is no username/password
- * login, no PIN verification, and no password reset in this context.
- *
- * Session flow:
- *  1. User clicks "Sign In" on /admin → redirected to /auth/admin/oidc/start
- *  2. Microsoft authenticates the user and redirects back to /auth/admin/oidc/callback
- *  3. Callback verifies the tenant, extracts identity, creates ja_admin_session cookie
- *  4. On every page load, GET /api/admin/auth/me restores the session from the cookie
- *  5. A same-origin heartbeat records the verified sign-in, linked administrator and activity
- *
- * The session cookie (ja_admin_session) is httpOnly — it cannot be read by JS.
- * localStorage is used only as a fast-read cache for the admin profile so the
- * UI can render immediately without waiting for the /me round-trip.
- *
- * Platform operator: JA Group Services Ltd
+ * The Admin document now includes a server-verified bootstrap profile whenever
+ * the Microsoft session is valid. React can therefore render the Admin Centre
+ * immediately while /api/admin/auth/me verifies the session in the background.
  */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 export interface AdminUser {
   email:                 string;
@@ -36,13 +24,44 @@ interface AdminContextType {
 }
 
 const CACHE_KEY = 'ja_admin_profile';
-const SESSION_TIMEOUT_MS = 6000;
+const SESSION_TIMEOUT_MS = 4500;
+
+function isAdminUser(value: unknown): value is AdminUser {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<AdminUser>;
+  return typeof candidate.email === 'string'
+    && candidate.email.includes('@')
+    && typeof candidate.name === 'string'
+    && Array.isArray(candidate.roles)
+    && candidate.authMethod === 'oidc';
+}
+
+function getBootstrappedAdmin(): AdminUser | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const value = document.querySelector<HTMLMetaElement>('meta[name="planyx-admin-bootstrap"]')?.content;
+    if (!value) return null;
+    const parsed = JSON.parse(value) as unknown;
+    return isAdminUser(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
 function getCachedAdmin(): AdminUser | null {
+  if (typeof localStorage === 'undefined') return null;
   try {
     const raw = localStorage.getItem(CACHE_KEY);
-    return raw ? (JSON.parse(raw) as AdminUser) : null;
-  } catch { return null; }
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    return isAdminUser(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function getInitialAdmin(): AdminUser | null {
+  return getBootstrappedAdmin() || getCachedAdmin();
 }
 
 function setCachedAdmin(admin: AdminUser): void {
@@ -63,7 +82,7 @@ async function recordAdminSession(action: 'heartbeat' | 'logout'): Promise<void>
       body: JSON.stringify({ action }),
     });
   } catch {
-    // Authentication must continue even if the audit endpoint is temporarily unavailable.
+    // Authentication must continue even if audit recording is unavailable.
   }
 }
 
@@ -76,13 +95,17 @@ function startAdminMicrosoftLogout(): void {
 const AdminContext = createContext<AdminContextType | null>(null);
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const [admin, setAdmin] = useState<AdminUser | null>(() => getCachedAdmin());
-  const [isLoading, setLoading] = useState(true);
+  const initialAdminRef = useRef<AdminUser | null>(getInitialAdmin());
+  const [admin, setAdmin] = useState<AdminUser | null>(initialAdminRef.current);
+  const [isLoading, setLoading] = useState<boolean>(!initialAdminRef.current);
 
   useEffect(() => {
     let active = true;
-    const cached = getCachedAdmin();
-    if (cached) setAdmin(cached);
+    const immediateAdmin = getBootstrappedAdmin() || getCachedAdmin();
+    if (immediateAdmin) {
+      setAdmin(immediateAdmin);
+      setLoading(false);
+    }
 
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
@@ -93,6 +116,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     fetch('/api/admin/auth/me', {
       credentials: 'include',
       cache: 'no-store',
+      headers: { Accept: 'application/json' },
       signal: controller.signal,
     })
       .then(async response => {
@@ -101,15 +125,15 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       })
       .then(({ response, payload }) => {
         if (!active) return;
-        if (response.ok && payload.success && payload.admin) {
+        if (response.ok && payload.success && payload.admin && isAdminUser(payload.admin)) {
           setCachedAdmin(payload.admin);
           setAdmin(payload.admin);
           void recordAdminSession('heartbeat');
           return;
         }
 
-        // Only clear the cached profile when the server gave a definite authentication answer.
-        // Network timeouts and temporary service errors must not lock the whole Admin Centre.
+        // Clear the profile only after an authoritative denial. Temporary
+        // network, Worker or D1 failures must not freeze the whole portal.
         if (response.status === 401 || response.status === 403) {
           clearCachedAdmin();
           setAdmin(null);
@@ -117,7 +141,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(error => {
         if (!active || error?.name === 'AbortError') return;
-        // Keep the cached administrator during temporary network or service failures.
+        // Keep a server-bootstrapped or cached administrator during a temporary failure.
       })
       .finally(() => {
         window.clearTimeout(timeout);
