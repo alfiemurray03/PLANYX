@@ -56,3 +56,24 @@ test('manual CRM cases can be retried in bulk and remain visible in CRM support 
   assert.match(crm, /Support cases/);
   assert.match(crm, /\[\["reference","Reference"\]/);
 });
+
+test('Planyx provisions the CSM Customer product role before manual and AI ticket creation', async () => {
+  const [customerClient, adminMiddleware, supportSubmit] = await Promise.all([
+    read('functions/_shared/csm-customer.js'),
+    read('functions/api/admin/_middleware.js'),
+    read('functions/api/support/submit.js'),
+  ]);
+
+  assert.match(customerClient, /api\.atlassian\.com\/jsm\/csm\/cloudid/);
+  assert.match(customerClient, /\/api\/v1\/customer/);
+  assert.match(customerClient, /Authorization": `Bearer \$\{token\}`/);
+  assert.match(customerClient, /write:customer:jira-service-management/);
+  assert.match(customerClient, /Administer Jira global permission/);
+  assert.match(adminMiddleware, /ensureCsmCustomerAccount/);
+  assert.match(adminMiddleware, /create_customer_request/);
+  assert.match(adminMiddleware, /retry_all_failed/);
+  assert.match(adminMiddleware, /FROM profiles WHERE lower\(email\)=lower\(\?\)/);
+  assert.match(supportSubmit, /ensureCsmCustomerAccount/);
+  assert.match(supportSubmit, /customer_email: customer\.email/);
+  assert.doesNotMatch(customerClient, /console\.(?:log|error)\([^\n]*token/);
+});
