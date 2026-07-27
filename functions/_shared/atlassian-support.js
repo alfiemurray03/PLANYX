@@ -52,16 +52,16 @@ function extractErrorMessage(payload, responseText = "") {
 export function atlassianErrorHelp(status, detail = "") {
   const lower = clean(detail, 900).toLowerCase();
   if (status === 401) {
-    return "The API token was not accepted. Confirm the service-account token is current, use the api.atlassian.com gateway, and recreate the token if it has expired or been revoked.";
+    return "The API token was not accepted by this Customer Service API endpoint. Confirm the service-account token is current, use the api.atlassian.com gateway, and recreate the token if it has expired or been revoked.";
   }
   if (status === 403) {
     if (lower.includes("scope")) {
       return "The token is authenticated but does not include the required Jira Service Management scopes. Add read:servicedesk-request and write:servicedesk-request, then replace the Cloudflare token.";
     }
     if (lower.includes("behalf") || lower.includes("reporter")) {
-      return "The service account cannot raise requests for other customers. Add it to the PXCS Service Desk Team or Administrator role and confirm the request type reports canRaiseOnBehalfOf=true.";
+      return "The service account cannot raise requests for other customers. Add it to the PXCS Customer Service Team or Administrator role and confirm the request type reports canRaiseOnBehalfOf=true.";
     }
-    return "Atlassian authenticated the service account but refused this action. The usual causes are a missing write:servicedesk-request scope, no PXCS agent/project role, or no permission to raise requests on behalf of customers.";
+    return "Atlassian authenticated the service account but refused this action. The usual causes are a missing write:servicedesk-request scope, no PXCS Customer Service Team or administrator role, or no permission to raise requests on behalf of customers.";
   }
   if (status === 404) {
     return "The configured Cloud ID, service desk ID or request type could not be accessed. Confirm PXCS uses service desk 169 and request types 356, 357 and 358.";
@@ -548,35 +548,31 @@ export async function runAtlassianDiagnostics(env, options = {}) {
     ok: true, status: 200, detail: "All required IDs, service-account email and API token are present.", authMode
   }));
 
-  let identity = null;
-  try {
-    const response = await atlassianRequest(env, "/rest/api/3/myself", { authMode });
-    identity = response.payload;
-    checks.push(diagnosticCheck("authentication", "Service-account authentication", {
-      ok: true, status: response.status, authMode: response.authMode,
-      detail: `Authenticated as ${clean(identity?.displayName || identity?.emailAddress || config.serviceEmail, 200)}.`,
-      metadata: { accountId: clean(identity?.accountId, 160), active: identity?.active !== false }
-    }));
-  } catch (error) {
-    checks.push(diagnosticCheck("authentication", "Service-account authentication", {
-      ok: false, status: error?.status, authMode: error?.authMode,
-      detail: error?.detail || error?.message, help: error?.help
-    }));
-  }
-
   let serviceDesk = null;
+  let authenticatedMode = authMode;
   try {
     const response = await atlassianRequest(env, `/rest/servicedeskapi/servicedesk/${encodeURIComponent(config.serviceDeskId)}`, { authMode });
     serviceDesk = response.payload;
+    authenticatedMode = response.authMode;
+    checks.push(diagnosticCheck("authentication", "Service-account authentication", {
+      ok: true, status: response.status, authMode: response.authMode,
+      detail: `The service-account token was accepted by the Atlassian Customer Service API using ${response.authMode} authentication.`,
+      metadata: { serviceAccount: config.serviceEmail }
+    }));
     checks.push(diagnosticCheck("service-desk", "PXCS service-desk access", {
       ok: true, status: response.status, authMode: response.authMode,
       detail: `Access confirmed for ${clean(serviceDesk?.projectName, 200)} (${clean(serviceDesk?.projectKey, 80)}).`,
       metadata: { projectName: clean(serviceDesk?.projectName, 200), projectKey: clean(serviceDesk?.projectKey, 80) }
     }));
   } catch (error) {
-    checks.push(diagnosticCheck("service-desk", "PXCS service-desk access", {
+    checks.push(diagnosticCheck("authentication", "Service-account authentication", {
       ok: false, status: error?.status, authMode: error?.authMode,
       detail: error?.detail || error?.message, help: error?.help
+    }));
+    checks.push(diagnosticCheck("service-desk", "PXCS service-desk access", {
+      ok: false, status: error?.status, authMode: error?.authMode,
+      detail: "PXCS access could not be checked because the Customer Service API did not accept the authenticated request.",
+      help: error?.help
     }));
   }
 
@@ -585,7 +581,7 @@ export async function runAtlassianDiagnostics(env, options = {}) {
     try {
       const response = await atlassianRequest(env,
         `/rest/servicedeskapi/servicedesk/${encodeURIComponent(config.serviceDeskId)}/requesttype/${encodeURIComponent(requestTypeId)}/field`,
-        { authMode }
+        { authMode: authenticatedMode }
       );
       const canRaise = response.payload?.canRaiseOnBehalfOf === true;
       capability[kind] = canRaise;
@@ -605,12 +601,12 @@ export async function runAtlassianDiagnostics(env, options = {}) {
     }
   }
 
-  const readyToCreate = Boolean(identity && serviceDesk)
+  const readyToCreate = Boolean(serviceDesk)
     && Object.values(capability).length === 3
     && Object.values(capability).every(Boolean);
   return {
-    ok: checks.every((check) => check.ok), readyToCreate, configured: true, checks,
-    authMode: checks.find((check) => check.authMode)?.authMode || authMode,
+    ok: readyToCreate && checks.every((check) => check.ok), readyToCreate, configured: true, checks,
+    authMode: authenticatedMode,
     projectName: clean(serviceDesk?.projectName, 200), projectKey: clean(serviceDesk?.projectKey, 80),
     serviceDeskId: config.serviceDeskId, capability,
     requiredScopes: ["read:servicedesk-request", "write:servicedesk-request"],

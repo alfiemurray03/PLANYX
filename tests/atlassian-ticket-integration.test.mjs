@@ -63,10 +63,18 @@ test('ticket creation uses the Atlassian gateway, scoped auth compatibility and 
   assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*apiToken/);
 });
 
-test('HTTP 403 is translated into useful scope and project-role guidance', () => {
+test('diagnostics prove authentication through the Customer Service API without requiring Jira myself scope', async () => {
+  const source = await readFile(new URL('../functions/_shared/atlassian-support.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /\/rest\/api\/3\/myself/);
+  assert.match(source, /service-account token was accepted by the Atlassian Customer Service API/);
+  assert.match(source, /const readyToCreate = Boolean\(serviceDesk\)/);
+  assert.match(source, /PXCS Customer Service Team or Administrator role/);
+});
+
+test('HTTP 403 is translated into useful scope and customer-service role guidance', () => {
   const help = atlassianErrorHelp(403, 'Forbidden');
   assert.match(help, /write:servicedesk-request/);
-  assert.match(help, /PXCS agent\/project role/);
+  assert.match(help, /Customer Service Team or administrator role/i);
 });
 
 test('signed-in AI escalation creates an Atlassian ticket without trusting typed email', async () => {
