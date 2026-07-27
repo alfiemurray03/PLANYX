@@ -147,7 +147,8 @@ function normaliseField(field) {
 
 function normaliseRequest(request) {
   const fields = Array.isArray(request?.requestFieldValues) ? request.requestFieldValues.map(normaliseField) : [];
-  const description = fields.find((field) => field.id === "description")?.value || "";
+  const descriptionField = fields.find((field) => field.id === "description");
+  const description = descriptionField?.value || descriptionField?.renderedText || "";
   return {
     issueId: clean(request?.issueId, 120),
     issueKey: clean(request?.issueKey, 120),
@@ -175,7 +176,7 @@ function normaliseRequest(request) {
 function normaliseComment(comment) {
   return {
     id: clean(comment?.id, 120),
-    body: clean(comment?.body, 20_000),
+    body: clean(comment?.body || comment?.renderedBody?.text, 20_000),
     public: comment?.public !== false,
     createdAt: dateValue(comment?.created),
     author: {
@@ -183,6 +184,16 @@ function normaliseComment(comment) {
       displayName: clean(comment?.author?.displayName, 200) || "Atlassian user",
       email: cleanEmail(comment?.author?.emailAddress)
     }
+  };
+}
+
+function warningFromFailure(section, failure) {
+  const reason = failure?.reason || failure;
+  return {
+    section,
+    code: clean(reason?.code || `ATLASSIAN_WORKSPACE_${section.toUpperCase()}_UNAVAILABLE`, 160),
+    message: clean(reason?.detail || reason?.message || `${section} could not be loaded.`, 500),
+    httpStatus: Number(reason?.status || 0)
   };
 }
 
@@ -221,6 +232,7 @@ export async function listAtlassianWorkspaceRequests(env, options = {}) {
 }
 
 export async function getAtlassianWorkspaceRequest(env, issueKey) {
+  const current = config(env);
   const key = clean(issueKey, 120).toUpperCase();
   if (!/^[A-Z][A-Z0-9_]*-\d+$/.test(key)) {
     const error = new Error("A valid PXCS request key is required.");
@@ -228,29 +240,56 @@ export async function getAtlassianWorkspaceRequest(env, issueKey) {
     error.status = 400;
     throw error;
   }
+
   const detailParams = new URLSearchParams();
-  ["requestType", "serviceDesk", "participant", "status", "sla", "attachment", "action"].forEach((value) => detailParams.append("expand", value));
+  ["requestType", "serviceDesk", "status"].forEach((value) => detailParams.append("expand", value));
+  let requestResponse;
+  try {
+    requestResponse = await atlassianRequest(env, `/rest/servicedeskapi/request/${encodeURIComponent(key)}?${detailParams.toString()}`);
+  } catch (error) {
+    if (Number(error?.status || 0) !== 400) throw error;
+    requestResponse = await atlassianRequest(env, `/rest/servicedeskapi/request/${encodeURIComponent(key)}`);
+  }
+
+  const request = normaliseRequest(requestResponse.payload);
+  if (!request.issueKey) {
+    const error = new Error(`Atlassian returned no request data for ${key}.`);
+    error.code = "ATLASSIAN_WORKSPACE_EMPTY_REQUEST";
+    error.status = 502;
+    throw error;
+  }
+  if (request.serviceDeskId && request.serviceDeskId !== current.serviceDeskId) {
+    const error = new Error(`${key} does not belong to the configured PXCS service desk.`);
+    error.code = "ATLASSIAN_WORKSPACE_WRONG_SERVICE_DESK";
+    error.status = 404;
+    throw error;
+  }
+
   const commentParams = new URLSearchParams({ start: "0", limit: "100", public: "true", internal: "true" });
   commentParams.append("expand", "renderedBody");
-  const [requestResponse, commentsResponse, statusResponse] = await Promise.all([
-    atlassianRequest(env, `/rest/servicedeskapi/request/${encodeURIComponent(key)}?${detailParams.toString()}`),
+  const [commentsResult, statusResult] = await Promise.allSettled([
     atlassianRequest(env, `/rest/servicedeskapi/request/${encodeURIComponent(key)}/comment?${commentParams.toString()}`),
     atlassianRequest(env, `/rest/servicedeskapi/request/${encodeURIComponent(key)}/status?start=0&limit=50`)
   ]);
-  const request = normaliseRequest(requestResponse.payload);
-  const comments = Array.isArray(commentsResponse.payload?.values)
-    ? commentsResponse.payload.values.map(normaliseComment)
+
+  const comments = commentsResult.status === "fulfilled" && Array.isArray(commentsResult.value.payload?.values)
+    ? commentsResult.value.payload.values.map(normaliseComment)
     : [];
-  const statusHistory = Array.isArray(statusResponse.payload?.values)
-    ? statusResponse.payload.values.map((entry) => ({
+  const statusHistory = statusResult.status === "fulfilled" && Array.isArray(statusResult.value.payload?.values)
+    ? statusResult.value.payload.values.map((entry) => ({
       status: clean(entry?.status, 160),
       statusDate: dateValue(entry?.statusDate)
     }))
     : [];
+  const warnings = [];
+  if (commentsResult.status === "rejected") warnings.push(warningFromFailure("conversation", commentsResult));
+  if (statusResult.status === "rejected") warnings.push(warningFromFailure("status_history", statusResult));
+
   return {
     request,
     comments,
     statusHistory,
+    warnings,
     authMode: requestResponse.authMode
   };
 }

@@ -5,18 +5,31 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
-test('Admin Support is a live PXCS request workspace', async () => {
+test('Admin Support is a live openable PXCS request workspace', async () => {
   const page = await read('src/pages/admin/support.tsx');
   assert.match(page, /Customer Service Workspace/);
-  assert.match(page, /live PXCS service desk/i);
-  assert.match(page, /\/api\/admin\/atlassian-workspace/);
-  assert.match(page, /open requests/i);
+  assert.match(page, /Request queue/);
+  assert.match(page, /Open request/);
+  assert.match(page, /openRequest\(request\.issueKey\)/);
+  assert.match(page, /\/admin\/support\?request=/);
+  assert.match(page, /Back to request queue/);
+  assert.match(page, /Request details/);
   assert.match(page, /Status history/);
   assert.match(page, /Public reply/);
   assert.match(page, /Internal note/);
   assert.match(page, /Open in Atlassian/);
   assert.match(page, /\/admin\/users\/\$\{encodeURIComponent\(detail\.request\.reporter\.email\)\}/);
   assert.doesNotMatch(page, /dangerouslySetInnerHTML/);
+});
+
+test('PXCS request details still open when optional conversation or status history APIs fail', async () => {
+  const client = await read('functions/_shared/atlassian-workspace.js');
+  assert.match(client, /Promise\.allSettled/);
+  assert.match(client, /warningFromFailure\("conversation"/);
+  assert.match(client, /warningFromFailure\("status_history"/);
+  assert.match(client, /Atlassian returned no request data/);
+  assert.match(client, /does not belong to the configured PXCS service desk/);
+  assert.match(client, /Number\(error\?\.status \|\| 0\) !== 400/);
 });
 
 test('PXCS workspace uses protected Atlassian request, comment and status APIs', async () => {
