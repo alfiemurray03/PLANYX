@@ -208,13 +208,27 @@ export function classifyAtlassianRequestType(env, input = {}) {
   return { kind, requestTypeId: config.requestTypes[kind] || "" };
 }
 
-function buildDescription(enquiry, localReference) {
+function isAdminRaisedEnquiry(enquiry = {}) {
+  const source = clean(enquiry.source || enquiry.enquiryType, 200).toLowerCase();
+  return source.includes("planyx admin centre");
+}
+
+function isInternalStaffReporterError(error) {
+  const detail = clean(error?.detail || error?.message, 1_500).toLowerCase();
+  if (Number(error?.status || 0) !== 400) return false;
+  return detail.includes("csm customer product role")
+    || detail.includes("grant csm customer")
+    || (detail.includes("product role") && detail.includes("atlassian account"));
+}
+
+function buildDescription(enquiry, localReference, options = {}) {
   const customerName = clean(enquiry.customerName || enquiry.name, 160) || "Customer";
   const customerEmail = cleanEmail(enquiry.customerEmail || enquiry.email);
   const category = clean(enquiry.category, 120) || "General Enquiry";
   const priority = clean(enquiry.priority, 40) || "Normal";
   const source = clean(enquiry.source || enquiry.enquiryType, 160) || "Planyx Support Assistant";
   const message = clean(enquiry.message, 28_000);
+  const staffFallback = options.reporterMode === "service_account_staff_fallback";
 
   return [
     `Planyx reference: ${clean(localReference, 120)}`,
@@ -223,6 +237,9 @@ function buildDescription(enquiry, localReference) {
     `Category: ${category}`,
     `Priority: ${priority}`,
     `Source: ${source}`,
+    ...(staffFallback ? [
+      "Reporter handling: Internal Atlassian staff/admin account. Created by the Planyx service account while retaining the intended person's details above."
+    ] : []),
     "",
     message
   ].join("\n").slice(0, 30_000);
@@ -444,16 +461,38 @@ export async function createAtlassianCustomerRequest(env, enquiry, localReferenc
   const capability = await assertRaiseOnBehalfCapability(env, config, classification.requestTypeId, authMode);
 
   const summary = clean(enquiry.subject, 255) || "Planyx customer support request";
-  const result = await atlassianRequest(env, "/rest/servicedeskapi/request", {
-    method: "POST",
-    authMode: capability.authMode,
-    body: {
-      serviceDeskId: config.serviceDeskId,
-      requestTypeId: classification.requestTypeId,
-      requestFieldValues: { summary, description: buildDescription(enquiry, localReference) },
-      raiseOnBehalfOf: customerEmail
-    }
-  });
+  const baseRequest = {
+    serviceDeskId: config.serviceDeskId,
+    requestTypeId: classification.requestTypeId,
+    requestFieldValues: { summary, description: buildDescription(enquiry, localReference) },
+    raiseOnBehalfOf: customerEmail
+  };
+
+  let result;
+  let reporterMode = "customer";
+  try {
+    result = await atlassianRequest(env, "/rest/servicedeskapi/request", {
+      method: "POST",
+      authMode: capability.authMode,
+      body: baseRequest
+    });
+  } catch (error) {
+    if (!isAdminRaisedEnquiry(enquiry) || !isInternalStaffReporterError(error)) throw error;
+
+    reporterMode = "service_account_staff_fallback";
+    result = await atlassianRequest(env, "/rest/servicedeskapi/request", {
+      method: "POST",
+      authMode: capability.authMode,
+      body: {
+        serviceDeskId: config.serviceDeskId,
+        requestTypeId: classification.requestTypeId,
+        requestFieldValues: {
+          summary,
+          description: buildDescription(enquiry, localReference, { reporterMode })
+        }
+      }
+    });
+  }
   const payload = result.payload;
 
   return {
@@ -464,7 +503,7 @@ export async function createAtlassianCustomerRequest(env, enquiry, localReferenc
     agentUrl: clean(payload?._links?.agent, 2_000), authMode: result.authMode,
     customerEmail, customerName: clean(enquiry.customerName || enquiry.name, 160),
     subject: summary, source: clean(enquiry.source || enquiry.enquiryType, 160),
-    priority: clean(enquiry.priority, 40), httpStatus: result.status
+    priority: clean(enquiry.priority, 40), httpStatus: result.status, reporterMode
   };
 }
 
