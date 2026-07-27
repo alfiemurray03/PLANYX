@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {
+  atlassianErrorHelp,
   classifyAtlassianRequestType,
   getAtlassianSupportConfig,
 } from '../functions/_shared/atlassian-support.js';
@@ -22,6 +23,7 @@ test('Atlassian support configuration uses the scoped service-account variables'
   assert.equal(config.configured, true);
   assert.equal(config.cloudId, 'cloud-id');
   assert.equal(config.serviceDeskId, '169');
+  assert.equal(config.authMode, 'auto');
   assert.equal(config.requestTypes.question, '356');
   assert.equal(config.requestTypes.problem, '357');
   assert.equal(config.requestTypes.suggestion, '358');
@@ -46,15 +48,25 @@ test('Atlassian request classification selects Question, Problem and Suggestion 
   );
 });
 
-test('ticket creation uses the Atlassian gateway and verified customer identity', async () => {
+test('ticket creation uses the Atlassian gateway, scoped auth compatibility and verified customer identity', async () => {
   const source = await readFile(new URL('../functions/_shared/atlassian-support.js', import.meta.url), 'utf8');
   assert.match(source, /https:\/\/api\.atlassian\.com\/ex\/jira/);
-  assert.match(source, /Authorization.*basicAuthorization/s);
+  assert.match(source, /mode === "bearer"/);
+  assert.match(source, /Bearer \$\{config\.apiToken\}/);
+  assert.match(source, /Basic \$\{btoa\(`\$\{config\.serviceEmail\}:\$\{config\.apiToken\}`\)\}/);
+  assert.match(source, /\["bearer", "basic"\]/);
   assert.match(source, /raiseOnBehalfOf:\s*customerEmail/);
+  assert.match(source, /canRaiseOnBehalfOf/);
   assert.match(source, /serviceDeskId:\s*config\.serviceDeskId/);
   assert.match(source, /requestTypeId:\s*classification\.requestTypeId/);
   assert.match(source, /requestFieldValues:\s*\{[\s\S]*summary,[\s\S]*description:/);
   assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*apiToken/);
+});
+
+test('HTTP 403 is translated into useful scope and project-role guidance', () => {
+  const help = atlassianErrorHelp(403, 'Forbidden');
+  assert.match(help, /write:servicedesk-request/);
+  assert.match(help, /PXCS agent\/project role/);
 });
 
 test('signed-in AI escalation creates an Atlassian ticket without trusting typed email', async () => {
