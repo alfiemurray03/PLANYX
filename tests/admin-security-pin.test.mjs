@@ -5,18 +5,16 @@ import test from 'node:test';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('administrator CRM PIN uses a correctly delimited HMAC and audited lockout controls', async () => {
-  const endpoint = await read('functions/admin/api.js');
-  assert.match(endpoint, /adminPinStatus/);
+  const endpoint = await read('functions/api/admin/pin.js');
   assert.match(endpoint, /adminPinMac/);
   assert.match(endpoint, /\["hmac_sha256", salt, await adminPinMac\(env, pin, salt\)\]\.join\("\$"\)/);
   assert.match(endpoint, /function parseAdminPinHash/);
-  assert.match(endpoint, /parsedHash\?\.legacy/);
-  assert.match(endpoint, /normalisedHash/);
+  assert.match(endpoint, /parsed\.legacy/);
   assert.doesNotMatch(endpoint, /const pinHash = `hmac_sha256\$\{salt\}/);
   assert.doesNotMatch(endpoint, /pin\s+TEXT/);
   assert.match(endpoint, /ADMIN_OIDC_CLIENT_SECRET/);
-  assert.match(endpoint, /attempts >= 5/);
-  assert.match(endpoint, /locked for 15 minutes/);
+  assert.match(endpoint, /MAX_ATTEMPTS = 5/);
+  assert.match(endpoint, /LOCK_MINUTES = 15/);
   assert.match(endpoint, /HttpOnly; Secure; SameSite=Strict/);
   assert.match(endpoint, /admin_pin_verification_failed/);
   assert.match(endpoint, /admin_pin_verified/);
@@ -27,7 +25,8 @@ test('Admin Portal requires the personal PIN after Microsoft authentication', as
   assert.match(layout, /if \(!pinState\.unlocked\)/);
   assert.match(layout, /Enter your personal four-digit PIN to continue after Microsoft sign-in/);
   assert.match(layout, /Create your personal four-digit PIN/);
-  assert.match(layout, /\/admin\/api\?section=adminpin/);
+  assert.match(layout, /\/api\/admin\/pin/);
+  assert.match(layout, /The Admin Centre remains securely locked/);
   assert.doesNotMatch(layout, /false && !pinState\.unlocked/);
 });
 

@@ -12,6 +12,7 @@ test('runtime uses the correct Atlassian Customer Service AI widget for each cus
   const runtime = await read('src/components/AIHelpChatbotRuntime.tsx');
   const widget = await read('src/components/AtlassianCustomerServiceWidget.tsx');
   const tokenEndpoint = await read('functions/csm-widget-token.js');
+  const sessionEndpoint = await read('functions/csm-widget-session.js');
 
   assert.match(runtime, /import AtlassianCustomerServiceWidget from '\.\/AtlassianCustomerServiceWidget'/);
   assert.match(runtime, /return <AtlassianCustomerServiceWidget\s*\/>/);
@@ -26,8 +27,9 @@ test('runtime uses the correct Atlassian Customer Service AI widget for each cus
   assert.match(widget, /7e246b9d-dc9b-46e1-b41b-2997edbfe4da/);
   assert.match(widget, /jagroupservices\.atlassian\.net/);
   assert.match(widget, /b3c01f24-8059-47ab-b1fb-52544f659458/);
-  assert.match(widget, /const \{ user, isLoading \} = useAuth\(\)/);
-  assert.match(widget, /user \? ATLASSIAN_CSM_AUTHENTICATED_WIDGET : ATLASSIAN_CSM_PUBLIC_WIDGET/);
+  assert.match(widget, /fetch\('\/csm-widget-session'/);
+  assert.match(widget, /payload\.authenticated === true \? 'authenticated' : 'public'/);
+  assert.match(widget, /customerMode === 'authenticated'/);
   assert.match(widget, /authenticate: authenticateLoggedInCustomer/);
   assert.match(widget, /fetch\('\/csm-widget-token'/);
   assert.match(widget, /credentials: 'include'/);
@@ -35,7 +37,12 @@ test('runtime uses the correct Atlassian Customer Service AI widget for each cus
   assert.match(widget, /window\.csmWidgetSettings/);
   assert.match(widget, /document\.body\.appendChild\(script\)/);
   assert.match(widget, /document\.getElementById\(SCRIPT_ID\)/);
-  assert.match(widget, /script\.dataset\.customerMode = user \? 'authenticated' : 'public'/);
+  assert.match(widget, /script\.dataset\.customerMode = customerMode/);
+  assert.match(widget, /document\.documentElement\.dataset\.csmCustomerMode = customerMode/);
+
+  assert.match(sessionEndpoint, /getNativeSession\(context\.request, context\.env, "customer"\)/);
+  assert.match(sessionEndpoint, /return json\(\{ authenticated \}\)/);
+  assert.doesNotMatch(sessionEndpoint, /email:/);
 
   assert.match(tokenEndpoint, /getNativeSession\(context\.request, context\.env, "customer"\)/);
   assert.match(tokenEndpoint, /CSM_WIDGET_CLIENT_ID/);

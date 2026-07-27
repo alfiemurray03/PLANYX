@@ -16,6 +16,7 @@ const protectedPaths = [
   '/admin',
   '/api',
   '/csm-widget-token',
+  '/csm-widget-session',
   '/auth/',
   '/dashboard',
   '/documents',
