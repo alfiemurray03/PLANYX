@@ -63,6 +63,16 @@ test('ticket creation uses the Atlassian gateway, scoped auth compatibility and 
   assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*apiToken/);
 });
 
+test('admin-created requests retry through the service account when the CRM identity is an Atlassian staff account', async () => {
+  const source = await readFile(new URL('../functions/_shared/atlassian-support.js', import.meta.url), 'utf8');
+  assert.match(source, /isAdminRaisedEnquiry/);
+  assert.match(source, /isInternalStaffReporterError/);
+  assert.match(source, /service_account_staff_fallback/);
+  assert.match(source, /Internal Atlassian staff\/admin account/);
+  assert.match(source, /source\.includes\("planyx admin centre"\)/);
+  assert.match(source, /if \(!isAdminRaisedEnquiry\(enquiry\) \|\| !isInternalStaffReporterError\(error\)\) throw error/);
+});
+
 test('diagnostics prove authentication through the Customer Service API without requiring Jira myself scope', async () => {
   const source = await readFile(new URL('../functions/_shared/atlassian-support.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /\/rest\/api\/3\/myself/);
