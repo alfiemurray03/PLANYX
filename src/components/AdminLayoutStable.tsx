@@ -74,6 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Closure Requests', href: '/admin/closure-requests', icon: Shield, section: 'closures' },
       { label: 'Contact Enquiries', href: '/admin/enquiries', icon: Mail, section: 'enquiries' },
       { label: 'Support', href: '/admin/support', icon: HeadphonesIcon, section: 'support' },
+      { label: 'Atlassian Support', href: '/admin/atlassian-support', icon: HeadphonesIcon, section: 'support', badge: 'API' },
     ],
   },
   {
@@ -188,19 +189,11 @@ export default function AdminLayoutStable({ children, title }: AdminLayoutProps)
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-8">
         <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-            <ShieldCheck className="h-6 w-6 text-blue-700" />
-          </div>
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100"><ShieldCheck className="h-6 w-6 text-blue-700" /></div>
           <h1 className="text-2xl font-bold text-slate-950">Administrator session required</h1>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            The Admin Centre could not confirm the Microsoft session. The portal has remained securely closed rather than loading indefinitely.
-          </p>
-          <a href="/admin" className="mt-6 flex h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
-            Return to Microsoft sign-in
-          </a>
-          <button type="button" onClick={() => window.location.reload()} className="mt-3 h-10 w-full rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Retry session check
-          </button>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">The Admin Centre could not confirm the Microsoft session. The portal has remained securely closed rather than loading indefinitely.</p>
+          <a href="/admin" className="mt-6 flex h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">Return to Microsoft sign-in</a>
+          <button type="button" onClick={() => window.location.reload()} className="mt-3 h-10 w-full rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50">Retry session check</button>
         </div>
       </div>
     );

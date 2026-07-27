@@ -1,5 +1,6 @@
 const ATLASSIAN_GATEWAY = "https://api.atlassian.com/ex/jira";
 const DEFAULT_TIMEOUT_MS = 8_000;
+const ALLOWED_ROUTING_MODES = new Set(["auto", "question", "problem", "suggestion"]);
 
 const REQUEST_KIND_KEYS = {
   question: "ATLASSIAN_REQUEST_TYPE_QUESTION_ID",
@@ -113,10 +114,7 @@ export function classifyAtlassianRequestType(env, input = {}) {
     else kind = "question";
   }
 
-  return {
-    kind,
-    requestTypeId: config.requestTypes[kind] || ""
-  };
+  return { kind, requestTypeId: config.requestTypes[kind] || "" };
 }
 
 function buildDescription(enquiry, localReference) {
@@ -139,7 +137,7 @@ function buildDescription(enquiry, localReference) {
   ].join("\n").slice(0, 30_000);
 }
 
-async function ensureLinkTable(DB) {
+export async function ensureAtlassianSupportTables(DB) {
   if (!DB) return;
   await DB.prepare(`CREATE TABLE IF NOT EXISTS atlassian_support_requests (
     local_reference TEXT PRIMARY KEY,
@@ -155,33 +153,61 @@ async function ensureLinkTable(DB) {
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
+  await DB.prepare(`CREATE TABLE IF NOT EXISTS atlassian_support_settings (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    enabled INTEGER NOT NULL DEFAULT 1,
+    routing_mode TEXT NOT NULL DEFAULT 'auto',
+    updated_by TEXT,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+  await DB.prepare(`INSERT OR IGNORE INTO atlassian_support_settings (id,enabled,routing_mode) VALUES (1,1,'auto')`).run();
+}
+
+export async function loadAtlassianSupportSettings(DB) {
+  if (!DB) return { enabled: true, routingMode: "auto", updatedBy: "", updatedAt: "" };
+  await ensureAtlassianSupportTables(DB);
+  const row = await DB.prepare("SELECT enabled,routing_mode,updated_by,updated_at FROM atlassian_support_settings WHERE id=1").first();
+  const routingMode = ALLOWED_ROUTING_MODES.has(clean(row?.routing_mode, 40)) ? clean(row?.routing_mode, 40) : "auto";
+  return {
+    enabled: Number(row?.enabled ?? 1) === 1,
+    routingMode,
+    updatedBy: clean(row?.updated_by, 254),
+    updatedAt: clean(row?.updated_at, 80)
+  };
+}
+
+export async function saveAtlassianSupportSettings(DB, input = {}, actorEmail = "") {
+  await ensureAtlassianSupportTables(DB);
+  const enabled = input.enabled === true;
+  const requestedMode = clean(input.routingMode, 40).toLowerCase();
+  const routingMode = ALLOWED_ROUTING_MODES.has(requestedMode) ? requestedMode : "auto";
+  await DB.prepare(`UPDATE atlassian_support_settings
+    SET enabled=?,routing_mode=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=1`)
+    .bind(enabled ? 1 : 0, routingMode, cleanEmail(actorEmail)).run();
+  return loadAtlassianSupportSettings(DB);
 }
 
 export async function getAtlassianRequestLink(DB, localReference) {
   if (!DB || !clean(localReference, 120)) return null;
-  await ensureLinkTable(DB);
+  await ensureAtlassianSupportTables(DB);
   const row = await DB.prepare(`SELECT local_reference,issue_key,issue_id,request_kind,request_type_id,
       service_desk_id,portal_url,agent_url,status,last_error_code,created_at,updated_at
     FROM atlassian_support_requests WHERE local_reference=?`)
     .bind(clean(localReference, 120)).first().catch(() => null);
   if (!row) return null;
   return {
-    status: clean(row.status, 40),
-    localReference: clean(row.local_reference, 120),
-    issueKey: clean(row.issue_key, 120),
-    issueId: clean(row.issue_id, 120),
-    requestKind: clean(row.request_kind, 40),
-    requestTypeId: clean(row.request_type_id, 80),
-    serviceDeskId: clean(row.service_desk_id, 80),
-    portalUrl: clean(row.portal_url, 2_000),
-    agentUrl: clean(row.agent_url, 2_000),
-    errorCode: clean(row.last_error_code, 120)
+    status: clean(row.status, 40), localReference: clean(row.local_reference, 120),
+    issueKey: clean(row.issue_key, 120), issueId: clean(row.issue_id, 120),
+    requestKind: clean(row.request_kind, 40), requestTypeId: clean(row.request_type_id, 80),
+    serviceDeskId: clean(row.service_desk_id, 80), portalUrl: clean(row.portal_url, 2_000),
+    agentUrl: clean(row.agent_url, 2_000), errorCode: clean(row.last_error_code, 120),
+    createdAt: clean(row.created_at, 80), updatedAt: clean(row.updated_at, 80)
   };
 }
 
 async function saveLink(DB, localReference, values) {
   if (!DB) return;
-  await ensureLinkTable(DB);
+  await ensureAtlassianSupportTables(DB);
   await DB.prepare(`INSERT INTO atlassian_support_requests
       (local_reference,issue_key,issue_id,request_kind,request_type_id,service_desk_id,portal_url,agent_url,status,last_error_code,updated_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
@@ -196,6 +222,33 @@ async function saveLink(DB, localReference, values) {
       clean(values.portalUrl, 2_000), clean(values.agentUrl, 2_000), clean(values.status, 40),
       clean(values.errorCode, 120)
     ).run();
+}
+
+export async function listAtlassianSupportRequests(DB, limit = 50) {
+  if (!DB) return [];
+  await ensureAtlassianSupportTables(DB);
+  const safeLimit = Math.min(100, Math.max(1, Number(limit) || 50));
+  const rows = await DB.prepare(`SELECT local_reference,issue_key,issue_id,request_kind,request_type_id,
+      service_desk_id,portal_url,agent_url,status,last_error_code,created_at,updated_at
+    FROM atlassian_support_requests ORDER BY updated_at DESC LIMIT ?`).bind(safeLimit).all();
+  return (rows.results || []).map((row) => ({
+    localReference: clean(row.local_reference, 120), issueKey: clean(row.issue_key, 120),
+    issueId: clean(row.issue_id, 120), requestKind: clean(row.request_kind, 40),
+    requestTypeId: clean(row.request_type_id, 80), serviceDeskId: clean(row.service_desk_id, 80),
+    portalUrl: clean(row.portal_url, 2_000), agentUrl: clean(row.agent_url, 2_000),
+    status: clean(row.status, 40), errorCode: clean(row.last_error_code, 120),
+    createdAt: clean(row.created_at, 80), updatedAt: clean(row.updated_at, 80)
+  }));
+}
+
+export async function getAtlassianSupportStats(DB) {
+  if (!DB) return { total: 0, created: 0, failed: 0 };
+  await ensureAtlassianSupportTables(DB);
+  const row = await DB.prepare(`SELECT COUNT(*) total,
+      SUM(CASE WHEN status='created' THEN 1 ELSE 0 END) created,
+      SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed
+    FROM atlassian_support_requests`).first();
+  return { total: Number(row?.total || 0), created: Number(row?.created || 0), failed: Number(row?.failed || 0) };
 }
 
 export async function createAtlassianCustomerRequest(env, enquiry, localReference) {
@@ -222,60 +275,51 @@ export async function createAtlassianCustomerRequest(env, enquiry, localReferenc
     body: {
       serviceDeskId: config.serviceDeskId,
       requestTypeId: classification.requestTypeId,
-      requestFieldValues: {
-        summary,
-        description: buildDescription(enquiry, localReference)
-      },
+      requestFieldValues: { summary, description: buildDescription(enquiry, localReference) },
       raiseOnBehalfOf: customerEmail
     }
   });
 
   return {
-    status: "created",
-    localReference: clean(localReference, 120),
-    issueKey: clean(payload?.issueKey, 120),
-    issueId: clean(payload?.issueId, 120),
-    requestKind: classification.kind,
-    requestTypeId: classification.requestTypeId,
-    serviceDeskId: config.serviceDeskId,
-    portalUrl: clean(payload?._links?.web, 2_000),
+    status: "created", localReference: clean(localReference, 120),
+    issueKey: clean(payload?.issueKey, 120), issueId: clean(payload?.issueId, 120),
+    requestKind: classification.kind, requestTypeId: classification.requestTypeId,
+    serviceDeskId: config.serviceDeskId, portalUrl: clean(payload?._links?.web, 2_000),
     agentUrl: clean(payload?._links?.agent, 2_000)
   };
 }
 
-export async function syncAtlassianSupportRequest({ env, DB, localReference, enquiry }) {
+export async function syncAtlassianSupportRequest({ env, DB, localReference, enquiry, force = false }) {
   const reference = clean(localReference, 120);
+  const settings = await loadAtlassianSupportSettings(DB);
+  if (!settings.enabled && !force) {
+    return { status: "disabled", localReference: reference, requestKind: "", requestTypeId: "", serviceDeskId: getAtlassianSupportConfig(env).serviceDeskId, errorCode: "ATLASSIAN_DISABLED" };
+  }
+
   const existing = await getAtlassianRequestLink(DB, reference);
   if (existing?.status === "created" && existing.issueKey) return { ...existing, reused: true };
 
+  const routedEnquiry = settings.routingMode === "auto" || enquiry.requestKind || enquiry.atlassianRequestKind
+    ? enquiry
+    : { ...enquiry, requestKind: settings.routingMode };
+
   try {
-    const created = await createAtlassianCustomerRequest(env, enquiry, reference);
+    const created = await createAtlassianCustomerRequest(env, routedEnquiry, reference);
     await saveLink(DB, reference, { ...created, errorCode: "" });
     return { ...created, reused: false };
   } catch (error) {
     const config = getAtlassianSupportConfig(env);
-    const classification = classifyAtlassianRequestType(env, enquiry);
+    const classification = classifyAtlassianRequestType(env, routedEnquiry);
     const errorCode = clean(error?.code || `ATLASSIAN_HTTP_${error?.status || 500}`, 120);
     await saveLink(DB, reference, {
-      status: "failed",
-      requestKind: classification.kind,
-      requestTypeId: classification.requestTypeId,
-      serviceDeskId: config.serviceDeskId,
-      errorCode
+      status: "failed", requestKind: classification.kind, requestTypeId: classification.requestTypeId,
+      serviceDeskId: config.serviceDeskId, errorCode
     }).catch(() => undefined);
-    console.error(JSON.stringify({
-      event: "atlassian_support_request_failed",
-      reference,
-      error_code: errorCode,
-      http_status: Number(error?.status || 500)
-    }));
+    console.error(JSON.stringify({ event: "atlassian_support_request_failed", reference, error_code: errorCode, http_status: Number(error?.status || 500) }));
     return {
-      status: config.configured ? "failed" : "not_configured",
-      localReference: reference,
-      requestKind: classification.kind,
-      requestTypeId: classification.requestTypeId,
-      serviceDeskId: config.serviceDeskId,
-      errorCode
+      status: config.configured ? "failed" : "not_configured", localReference: reference,
+      requestKind: classification.kind, requestTypeId: classification.requestTypeId,
+      serviceDeskId: config.serviceDeskId, errorCode
     };
   }
 }
@@ -286,22 +330,14 @@ export async function testAtlassianSupportConnection(env) {
   try {
     const serviceDesk = await atlassianRequest(env, `/rest/servicedeskapi/servicedesk/${encodeURIComponent(config.serviceDeskId)}`);
     return {
-      ok: true,
-      configured: true,
-      cloudId: config.cloudId,
-      serviceDeskId: config.serviceDeskId,
-      projectName: clean(serviceDesk?.projectName, 200),
-      projectKey: clean(serviceDesk?.projectKey, 80),
+      ok: true, configured: true, cloudId: config.cloudId, serviceDeskId: config.serviceDeskId,
+      projectName: clean(serviceDesk?.projectName, 200), projectKey: clean(serviceDesk?.projectKey, 80),
       requestTypes: { ...config.requestTypes }
     };
   } catch (error) {
     return {
-      ok: false,
-      configured: true,
-      cloudId: config.cloudId,
-      serviceDeskId: config.serviceDeskId,
-      errorCode: clean(error?.code || "ATLASSIAN_CONNECTION_FAILED", 120),
-      httpStatus: Number(error?.status || 500)
+      ok: false, configured: true, cloudId: config.cloudId, serviceDeskId: config.serviceDeskId,
+      errorCode: clean(error?.code || "ATLASSIAN_CONNECTION_FAILED", 120), httpStatus: Number(error?.status || 500)
     };
   }
 }
