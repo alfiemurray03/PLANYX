@@ -49,8 +49,12 @@ async function isAdmin(identity, env) {
 }
 
 async function authenticate(context) {
-  if (!assertSameOrigin(context.request)) return { response: json({ success: false, error: "Request origin was rejected." }, 403) };
-  if (!context.env.DB) return { response: json({ success: false, error: "Administrator authentication is temporarily unavailable." }, 503) };
+  if (!assertSameOrigin(context.request)) {
+    return { response: json({ success: false, error: "Request origin was rejected." }, 403) };
+  }
+  if (!context.env.DB) {
+    return { response: json({ success: false, error: "Administrator authentication is temporarily unavailable." }, 503) };
+  }
 
   let identity = null;
   try {
@@ -78,6 +82,7 @@ function publicConfig(config) {
     serviceDeskId: config.serviceDeskId || null,
     serviceAccount: maskedServiceEmail || null,
     tokenConfigured: Boolean(config.apiToken),
+    defaultAuthMode: config.authMode || "auto",
     requestTypes: {
       question: config.requestTypes.question || null,
       problem: config.requestTypes.problem || null,
@@ -96,7 +101,7 @@ async function audit(DB, actorEmail, action, summary, metadata = {}, entityId = 
       clean(entityId, 160), clean(summary, 500), JSON.stringify(metadata).slice(0, 4000)
     ).run();
   } catch {
-    // The control action remains valid if the inherited audit table is unavailable.
+    // The support operation remains valid if the inherited audit table is unavailable.
   }
 }
 
@@ -124,14 +129,15 @@ async function ensureCustomerSupportSchema(DB) {
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN planyx_reference TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_issue_key TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_issue_id TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_request_kind TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_status TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_portal_url TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN atlassian_agent_url TEXT");
-  await safeAlter(DB, "ALTER TABLE customer_support_cases ADD COLUMN created_by TEXT");
+  const columns = [
+    ["planyx_reference", "TEXT"], ["atlassian_issue_key", "TEXT"], ["atlassian_issue_id", "TEXT"],
+    ["atlassian_request_kind", "TEXT"], ["atlassian_status", "TEXT"], ["atlassian_portal_url", "TEXT"],
+    ["atlassian_agent_url", "TEXT"], ["atlassian_error_code", "TEXT"], ["atlassian_error_message", "TEXT"],
+    ["created_by", "TEXT"]
+  ];
+  for (const [column, definition] of columns) {
+    await safeAlter(DB, `ALTER TABLE customer_support_cases ADD COLUMN ${column} ${definition}`);
+  }
   await DB.prepare(`CREATE INDEX IF NOT EXISTS customer_support_cases_email_updated
     ON customer_support_cases(email, updated_at DESC)`).run().catch(() => undefined);
   await DB.prepare(`CREATE INDEX IF NOT EXISTS customer_support_cases_planyx_reference
@@ -184,14 +190,17 @@ async function updateManualCase(DB, caseId, localReference, result, actorEmail) 
     localReference,
     issueKey: result.issueKey || null,
     requestKind: result.requestKind || null,
-    errorCode: result.errorCode || null
+    errorCode: result.errorCode || null,
+    errorMessage: result.errorMessage || null,
+    httpStatus: result.httpStatus || null,
+    authMode: result.authMode || null
   });
 
   const visibleReference = result.status === "created" && result.issueKey ? result.issueKey : localReference;
   await DB.prepare(`UPDATE customer_support_cases SET
       reference=?,planyx_reference=?,status=?,atlassian_issue_key=?,atlassian_issue_id=?,
       atlassian_request_kind=?,atlassian_status=?,atlassian_portal_url=?,atlassian_agent_url=?,
-      audit_history=?,updated_at=CURRENT_TIMESTAMP
+      atlassian_error_code=?,atlassian_error_message=?,audit_history=?,updated_at=CURRENT_TIMESTAMP
     WHERE id=?`).bind(
       visibleReference,
       localReference,
@@ -202,10 +211,48 @@ async function updateManualCase(DB, caseId, localReference, result, actorEmail) 
       clean(result.status, 40) || null,
       clean(result.portalUrl, 2000) || null,
       clean(result.agentUrl, 2000) || null,
+      clean(result.errorCode, 120) || null,
+      clean(result.errorMessage, 900) || null,
       JSON.stringify(history).slice(0, 20000),
       caseId
     ).run();
   return visibleReference;
+}
+
+async function dashboardPayload(context, includeConnection = false) {
+  const config = getAtlassianSupportConfig(context.env);
+  const settings = await loadAtlassianSupportSettings(context.env.DB);
+  const [stats, requests, connection] = await Promise.all([
+    getAtlassianSupportStats(context.env.DB),
+    listAtlassianSupportRequests(context.env.DB, 150),
+    includeConnection
+      ? testAtlassianSupportConnection(context.env, { authMode: settings.authMode })
+      : Promise.resolve(null)
+  ]);
+  return {
+    success: true,
+    config: publicConfig(config),
+    settings,
+    stats,
+    requests,
+    connection: connection ? {
+      ok: connection.ok,
+      readyToCreate: connection.readyToCreate,
+      configured: connection.configured,
+      projectName: connection.projectName || null,
+      projectKey: connection.projectKey || null,
+      serviceDeskId: connection.serviceDeskId || config.serviceDeskId || null,
+      authMode: connection.authMode || settings.authMode,
+      errorCode: connection.errorCode || null,
+      errorMessage: connection.errorMessage || null,
+      errorHelp: connection.errorHelp || null,
+      httpStatus: connection.httpStatus || null,
+      checks: connection.checks || [],
+      requiredScopes: connection.requiredScopes || [],
+      optionalCustomerScopes: connection.optionalCustomerScopes || [],
+      checkedAt: new Date().toISOString()
+    } : null
+  };
 }
 
 async function createCustomerRequest(context, actorEmail, body) {
@@ -289,7 +336,10 @@ async function createCustomerRequest(context, actorEmail, body) {
       result.status === "created" ? "Support issue raised in Atlassian" : "Support issue saved; Atlassian delivery failed",
       `${visibleReference}: ${subject}`,
       cleanEmail(actorEmail),
-      JSON.stringify({ localReference, issueKey: result.issueKey || null, requestKind, priority, status: result.status })
+      JSON.stringify({
+        localReference, issueKey: result.issueKey || null, requestKind, priority,
+        status: result.status, errorCode: result.errorCode || null, httpStatus: result.httpStatus || null
+      })
     ).run().catch(() => undefined);
 
   await audit(
@@ -297,11 +347,14 @@ async function createCustomerRequest(context, actorEmail, body) {
     actorEmail,
     "atlassian_support_raised_for_customer",
     `Raised ${requestTypeLabel(requestKind).toLowerCase()} for ${customerEmail}.`,
-    { customerEmail, localReference, issueKey: result.issueKey || null, requestKind, priority, status: result.status, errorCode: result.errorCode || null },
+    {
+      customerEmail, localReference, issueKey: result.issueKey || null, requestKind, priority,
+      status: result.status, errorCode: result.errorCode || null, httpStatus: result.httpStatus || null,
+      authMode: result.authMode || null
+    },
     customerEmail
   );
 
-  const dashboard = await dashboardPayload(context, false);
   const responseBody = {
     success: result.status === "created",
     savedToCrm: true,
@@ -313,49 +366,16 @@ async function createCustomerRequest(context, actorEmail, body) {
     portalUrl: result.portalUrl || null,
     requestKind,
     errorCode: result.errorCode || null,
-    dashboard
+    errorMessage: result.errorMessage || null,
+    errorHelp: result.errorHelp || null,
+    httpStatus: result.httpStatus || null,
+    authMode: result.authMode || null,
+    dashboard: await dashboardPayload(context, false)
   };
   return json(responseBody, result.status === "created" ? 201 : 502);
 }
 
-async function dashboardPayload(context, includeConnection = false) {
-  const config = getAtlassianSupportConfig(context.env);
-  const [settings, stats, requests, connection] = await Promise.all([
-    loadAtlassianSupportSettings(context.env.DB),
-    getAtlassianSupportStats(context.env.DB),
-    listAtlassianSupportRequests(context.env.DB, 50),
-    includeConnection ? testAtlassianSupportConnection(context.env) : Promise.resolve(null)
-  ]);
-  return {
-    success: true,
-    config: publicConfig(config),
-    settings,
-    stats,
-    requests,
-    connection: connection ? {
-      ok: connection.ok,
-      configured: connection.configured,
-      projectName: connection.projectName || null,
-      projectKey: connection.projectKey || null,
-      serviceDeskId: connection.serviceDeskId || config.serviceDeskId || null,
-      errorCode: connection.errorCode || null,
-      httpStatus: connection.httpStatus || null,
-      checkedAt: new Date().toISOString()
-    } : null
-  };
-}
-
-export async function onRequestGet(context) {
-  const auth = await authenticate(context);
-  if (auth.response) return auth.response;
-  const includeConnection = new URL(context.request.url).searchParams.get("test") === "1";
-  return json(await dashboardPayload(context, includeConnection));
-}
-
-async function retryRequest(context, actorEmail, localReference) {
-  const reference = clean(localReference, 120);
-  if (!reference) return json({ success: false, error: "A Planyx enquiry reference is required." }, 400);
-
+async function findRetryRecord(context, reference) {
   let enquiry = await context.env.DB.prepare(`SELECT reference,name,email,subject,category,message,priority,enquiry_type
     FROM enquiries WHERE reference=?`).bind(reference).first().catch(() => null);
   let manualCase = null;
@@ -380,9 +400,19 @@ async function retryRequest(context, actorEmail, localReference) {
       };
     }
   }
+  return { enquiry, manualCase };
+}
 
-  if (!enquiry) return json({ success: false, error: "The matching Planyx enquiry or CRM support case could not be found." }, 404);
-  if (!cleanEmail(enquiry.email)) return json({ success: false, error: "The support record does not contain a valid customer email." }, 400);
+async function retryRequestResult(context, actorEmail, localReference) {
+  const reference = clean(localReference, 120);
+  if (!reference) return { statusCode: 400, body: { success: false, error: "A Planyx enquiry reference is required." } };
+  const { enquiry, manualCase } = await findRetryRecord(context, reference);
+  if (!enquiry) {
+    return { statusCode: 404, body: { success: false, error: "The matching Planyx enquiry or CRM support case could not be found." } };
+  }
+  if (!cleanEmail(enquiry.email)) {
+    return { statusCode: 400, body: { success: false, error: "The support record does not contain a valid customer email." } };
+  }
 
   const explicitKind = ["question", "problem", "suggestion"].includes(clean(enquiry.request_kind, 40).toLowerCase())
     ? clean(enquiry.request_kind, 40).toLowerCase()
@@ -406,9 +436,57 @@ async function retryRequest(context, actorEmail, localReference) {
 
   if (manualCase) await updateManualCase(context.env.DB, manualCase.id, reference, result, actorEmail);
   await audit(context.env.DB, actorEmail, "atlassian_support_retry", `Retried Atlassian delivery for ${reference}.`, {
-    reference, status: result.status, issueKey: result.issueKey || null, errorCode: result.errorCode || null
+    reference, status: result.status, issueKey: result.issueKey || null,
+    errorCode: result.errorCode || null, httpStatus: result.httpStatus || null
   }, cleanEmail(enquiry.email) || reference);
-  return json({ success: result.status === "created", result, dashboard: await dashboardPayload(context, false) }, result.status === "created" ? 200 : 502);
+  return {
+    statusCode: result.status === "created" ? 200 : 502,
+    body: { success: result.status === "created", result }
+  };
+}
+
+async function retryRequest(context, actorEmail, localReference) {
+  const outcome = await retryRequestResult(context, actorEmail, localReference);
+  return json({ ...outcome.body, dashboard: await dashboardPayload(context, false) }, outcome.statusCode);
+}
+
+async function retryAllFailed(context, actorEmail) {
+  const records = await listAtlassianSupportRequests(context.env.DB, 100);
+  const failed = records.filter((record) => ["failed", "not_configured"].includes(record.status)).slice(0, 20);
+  if (!failed.length) return json({ success: true, retried: 0, created: 0, failed: 0, dashboard: await dashboardPayload(context, false) });
+
+  let created = 0;
+  let failedCount = 0;
+  const results = [];
+  for (const record of failed) {
+    const outcome = await retryRequestResult(context, actorEmail, record.localReference);
+    if (outcome.body?.success) created += 1;
+    else failedCount += 1;
+    results.push({
+      localReference: record.localReference,
+      success: outcome.body?.success === true,
+      issueKey: outcome.body?.result?.issueKey || null,
+      errorCode: outcome.body?.result?.errorCode || outcome.body?.error || null
+    });
+  }
+  await audit(context.env.DB, actorEmail, "atlassian_support_retry_all", `Retried ${failed.length} failed Atlassian deliveries.`, {
+    retried: failed.length, created, failed: failedCount
+  });
+  return json({
+    success: failedCount === 0,
+    retried: failed.length,
+    created,
+    failed: failedCount,
+    results,
+    dashboard: await dashboardPayload(context, false)
+  }, failedCount === 0 ? 200 : 207);
+}
+
+export async function onRequestGet(context) {
+  const auth = await authenticate(context);
+  if (auth.response) return auth.response;
+  const includeConnection = new URL(context.request.url).searchParams.get("test") === "1";
+  return json(await dashboardPayload(context, includeConnection));
 }
 
 export async function onRequestPost(context) {
@@ -421,32 +499,44 @@ export async function onRequestPost(context) {
   if (action === "save_settings") {
     const settings = await saveAtlassianSupportSettings(context.env.DB, {
       enabled: body.enabled === true,
-      routingMode: clean(body.routingMode, 40)
+      routingMode: clean(body.routingMode, 40),
+      authMode: clean(body.authMode, 20),
+      syncCustomers: body.syncCustomers === true
     }, actorEmail);
     await audit(context.env.DB, actorEmail, "atlassian_support_settings_updated", "Updated Atlassian support integration controls.", settings);
     return json({ success: true, settings, dashboard: await dashboardPayload(context, false) });
   }
 
-  if (action === "test_connection") {
-    const result = await testAtlassianSupportConnection(context.env);
-    await audit(context.env.DB, actorEmail, "atlassian_support_connection_tested", "Tested the Atlassian support connection.", {
-      ok: result.ok, errorCode: result.errorCode || null, httpStatus: result.httpStatus || null
+  if (action === "test_connection" || action === "run_diagnostics") {
+    const settings = await loadAtlassianSupportSettings(context.env.DB);
+    const result = await testAtlassianSupportConnection(context.env, { authMode: settings.authMode });
+    await audit(context.env.DB, actorEmail, "atlassian_support_connection_tested", "Ran Atlassian support diagnostics.", {
+      ok: result.ok, readyToCreate: result.readyToCreate, errorCode: result.errorCode || null,
+      httpStatus: result.httpStatus || null, authMode: result.authMode || settings.authMode
     });
     return json({ success: result.ok, connection: {
       ok: result.ok,
+      readyToCreate: result.readyToCreate,
       configured: result.configured,
       projectName: result.projectName || null,
       projectKey: result.projectKey || null,
       serviceDeskId: result.serviceDeskId || null,
+      authMode: result.authMode || settings.authMode,
       errorCode: result.errorCode || null,
+      errorMessage: result.errorMessage || null,
+      errorHelp: result.errorHelp || null,
       httpStatus: result.httpStatus || null,
+      checks: result.checks || [],
+      requiredScopes: result.requiredScopes || [],
+      optionalCustomerScopes: result.optionalCustomerScopes || [],
       checkedAt: new Date().toISOString()
     } }, result.ok ? 200 : (result.configured ? 502 : 501));
   }
 
   if (action === "create_customer_request") return createCustomerRequest(context, actorEmail, body);
   if (action === "retry") return retryRequest(context, actorEmail, body.localReference);
-  return json({ success: false, error: "Unsupported Atlassian control action." }, 400);
+  if (action === "retry_all_failed") return retryAllFailed(context, actorEmail);
+  return json({ success: false, error: "Unsupported Atlassian support action." }, 400);
 }
 
 export async function onRequest(context) {
