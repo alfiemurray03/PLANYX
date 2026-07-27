@@ -1,4 +1,5 @@
 import { loadContactServiceStatus } from "../../_shared/contact-service-status.js";
+import { ensureCsmCustomerAccount } from "../../_shared/csm-customer.js";
 import { syncAtlassianSupportRequest } from "../../_shared/atlassian-support.js";
 import { onRequest as handleSupportRequest } from "./[[path]].js";
 
@@ -35,6 +36,22 @@ async function addAtlassianTicket(context, response, submittedBody) {
   // Public and signed-out enquiries remain in the existing Planyx/Teams route.
   // Only a validated customer session may be used for raiseOnBehalfOf.
   if (!customer.email) return response;
+
+  try {
+    await ensureCsmCustomerAccount(context.env, {
+      email: customer.email,
+      displayName: customer.name
+    });
+  } catch (error) {
+    console.error(JSON.stringify({
+      event: "atlassian_csm_customer_provision_failed",
+      customer_email: customer.email,
+      error_code: clean(error?.code || "ATLASSIAN_CSM_CUSTOMER_FAILED", 120),
+      http_status: Number(error?.status || 500)
+    }));
+    // Continue so the existing Planyx enquiry and Atlassian delivery record are
+    // preserved with a retryable failure rather than losing the customer request.
+  }
 
   const localReference = clean(payload.reference, 120);
   const atlassian = await syncAtlassianSupportRequest({
