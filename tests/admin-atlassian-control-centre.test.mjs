@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
-test('Admin Centre exposes a dedicated Atlassian Support Control Centre', async () => {
+test('Admin Centre exposes a dedicated Support Operations Centre', async () => {
   const [routes, layout, page] = await Promise.all([
     read('src/routes.tsx'),
     read('src/components/AdminLayoutStable.tsx'),
@@ -16,12 +16,13 @@ test('Admin Centre exposes a dedicated Atlassian Support Control Centre', async 
   assert.match(routes, /path: '\/admin\/atlassian-support'/);
   assert.match(layout, /Atlassian Support/);
   assert.match(layout, /href: '\/admin\/atlassian-support'/);
-  assert.match(page, /Atlassian Support Control Centre/);
-  assert.match(page, /Automatic Atlassian ticket creation/);
-  assert.match(page, /Request classification/);
-  assert.match(page, /Test connection/);
-  assert.match(page, /Recent Atlassian deliveries/);
+  assert.match(page, /Support Operations Centre/);
+  assert.match(page, /Raise request/);
+  assert.match(page, /Queue & history/);
+  assert.match(page, /Guided connection diagnostics/);
+  assert.match(page, /Integration controls/);
   assert.match(page, /action: 'retry'/);
+  assert.match(page, /action: 'retry_all_failed'/);
 });
 
 test('Atlassian controls persist safely and do not expose the API token', async () => {
@@ -31,13 +32,14 @@ test('Atlassian controls persist safely and do not expose the API token', async 
   ]);
 
   assert.match(endpoint, /action === "save_settings"/);
-  assert.match(endpoint, /action === "test_connection"/);
+  assert.match(endpoint, /action === "test_connection" \|\| action === "run_diagnostics"/);
   assert.match(endpoint, /action === "retry"/);
+  assert.match(endpoint, /action === "retry_all_failed"/);
   assert.match(endpoint, /tokenConfigured: Boolean\(config\.apiToken\)/);
   assert.doesNotMatch(endpoint, /apiToken:\s*config\.apiToken/);
   assert.match(client, /CREATE TABLE IF NOT EXISTS atlassian_support_settings/);
-  assert.match(client, /enabled INTEGER NOT NULL DEFAULT 1/);
-  assert.match(client, /routing_mode TEXT NOT NULL DEFAULT 'auto'/);
+  assert.match(client, /auth_mode TEXT DEFAULT 'auto'/);
+  assert.match(client, /sync_customers INTEGER DEFAULT 0/);
   assert.match(client, /if \(!settings\.enabled && !force\)/);
   assert.match(client, /settings\.routingMode === "auto"/);
 });
