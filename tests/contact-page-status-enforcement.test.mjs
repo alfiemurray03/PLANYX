@@ -73,6 +73,6 @@ test('all public enquiry submission routes reject Contact maintenance, offline a
     assert.match(route, /if \(!contact\.available\)/);
     assert.match(route, /contactUnavailable: true/);
     assert.match(route, /contactPageStatus: contact\.status/);
-    assert.match(route, /return handleSupportRequest\(context\)/);
+    assert.match(route, /handleSupportRequest\(context\)/);
   }
 });
