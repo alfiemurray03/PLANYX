@@ -14,6 +14,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
+import AtlassianCustomerRequestForm from '@/components/admin/AtlassianCustomerRequestForm';
 import { useAdmin } from '@/lib/admin-context';
 
 interface ConnectionState {
@@ -224,7 +225,7 @@ export default function AdminAtlassianSupportPage() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-300">Customer Service Integration</p>
                 <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">Atlassian Support Control Centre</h1>
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">See the live PXCS connection, control automatic AI ticket creation, choose how enquiries are classified, and retry failed deliveries.</p>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">See the live PXCS connection, raise issues for CRM customers, control automatic AI ticket creation, choose how enquiries are classified, and retry failed deliveries.</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -250,6 +251,11 @@ export default function AdminAtlassianSupportPage() {
               ['Success rate', `${successRate}%`, ShieldCheck],
             ].map(([label, value, Icon]) => <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500 dark:text-slate-400">{String(label)}</p><Icon className="h-5 w-5 text-blue-600 dark:text-blue-300" /></div><p className="mt-3 text-3xl font-bold text-slate-950 dark:text-white">{String(value)}</p></div>)}
           </section>
+
+          <AtlassianCustomerRequestForm
+            canEdit={canEdit}
+            onCreated={next => { if (next) applyDashboard(next as DashboardState); }}
+          />
 
           <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -281,7 +287,7 @@ export default function AdminAtlassianSupportPage() {
           </section>
 
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex flex-col gap-2 border-b border-slate-200 p-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-bold text-slate-950 dark:text-white">Recent Atlassian deliveries</h2><p className="mt-1 text-sm text-slate-600 dark:text-slate-400">The latest 50 Planyx-to-Atlassian ticket attempts.</p></div><span className="text-xs text-slate-500">Failed items can be retried without creating a duplicate local enquiry.</span></div>
+            <div className="flex flex-col gap-2 border-b border-slate-200 p-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-bold text-slate-950 dark:text-white">Recent Atlassian deliveries</h2><p className="mt-1 text-sm text-slate-600 dark:text-slate-400">The latest 50 Planyx-to-Atlassian ticket attempts, including requests raised by administrators for CRM customers.</p></div><span className="text-xs text-slate-500">Failed items can be retried without creating a duplicate local case.</span></div>
             {dashboard.requests.length === 0 ? <div className="p-10 text-center text-sm text-slate-500">No Atlassian ticket deliveries have been recorded yet.</div> : <div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-800"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 dark:bg-slate-950"><tr><th className="px-5 py-3">Status</th><th className="px-5 py-3">Atlassian</th><th className="px-5 py-3">Planyx reference</th><th className="px-5 py-3">Type</th><th className="px-5 py-3">Updated</th><th className="px-5 py-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{dashboard.requests.map(record => <tr key={record.localReference} className="hover:bg-slate-50 dark:hover:bg-slate-800/50"><td className="px-5 py-4"><StatusBadge status={record.status} />{record.errorCode && <p className="mt-1 max-w-40 break-all text-[10px] text-red-600 dark:text-red-300">{record.errorCode}</p>}</td><td className="px-5 py-4 font-mono text-sm font-bold text-slate-950 dark:text-white">{record.issueKey ? record.agentUrl ? <a href={record.agentUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-700 hover:underline dark:text-blue-300">{record.issueKey}<ExternalLink className="h-3 w-3" /></a> : record.issueKey : '—'}</td><td className="px-5 py-4 font-mono text-xs text-slate-700 dark:text-slate-300">{record.localReference}</td><td className="px-5 py-4"><span className="capitalize text-slate-700 dark:text-slate-300">{record.requestKind || 'Unknown'}</span><p className="font-mono text-[10px] text-slate-500">ID {record.requestTypeId || '—'}</p></td><td className="px-5 py-4 whitespace-nowrap text-xs text-slate-500">{dateLabel(record.updatedAt)}</td><td className="px-5 py-4 text-right">{record.status !== 'created' && <button type="button" onClick={() => void retryRequest(record.localReference)} disabled={!canEdit || retrying === record.localReference} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">{retrying === record.localReference ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}Retry</button>}</td></tr>)}</tbody></table></div>}
           </section>
         </>}
