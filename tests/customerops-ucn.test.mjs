@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { isUniversalCustomerNumber } from "../functions/_shared/customerops.js";
 
 test("Universal Customer Numbers contain exactly ten digits", () => {
@@ -25,4 +25,19 @@ test("CustomerOps credential remains server-side", async () => {
   assert.match(source, /context\.env\.CUSTOMEROPS_API_KEY/);
   assert.doesNotMatch(source, /localStorage|sessionStorage|window\./);
   assert.match(source, /Authorization:\s*`Bearer \$\{apiKey\}`/);
+});
+
+test("customer number uses a static account page and separate authenticated API", async () => {
+  const page = await readFile(new URL("../static/account/customer-number/index.html", import.meta.url), "utf8");
+  const client = await readFile(new URL("../static/customer-number.js", import.meta.url), "utf8");
+  const api = await readFile(new URL("../functions/api/account/customer-number.js", import.meta.url), "utf8");
+
+  assert.match(page, /id="ucnValue"/);
+  assert.match(page, /customer-number\.js/);
+  assert.match(client, /\/api\/account\/customer-number/);
+  assert.match(client, /window\.location\.replace\(`\/account\/login/);
+  assert.match(api, /getNativeSession\(context\.request, context\.env, "customer"\)/);
+  assert.match(api, /profileAgeStatus/);
+
+  await assert.rejects(access(new URL("../functions/account/customer-number.js", import.meta.url)));
 });

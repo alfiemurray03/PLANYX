@@ -1,0 +1,96 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #f4f7fb; }
+button { font: inherit; }
+
+.customer-number-shell {
+  width: min(760px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 72px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #315ea8;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }
+
+.customer-number-card {
+  padding: 34px;
+  border: 1px solid #dfe5ee;
+  border-top: 5px solid #2563eb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, .10);
+}
+.customer-number-card[data-state="synced"] { border-top-color: #14804a; }
+.customer-number-card[data-state="review_required"],
+.customer-number-card[data-state="ucn_conflict"] { border-top-color: #a45b00; }
+.customer-number-card[data-state="error"] { border-top-color: #c93434; }
+
+.logo { width: 132px; height: auto; margin-bottom: 28px; }
+.eyebrow {
+  margin: 0 0 8px;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+h1 { margin: 0; font-size: clamp(28px, 5vw, 40px); letter-spacing: -.04em; }
+.intro { margin: 14px 0 26px; color: #667085; font-size: 15px; line-height: 1.65; }
+
+.ucn-box {
+  padding: 24px;
+  border: 1px solid #c8d9ff;
+  border-radius: 12px;
+  background: #f2f7ff;
+}
+.ucn-box span { display: block; color: #52637c; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ucn-box strong { display: block; margin-top: 8px; color: #173c75; font-family: Consolas, monospace; font-size: clamp(26px, 7vw, 42px); letter-spacing: .08em; }
+
+.connection-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+.connection-details div { padding: 15px; border: 1px solid #e4e9f1; border-radius: 10px; background: #fafbfd; }
+dt { color: #7b8798; font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+dd { margin: 6px 0 0; color: #172033; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+
+.status-note { display: flex; gap: 12px; padding: 15px 17px; border-left: 4px solid #2563eb; background: #f7f9fc; }
+.status-note strong { flex: 0 0 auto; }
+.status-note span { color: #667085; line-height: 1.5; }
+
+button {
+  margin-top: 20px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+button:hover { background: #1d4ed8; }
+button:disabled { opacity: .6; cursor: wait; }
+.privacy-note { margin: 22px 0 0; color: #7b8798; font-size: 12px; line-height: 1.55; }
+
+@media (max-width: 640px) {
+  .customer-number-shell { width: min(100% - 20px, 760px); padding-top: 20px; }
+  .customer-number-card { padding: 22px; border-radius: 12px; }
+  .connection-details { grid-template-columns: 1fr; }
+  .status-note { display: grid; }
+  button { width: 100%; }
+}
