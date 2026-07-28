@@ -3,6 +3,7 @@ import { readAgeAssurance, persistAgeAssurance } from "../../_shared/age-assuran
 import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../../_shared/age-verification-settings.js";
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
+import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
 
 function customerSessionCookie(response) {
   const headers = response.headers;
@@ -14,6 +15,28 @@ function customerSessionCookie(response) {
     if (match?.[1]) return decodeURIComponent(match[1]);
   }
   return "";
+}
+
+function scheduleCustomerOpsSync(context, identity) {
+  const task = syncCustomerWithHeadOffice(context, identity).then((result) => {
+    if (!result?.ok) {
+      console.warn(JSON.stringify({
+        event: "customerops_background_sync_incomplete",
+        email: identity.email,
+        status: result?.status || "unknown"
+      }));
+    }
+  }).catch((error) => {
+    console.error(JSON.stringify({
+      event: "customerops_background_sync_failed",
+      email: identity.email,
+      message: error instanceof Error ? error.message : "Unknown CustomerOps error"
+    }));
+  });
+
+  if (typeof context.waitUntil === "function") context.waitUntil(task);
+  else return task;
+  return Promise.resolve();
 }
 
 export async function onRequestGet(context) {
@@ -75,6 +98,10 @@ export async function onRequestGet(context) {
       provider: settings.providerName, detail: "The signed age result was linked to the verified Microsoft customer identity.",
     }).catch(() => null);
     await recordCompletedLogin(context, response, "customer").catch(() => null);
+
+    // CustomerOps is deliberately non-blocking. Planyx sign-in succeeds even if
+    // Head Office is temporarily unavailable; the next sign-in retries automatically.
+    await scheduleCustomerOpsSync(context, identity);
     return response;
   } catch (error) {
     console.error(JSON.stringify({
