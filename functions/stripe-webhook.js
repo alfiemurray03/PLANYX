@@ -1,5 +1,6 @@
 import { normalisePlanCode } from "./_shared/subscription-entitlements.js";
 import { claimPaidStripeSubscription } from "./_shared/stripe-subscription-claim.js";
+import { queueStripeCustomerOpsEvent } from "./_shared/stripe-customerops.js";
 
 const SUPPORTED_EVENTS = new Set([
   "checkout.session.completed",
@@ -8,7 +9,9 @@ const SUPPORTED_EVENTS = new Set([
   "customer.subscription.deleted",
   "invoice.paid",
   "invoice.payment_failed",
-  "invoice.finalized"
+  "invoice.finalized",
+  "charge.refunded",
+  "charge.dispute.created"
 ]);
 
 export async function onRequestPost({ request, env }) {
@@ -52,6 +55,18 @@ export async function onRequestPost({ request, env }) {
     `).bind(event.id, event.type, event.data.object.id || null, payload).run();
 
     if (SUPPORTED_EVENTS.has(event.type)) await processEvent(env.DB, event, env);
+
+    // The local Stripe record is written first. The central event is then placed
+    // in a durable outbox and retried automatically if CustomerOps is temporarily
+    // unavailable, so Stripe can still receive a prompt successful response.
+    await queueStripeCustomerOpsEvent(env, env.DB, event).catch(error => {
+      console.error(JSON.stringify({
+        event: "stripe_customerops_forwarding_deferred",
+        stripe_event_id: event.id,
+        stripe_event_type: event.type,
+        message: error instanceof Error ? error.message : "Unknown CustomerOps forwarding error"
+      }));
+    });
 
     await env.DB.prepare(`
       UPDATE stripe_webhook_events
@@ -141,6 +156,9 @@ async function processEvent(DB, event, env) {
   if (event.type === "checkout.session.completed") return saveCheckoutSession(DB, object);
   if (event.type.startsWith("customer.subscription.")) return saveSubscription(DB, object, event.type, env);
   if (event.type.startsWith("invoice.")) return saveInvoice(DB, object, event.type);
+  // Refund and dispute events are retained in CustomerOps. They do not need a
+  // second local Planyx table because Stripe remains the payment processor.
+  return undefined;
 }
 
 async function saveCheckoutSession(DB, session) {
@@ -247,7 +265,7 @@ async function saveInvoice(DB, invoice, eventType) {
       hosted_invoice_url = excluded.hosted_invoice_url, invoice_pdf = excluded.invoice_pdf,
       period_start = excluded.period_start, period_end = excluded.period_end, updated_at = CURRENT_TIMESTAMP
   `).bind(
-    invoice.id, customerId, email, idValue(invoice.subscription), status,
+    invoice.id, customerId, email, invoiceSubscriptionId(invoice), status,
     invoice.amount_due ?? null, invoice.amount_paid ?? null, invoice.currency || null,
     invoice.hosted_invoice_url || null, invoice.invoice_pdf || null,
     stripeTime(invoice.period_start), stripeTime(invoice.period_end)
