@@ -1,18 +1,18 @@
 (() => {
   const params = new URLSearchParams(window.location.search);
-  const reason = String(params.get('reason') || '').trim().slice(0, 500);
-  const decision = String(params.get('decision') || 'deny').trim().slice(0, 40);
+  const decision = String(params.get('decision') || 'deny').trim().toLowerCase().slice(0, 40);
+  if (decision === 'step_up') {
+    window.location.replace('/account/verification-required/');
+    return;
+  }
+
   const target = document.getElementById('restrictionReason');
   if (!target) return;
-  const title = decision === 'review' || decision === 'step_up'
-    ? 'Head Office review required'
-    : 'Access blocked by Head Office';
-  const safeReason = reason || 'Your Planyx session has been revoked. Access will remain unavailable until Head Office clears the restriction.';
   target.replaceChildren();
   const strong = document.createElement('strong');
-  strong.textContent = title;
+  strong.textContent = decision === 'review' ? 'Head Office review required' : 'Access blocked by Head Office';
   const span = document.createElement('span');
-  span.textContent = safeReason;
+  span.textContent = 'Your Planyx session has been revoked. Try signing in again after Head Office confirms that the restriction has been lifted.';
   target.append(strong, span);
   history.replaceState({}, '', '/account/access-restricted/');
 })();
