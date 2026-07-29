@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [central, callback, heartbeat, auth, stripe, stripeBridge, restrictedPage] = await Promise.all([
+const [central, callback, heartbeat, auth, stripe, stripeBridge, restrictedPage, restrictedStyle, restrictedClient] = await Promise.all([
   read('functions/_shared/customerops-central.js'),
   read('functions/account/auth/callback.js'),
   read('functions/api/session-heartbeat.js'),
   read('src/lib/auth-context.tsx'),
   read('functions/stripe-webhook.js'),
   read('functions/_shared/stripe-customerops.js'),
-  read('public/account/access-restricted/index.html')
+  read('static/account/access-restricted/index.html'),
+  read('static/account-access-restricted.css'),
+  read('static/account-access-restricted.js')
 ]);
 
 assert.match(central, /checkHeadOfficeAccess/, 'Planyx must request an authoritative access decision.');
@@ -45,5 +47,9 @@ assert.match(stripeBridge, /orderPayload/, 'Stripe checkout order history must e
 
 assert.match(restrictedPage, /Access is temporarily restricted/, 'Blocked customers need a clear controlled access page.');
 assert.match(restrictedPage, /does not display confidential investigation details/, 'The restriction page must not reveal confidential fraud or investigation information.');
+assert.match(restrictedPage, /account-access-restricted\.css/, 'The restricted page must load its production stylesheet.');
+assert.match(restrictedPage, /account-access-restricted\.js/, 'The restricted page must load its controlled browser behaviour.');
+assert.match(restrictedStyle, /\.restricted-card/, 'The restricted page must use its complete production styling.');
+assert.match(restrictedClient, /history\.replaceState/, 'The browser must remove confidential decision details from the visible URL after rendering.');
 
 console.log('CustomerOps central enforcement regression checks passed.');
