@@ -20,6 +20,12 @@ function json(data, status = 200, extraHeaders = {}) {
   });
 }
 
+function protectedDestination(decision = "deny") {
+  return String(decision || "deny").trim().toLowerCase() === "step_up"
+    ? "/account/verification-required/"
+    : "/account/access-restricted/";
+}
+
 async function body(request) {
   try {
     const value = await request.json();
@@ -70,12 +76,13 @@ export async function onRequestPost(context) {
       const result = await checkHeadOfficeAccess(context.env, context.env.DB, identity);
       if (blocksAccess(result.access)) {
         const reason = result.access.reason || "Head Office has restricted access to this customer account.";
+        const decision = String(result.access.decision || result.access.action || "deny").toLowerCase();
         await revokeLocalCustomerSession(context.env.DB, identity, reason);
         await reportCustomerEvent(context.env, context.env.DB, identity, {
-          eventType: "session.revoked",
-          title: "Planyx session revoked by Head Office",
+          eventType: decision === "step_up" ? "session.step_up_required" : "session.revoked",
+          title: decision === "step_up" ? "Planyx session stopped for enhanced identity verification" : "Planyx session revoked by Head Office",
           category: "security",
-          outcome: "revoked",
+          outcome: decision === "step_up" ? "verification_required" : "revoked",
           severity: "high",
           reason,
           session: {
@@ -86,14 +93,13 @@ export async function onRequestPost(context) {
             deviceSummary: String(context.request.headers.get("User-Agent") || "").slice(0, 500),
             ipCountry: String(context.request.headers.get("CF-IPCountry") || "").slice(0, 8)
           },
-          metadata: { decision: result.access.decision, restrictions: result.access.restrictions || [] }
+          metadata: { decision, restrictions: result.access.restrictions || [] }
         }).catch(() => null);
         return json({
           success: false,
-          access: "denied",
-          decision: result.access.decision,
-          reason,
-          logoutUrl: "/account/access-restricted/"
+          access: decision === "step_up" ? "step_up" : "denied",
+          decision,
+          logoutUrl: protectedDestination(decision)
         }, 403, { "Set-Cookie": expireOidcCookie("customer") });
       }
     } catch (error) {
@@ -101,7 +107,7 @@ export async function onRequestPost(context) {
       // session is not allowed to continue without a current access decision.
       const reason = error instanceof Error ? error.message : "Head Office customer protection is unavailable.";
       await revokeLocalCustomerSession(context.env.DB, identity, reason);
-      return json({ success: false, access: "review", reason, logoutUrl: "/account/access-restricted/" }, 503, {
+      return json({ success: false, access: "review", logoutUrl: "/account/access-restricted/" }, 503, {
         "Set-Cookie": expireOidcCookie("customer")
       });
     }
