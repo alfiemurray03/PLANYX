@@ -31,7 +31,8 @@ assert.doesNotMatch(callback, /CustomerOps is deliberately non-blocking/, 'The f
 
 assert.match(heartbeat, /checkHeadOfficeAccess/, 'Active sessions must be checked against Head Office.');
 assert.match(heartbeat, /revokeLocalCustomerSession/, 'A newly applied restriction must terminate an open Planyx session.');
-assert.match(heartbeat, /status:\s*403/, 'A denied live session must receive an HTTP 403 response.');
+assert.match(heartbeat, /},\s*403,\s*\{\s*"Set-Cookie":\s*expireOidcCookie\("customer"\)/, 'A denied live session must receive HTTP 403 and clear its customer cookie.');
+assert.match(heartbeat, /},\s*503,\s*\{[\s\S]*expireOidcCookie\("customer"\)/, 'A live session must fail closed when Head Office protection is unavailable.');
 assert.match(heartbeat, /reportPlatformHeartbeat/, 'Live activity must update website health in CustomerOps.');
 assert.match(auth, /60_000/, 'The browser must re-check customer access at least every minute.');
 assert.match(auth, /window\.location\.replace/, 'The browser must leave the account when Head Office denies access.');
