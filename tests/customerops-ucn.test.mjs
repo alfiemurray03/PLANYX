@@ -27,17 +27,24 @@ test("CustomerOps credential remains server-side", async () => {
   assert.match(source, /Authorization:\s*`Bearer \$\{apiKey\}`/);
 });
 
-test("customer number uses a static account page and separate authenticated API", async () => {
-  const page = await readFile(new URL("../static/account/customer-number/index.html", import.meta.url), "utf8");
-  const client = await readFile(new URL("../static/customer-number.js", import.meta.url), "utf8");
-  const api = await readFile(new URL("../functions/api/account/customer-number.js", import.meta.url), "utf8");
+test("customer number is displayed in Profile Information with a protected API", async () => {
+  const [redirectPage, profileClient, profileStyle, api] = await Promise.all([
+    readFile(new URL("../static/account/customer-number/index.html", import.meta.url), "utf8"),
+    readFile(new URL("../static/assets/customer-ucn-profile.js", import.meta.url), "utf8"),
+    readFile(new URL("../static/assets/customer-ucn-profile.css", import.meta.url), "utf8"),
+    readFile(new URL("../functions/api/account/customer-number.js", import.meta.url), "utf8")
+  ]);
 
-  assert.match(page, /id="ucnValue"/);
-  assert.match(page, /customer-number\.js/);
-  assert.match(client, /\/api\/account\/customer-number/);
-  assert.match(client, /window\.location\.replace\(`\/account\/login/);
+  assert.match(redirectPage, /\/settings\?tab=profile#universal-customer-number/);
+  assert.doesNotMatch(redirectPage, /id="ucnValue"|Retry connection/);
+  assert.match(profileClient, /Email Address/i);
+  assert.match(profileClient, /Universal Customer Number \(UCN\)/);
+  assert.match(profileClient, /\/api\/account\/customer-number/);
+  assert.match(profileClient, /\^\\d\{10\}\$/);
+  assert.match(profileStyle, /\.planyx-ucn-profile/);
   assert.match(api, /getNativeSession\(context\.request, context\.env, "customer"\)/);
   assert.match(api, /profileAgeStatus/);
+  assert.doesNotMatch(profileClient, /CUSTOMEROPS_API_KEY/);
 
   await assert.rejects(access(new URL("../functions/account/customer-number.js", import.meta.url)));
 });
