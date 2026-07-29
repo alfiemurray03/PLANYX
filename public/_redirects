@@ -1,1 +1,7 @@
+/account/access-restricted /account/access-restricted/index.html 200
+/account/access-restricted/ /account/access-restricted/index.html 200
+/account/access-restricted/* /account/access-restricted/index.html 200
+/account/verification-required /account/verification-required/index.html 200
+/account/verification-required/ /account/verification-required/index.html 200
+/account/verification-required/* /account/verification-required/index.html 200
 /* /index.html 200

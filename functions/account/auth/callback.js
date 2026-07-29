@@ -25,14 +25,15 @@ function customerSessionCookie(response) {
   return "";
 }
 
-function restrictedRedirect(reason, decision = "deny", status = 303) {
-  const location = new URL("https://planyx.local/account/access-restricted/");
-  location.searchParams.set("decision", String(decision || "deny").slice(0, 40));
-  location.searchParams.set("reason", String(reason || "Head Office has restricted access.").slice(0, 500));
+function restrictedRedirect(_reason, decision = "deny", status = 303) {
+  const normalized = String(decision || "deny").trim().toLowerCase();
+  const location = normalized === "step_up"
+    ? "/account/verification-required/"
+    : "/account/access-restricted/";
   return new Response(null, {
     status,
     headers: {
-      Location: `${location.pathname}${location.search}`,
+      Location: location,
       "Set-Cookie": expireOidcCookie("customer"),
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer"
