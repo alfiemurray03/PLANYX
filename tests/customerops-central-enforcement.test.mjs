@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [central, callback, heartbeat, auth, stripe, stripeBridge, restrictedPage, restrictedStyle, restrictedClient, verificationPage] = await Promise.all([
+const [central, callback, heartbeat, auth, stripe, stripeBridge, restrictedPage, restrictedStyle, restrictedClient, verificationPage, redirects] = await Promise.all([
   read('functions/_shared/customerops-central.js'),
   read('functions/account/auth/callback.js'),
   read('functions/api/session-heartbeat.js'),
@@ -12,7 +12,8 @@ const [central, callback, heartbeat, auth, stripe, stripeBridge, restrictedPage,
   read('static/account/access-restricted/index.html'),
   read('static/account-access-restricted.css'),
   read('static/account-access-restricted.js'),
-  read('static/account/verification-required/index.html')
+  read('static/account/verification-required/index.html'),
+  read('public/_redirects')
 ]);
 
 assert.match(central, /checkHeadOfficeAccess/, 'Planyx must request an authoritative access decision.');
@@ -28,6 +29,9 @@ assert.match(callback, /const syncResult = await syncCustomerWithHeadOffice/, 'H
 assert.match(callback, /if \(!syncResult\?\.ok\)/, 'Sign-in must fail closed when the central security authority is unavailable.');
 assert.match(callback, /blocksAccess\(access\)/, 'The sign-in callback must enforce the returned access decision.');
 assert.match(callback, /expireOidcCookie\("customer"\)/, 'Blocked sign-ins must clear the customer cookie.');
+assert.match(callback, /normalized === "step_up"[\s\S]*\/account\/verification-required\//, 'The customer callback must use the verification page for a current step-up decision.');
+assert.doesNotMatch(callback, /searchParams\.set\(["']reason["']/, 'The customer callback must never expose a Head Office reason in the URL.');
+assert.doesNotMatch(callback, /searchParams\.set\(["']decision["']/, 'The customer callback must never expose the access decision in the URL.');
 assert.doesNotMatch(callback, /CustomerOps is deliberately non-blocking/, 'The former non-authoritative sign-in behaviour must not return.');
 
 assert.match(heartbeat, /checkHeadOfficeAccess/, 'Active sessions must be checked against Head Office.');
@@ -63,5 +67,8 @@ assert.doesNotMatch(restrictedClient, /params\.get\('reason'\)/, 'The restricted
 assert.match(verificationPage, /not part of normal Planyx sign-in/, 'Identity verification must be clearly separated from ordinary login.');
 assert.match(verificationPage, /Only a verification request created by Head Office/, 'Only Head Office may initiate an identity-document check.');
 assert.match(verificationPage, /Check access and sign in again/, 'A lifted verification request must let the customer re-check access.');
+assert.match(redirects, /^\/account\/access-restricted\/ .*index\.html 200/m, 'Cloudflare must serve the restricted-account file before the SPA fallback.');
+assert.match(redirects, /^\/account\/verification-required\/ .*index\.html 200/m, 'Cloudflare must serve the verification page before the SPA fallback.');
+assert.ok(redirects.indexOf('/account/access-restricted/') < redirects.indexOf('/* /index.html 200'), 'Protected routes must be ordered before the SPA fallback.');
 
 console.log('CustomerOps central enforcement regression checks passed.');
