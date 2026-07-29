@@ -1,9 +1,17 @@
-import { completeLogin, getNativeSession } from "../../_shared/oidc.js";
+import { completeLogin, expireOidcCookie, getNativeSession } from "../../_shared/oidc.js";
 import { readAgeAssurance, persistAgeAssurance } from "../../_shared/age-assurance.js";
 import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../../_shared/age-verification-settings.js";
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
+import {
+  blocksAccess,
+  flushCustomerOpsOutbox,
+  reportCustomerEvent,
+  reportCustomerSnapshot,
+  reportPlatformHeartbeat,
+  revokeLocalCustomerSession
+} from "../../_shared/customerops-central.js";
 
 function customerSessionCookie(response) {
   const headers = response.headers;
@@ -17,26 +25,52 @@ function customerSessionCookie(response) {
   return "";
 }
 
-function scheduleCustomerOpsSync(context, identity) {
-  const task = syncCustomerWithHeadOffice(context, identity).then((result) => {
-    if (!result?.ok) {
-      console.warn(JSON.stringify({
-        event: "customerops_background_sync_incomplete",
-        email: identity.email,
-        status: result?.status || "unknown"
-      }));
+function restrictedRedirect(reason, decision = "deny", status = 303) {
+  const location = new URL("https://planyx.local/account/access-restricted/");
+  location.searchParams.set("decision", String(decision || "deny").slice(0, 40));
+  location.searchParams.set("reason", String(reason || "Head Office has restricted access.").slice(0, 500));
+  return new Response(null, {
+    status,
+    headers: {
+      Location: `${location.pathname}${location.search}`,
+      "Set-Cookie": expireOidcCookie("customer"),
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer"
     }
-  }).catch((error) => {
+  });
+}
+
+function scheduleAllowedTelemetry(context, identity, syncResult) {
+  const task = (async () => {
+    await reportCustomerEvent(context.env, context.env.DB, identity, {
+      eventType: "auth.succeeded",
+      title: "Customer signed in to Planyx",
+      category: "authentication",
+      outcome: "allowed",
+      severity: "information",
+      session: {
+        id: identity.tokenHash,
+        status: "active",
+        startedAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
+        deviceSummary: String(context.request.headers.get("User-Agent") || "").slice(0, 500),
+        ipCountry: String(context.request.headers.get("CF-IPCountry") || "").slice(0, 8)
+      },
+      metadata: { matchedBy: syncResult.matchedBy || null }
+    });
+    await reportCustomerSnapshot(context.env, context.env.DB, identity, {
+      metadata: { signInSource: "JA Group Services ID" }
+    }).catch(() => null);
+    await reportPlatformHeartbeat(context.env, context.env.DB, { trigger: "customer_sign_in" }).catch(() => null);
+    await flushCustomerOpsOutbox(context.env, context.env.DB).catch(() => null);
+  })().catch(error => {
     console.error(JSON.stringify({
-      event: "customerops_background_sync_failed",
+      event: "customerops_allowed_telemetry_failed",
       email: identity.email,
-      message: error instanceof Error ? error.message : "Unknown CustomerOps error"
+      message: error instanceof Error ? error.message : "Unknown CustomerOps telemetry error"
     }));
   });
-
   if (typeof context.waitUntil === "function") context.waitUntil(task);
-  else return task;
-  return Promise.resolve();
 }
 
 export async function onRequestGet(context) {
@@ -97,11 +131,44 @@ export async function onRequestGet(context) {
       subjectEmail: identity.email, method: assurance.method || settings.verificationMethod,
       provider: settings.providerName, detail: "The signed age result was linked to the verified Microsoft customer identity.",
     }).catch(() => null);
-    await recordCompletedLogin(context, response, "customer").catch(() => null);
 
-    // CustomerOps is deliberately non-blocking. Planyx sign-in succeeds even if
-    // Head Office is temporarily unavailable; the next sign-in retries automatically.
-    await scheduleCustomerOpsSync(context, identity);
+    // Head Office is the authoritative access controller. A customer session is
+    // not released to Planyx until the UCN is synchronised and CustomerOps has
+    // returned an allow decision.
+    const syncResult = await syncCustomerWithHeadOffice(context, identity);
+    if (!syncResult?.ok) {
+      const reason = syncResult?.error || "Head Office customer protection is temporarily unavailable.";
+      await revokeLocalCustomerSession(context.env.DB, identity, reason);
+      await reportCustomerEvent(context.env, context.env.DB, identity, {
+        eventType: "auth.failed",
+        title: "Planyx sign-in stopped because CustomerOps was unavailable",
+        category: "authentication",
+        outcome: "blocked",
+        severity: "high",
+        reason,
+        metadata: { customerOpsStatus: syncResult?.status || "error" }
+      }).catch(() => null);
+      return restrictedRedirect(reason, "review", 303);
+    }
+
+    const access = syncResult.enforcement || { decision: "review", action: "review", revokeSessions: true, reason: "Head Office did not return an access decision." };
+    if (blocksAccess(access)) {
+      const reason = access.reason || "Head Office has restricted access to this customer account.";
+      await revokeLocalCustomerSession(context.env.DB, identity, reason);
+      await reportCustomerEvent(context.env, context.env.DB, identity, {
+        eventType: "auth.denied",
+        title: "Customer sign-in denied by Head Office",
+        category: "security",
+        outcome: "denied",
+        severity: "high",
+        reason,
+        metadata: { decision: access.decision || access.action, restrictions: access.restrictions || [] }
+      }).catch(() => null);
+      return restrictedRedirect(reason, access.decision || access.action || "deny", 303);
+    }
+
+    await recordCompletedLogin(context, response, "customer").catch(() => null);
+    scheduleAllowedTelemetry(context, identity, syncResult);
     return response;
   } catch (error) {
     console.error(JSON.stringify({
