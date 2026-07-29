@@ -25,14 +25,18 @@ function customerSessionCookie(response) {
   return "";
 }
 
-function restrictedRedirect(reason, decision = "deny", status = 303) {
-  const location = new URL("https://planyx.local/account/access-restricted/");
-  location.searchParams.set("decision", String(decision || "deny").slice(0, 40));
-  location.searchParams.set("reason", String(reason || "Head Office has restricted access.").slice(0, 500));
+function protectedDestination(decision = "deny") {
+  const value = String(decision || "deny").trim().toLowerCase();
+  return value === "step_up"
+    ? "/account/verification-required/"
+    : "/account/access-restricted/";
+}
+
+function restrictedRedirect(decision = "deny", status = 303) {
   return new Response(null, {
     status,
     headers: {
-      Location: `${location.pathname}${location.search}`,
+      Location: protectedDestination(decision),
       "Set-Cookie": expireOidcCookie("customer"),
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer"
@@ -148,23 +152,24 @@ export async function onRequestGet(context) {
         reason,
         metadata: { customerOpsStatus: syncResult?.status || "error" }
       }).catch(() => null);
-      return restrictedRedirect(reason, "review", 303);
+      return restrictedRedirect("review", 303);
     }
 
     const access = syncResult.enforcement || { decision: "review", action: "review", revokeSessions: true, reason: "Head Office did not return an access decision." };
     if (blocksAccess(access)) {
       const reason = access.reason || "Head Office has restricted access to this customer account.";
+      const decision = access.decision || access.action || "deny";
       await revokeLocalCustomerSession(context.env.DB, identity, reason);
       await reportCustomerEvent(context.env, context.env.DB, identity, {
-        eventType: "auth.denied",
-        title: "Customer sign-in denied by Head Office",
+        eventType: decision === "step_up" ? "auth.step_up_required" : "auth.denied",
+        title: decision === "step_up" ? "Enhanced identity verification required" : "Customer sign-in denied by Head Office",
         category: "security",
-        outcome: "denied",
+        outcome: decision === "step_up" ? "verification_required" : "denied",
         severity: "high",
         reason,
-        metadata: { decision: access.decision || access.action, restrictions: access.restrictions || [] }
+        metadata: { decision, restrictions: access.restrictions || [] }
       }).catch(() => null);
-      return restrictedRedirect(reason, access.decision || access.action || "deny", 303);
+      return restrictedRedirect(decision, 303);
     }
 
     await recordCompletedLogin(context, response, "customer").catch(() => null);
