@@ -24,10 +24,24 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 type SessionHeartbeatResponse = {
   success?: boolean;
-  access?: 'allowed' | 'denied' | 'review';
-  reason?: string;
+  access?: 'allowed' | 'denied' | 'review' | 'step_up';
   logoutUrl?: string;
 };
+
+function protectedDestination(payload: SessionHeartbeatResponse, responseStatus: number): string {
+  const access = payload.access || (responseStatus === 503 ? 'review' : 'denied');
+  const fallback = access === 'step_up'
+    ? '/account/verification-required/'
+    : '/account/access-restricted/';
+  try {
+    const candidate = new URL(payload.logoutUrl || fallback, window.location.origin);
+    if (candidate.origin !== window.location.origin) return fallback;
+    if (!['/account/access-restricted/', '/account/verification-required/'].includes(candidate.pathname)) return fallback;
+    return candidate.pathname;
+  } catch {
+    return fallback;
+  }
+}
 
 async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<boolean> {
   try {
@@ -39,21 +53,15 @@ async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<bo
       body: JSON.stringify({ action }),
     });
     const payload = await response.json().catch(() => ({})) as SessionHeartbeatResponse;
-    if (action === 'heartbeat' && (!response.ok || payload.access === 'denied' || payload.access === 'review')) {
-      const destination = new URL(payload.logoutUrl || '/account/access-restricted/', window.location.origin);
-      if (payload.reason) destination.searchParams.set('reason', payload.reason.slice(0, 500));
-      destination.searchParams.set('decision', payload.access || (response.status === 503 ? 'review' : 'deny'));
-      window.location.replace(`${destination.pathname}${destination.search}`);
+    const blocked = action === 'heartbeat'
+      && (!response.ok || (payload.access && payload.access !== 'allowed'));
+    if (blocked) {
+      window.location.replace(protectedDestination(payload, response.status));
       return false;
     }
     return response.ok;
   } catch {
-    if (action === 'heartbeat') {
-      const destination = new URL('/account/access-restricted/', window.location.origin);
-      destination.searchParams.set('decision', 'review');
-      destination.searchParams.set('reason', 'Head Office customer protection could not confirm access.');
-      window.location.replace(`${destination.pathname}${destination.search}`);
-    }
+    if (action === 'heartbeat') window.location.replace('/account/access-restricted/');
     return false;
   }
 }
