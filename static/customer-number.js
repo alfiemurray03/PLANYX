@@ -55,7 +55,11 @@ async function request(method = "GET") {
   }
 
   if (response.status === 403) {
-    window.location.replace("/age-check?return_to=%2Faccount%2Fcustomer-number%2F");
+    const payload = await response.json().catch(() => ({}));
+    const destination = payload.logoutUrl === "/account/verification-required/"
+      ? "/account/verification-required/"
+      : "/account/access-restricted/";
+    window.location.replace(destination);
     return;
   }
 
