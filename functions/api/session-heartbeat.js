@@ -1,11 +1,10 @@
 import { assertSameOrigin, expireOidcCookie, getNativeSession } from "../_shared/oidc.js";
 import { recordSessionHeartbeat, recordSessionLogout } from "../_shared/session-tracking.js";
 import { issueCustomerAgeChallenge } from "../_shared/customerops-age-assurance.js";
+import { blocksAccess, isHeadOfficeAgeStepUp } from "../_shared/customerops-access-policy.js";
 import {
-  blocksAccess,
   checkHeadOfficeAccess,
   flushCustomerOpsOutbox,
-  isHeadOfficeAgeStepUp,
   reportCustomerEvent,
   reportPlatformHeartbeat,
   revokeLocalCustomerSession
@@ -74,6 +73,8 @@ export async function onRequestPost(context) {
     return json({ success: true, action: "logout", realm });
   }
 
+  let protectionStatus = "confirmed";
+
   if (realm === "customer") {
     try {
       const result = await checkHeadOfficeAccess(context.env, context.env.DB, identity);
@@ -122,11 +123,15 @@ export async function onRequestPost(context) {
         }, 403, challengeCookie);
       }
     } catch (error) {
-      // CustomerOps is the central security authority. An authenticated customer
-      // session is not allowed to continue without a current access decision.
-      const reason = error instanceof Error ? error.message : "Head Office customer protection is unavailable.";
-      await revokeLocalCustomerSession(context.env.DB, identity, reason);
-      return blockedResponse({ success: false, access: "review", reason, logoutUrl: "/account/access-restricted/" }, 503);
+      // Connector availability is not itself a Head Office restriction. Keep the
+      // locally authenticated session active, record degraded protection and retry
+      // on the next heartbeat. Only an explicit Head Office decision may revoke it.
+      protectionStatus = "temporarily_unavailable";
+      console.error(JSON.stringify({
+        event: "customerops_access_check_unavailable",
+        email: identity.email,
+        message: error instanceof Error ? error.message : "Head Office customer protection is unavailable."
+      }));
     }
   }
 
@@ -144,12 +149,20 @@ export async function onRequestPost(context) {
         lastSeenAt: new Date().toISOString(),
         deviceSummary: String(context.request.headers.get("User-Agent") || "").slice(0, 500),
         ipCountry: String(context.request.headers.get("CF-IPCountry") || "").slice(0, 8)
-      }
+      },
+      metadata: { headOfficeProtectionStatus: protectionStatus }
     }));
     schedule(context, reportPlatformHeartbeat(context.env, context.env.DB, { trigger: "session_heartbeat" }));
     schedule(context, flushCustomerOpsOutbox(context.env, context.env.DB));
   }
-  return json({ success: true, action: "heartbeat", realm, session_reference: session?.session_reference || null, access: "allowed" });
+  return json({
+    success: true,
+    action: "heartbeat",
+    realm,
+    session_reference: session?.session_reference || null,
+    access: "allowed",
+    protectionStatus
+  });
 }
 
 export async function onRequest(context) {
