@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [connector, challenge, endpoint, callback, heartbeat, page, browser, localAge] = await Promise.all([
+const [connector, challenge, endpoint, callback, heartbeat, page, browser, localAge, securityApi, securityUi, app] = await Promise.all([
   read('functions/_shared/customerops-central.js'),
   read('functions/_shared/customerops-age-assurance.js'),
   read('functions/api/head-office-age-assurance.js'),
@@ -10,15 +10,23 @@ const [connector, challenge, endpoint, callback, heartbeat, page, browser, local
   read('functions/api/session-heartbeat.js'),
   read('public/account/verification-required/index.html'),
   read('public/head-office-age-assurance.js'),
-  read('functions/_shared/age-assurance.js')
+  read('functions/_shared/age-assurance.js'),
+  read('functions/api/admin/head-office-security.js'),
+  read('src/components/HeadOfficeSecurityCrmEnhancer.tsx'),
+  read('src/App.tsx')
 ]);
 
+assert.match(connector, /HEAD_OFFICE_AGE_CONTRACT = "ja-head-office-age-assurance-v1"/, 'Planyx must require the versioned Head Office age contract.');
 assert.match(connector, /requestHeadOfficeAgeAssuranceSession/, 'Planyx must request age sessions through its Head Office connector.');
 assert.match(connector, /\/api\/platform\/age-assurance\/session/, 'The connector must call the central Head Office age-assurance endpoint.');
 assert.match(connector, /Authorization: `Bearer \$\{key\}`/, 'Only the Head Office platform credential may leave the Planyx backend.');
 assert.doesNotMatch(connector, /DIDIT_API_KEY|DIDIT_WEBHOOK_SECRET/, 'Planyx must never receive or use Didit secrets.');
 assert.match(connector, /assurance\?\.accountPopulation === "customers_only"/, 'A step-up must be explicitly customer-only before the age journey is issued.');
 assert.match(connector, /assurance\?\.staffAccountsExcluded === true/, 'Head Office must explicitly confirm staff exclusion.');
+assert.match(connector, /assurance\?\.deploymentKey === "PLANYX"/, 'Planyx must reject an age deployment bound to another service.');
+assert.match(connector, /assurance\?\.minimumAge === 16/, 'The central contract must confirm the Planyx 16+ threshold.');
+assert.match(connector, /if \(!headOfficeAgeAuthorityReady\(access\)\) return true/, 'Missing or invalid central age authority must fail closed.');
+assert.match(connector, /held safely rather than bypassing age assurance/, 'A contract failure must never silently allow customer access.');
 
 assert.match(challenge, /customerops_age_assurance_challenges/, 'A limited opaque customer challenge must be retained in D1.');
 assert.match(challenge, /crypto\.randomUUID\(\).*crypto\.randomUUID/, 'The browser challenge must use a high-entropy opaque token.');
@@ -53,7 +61,17 @@ assert.match(browser, /window\.open/, 'The Didit hosted check must open separate
 assert.match(browser, /checkStatus\(true\)/, 'The page must poll the central Head Office decision.');
 assert.match(browser, /data\.allowed === true/, 'Only the Head Office allow response may release the journey.');
 
-assert.match(localAge, /const MINIMUM_AGE = 16/, 'The existing Planyx 16+ safeguarding baseline must remain unchanged while central enforcement is not started.');
-assert.doesNotMatch(`${connector}\n${challenge}\n${endpoint}`, /DIDIT_API_KEY|DIDIT_WEBHOOK_SECRET/, 'No Didit secret may be introduced into the Planyx repository.');
+assert.match(securityApi, /getNativeSession\(request, env, "admin"\)/, 'Only a native Planyx administrator session may read the CRM security view.');
+assert.match(securityApi, /readHeadOfficeSecurityForEmail/, 'Planyx must read the authoritative security state through the server-side connector.');
+assert.match(securityApi, /customerops_security_state_cache/, 'Branch-safe security state must be cached for degraded operation.');
+assert.doesNotMatch(securityApi, /CUSTOMEROPS_API_KEY.*json|DIDIT_API_KEY|DIDIT_WEBHOOK_SECRET/, 'The admin response must never expose connector or Didit secrets.');
+assert.match(securityUi, /Head Office security authority/, 'The customer CRM must display the central security authority.');
+assert.match(securityUi, /Head Office security markers/, 'The customer CRM must display branch-visible markers.');
+assert.match(securityUi, /Confidential Head Office reasoning is withheld/, 'The customer CRM must explain that confidential reasons are not copied to the branch.');
+assert.match(securityUi, /cannot create, clear or override a central marker/, 'Planyx must remain an enforcing branch rather than the marker authority.');
+assert.match(app, /HeadOfficeSecurityCrmEnhancer/, 'The route-aware security CRM enhancer must be mounted.');
 
-console.log('Head Office customer age assurance bridge regression checks passed.');
+assert.match(localAge, /const MINIMUM_AGE = 16/, 'The Planyx safeguarding threshold must remain 16.');
+assert.doesNotMatch(`${connector}\n${challenge}\n${endpoint}\n${securityApi}`, /DIDIT_API_KEY|DIDIT_WEBHOOK_SECRET/, 'No Didit secret may be introduced into the Planyx repository.');
+
+console.log('Head Office customer age assurance and security-state bridge regression checks passed.');
