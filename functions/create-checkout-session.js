@@ -1,6 +1,12 @@
 import { readFeatureFlag } from "./_shared/feature-flags.js";
-import { profileAgeStatus } from "./_shared/age-assurance.js";
-import { getNativeSession, loginRedirect } from "./_shared/oidc.js";
+import { expireOidcCookie, getNativeSession, loginRedirect } from "./_shared/oidc.js";
+import { issueCustomerAgeChallenge } from "./_shared/customerops-age-assurance.js";
+import {
+  blocksAccess,
+  checkHeadOfficeAccess,
+  isHeadOfficeAgeStepUp,
+  revokeLocalCustomerSession
+} from "./_shared/customerops-central.js";
 
 const DEFAULT_PLANS = [
   ["personal", "Explore Plan", "Standard monthly subscription", "£5.99", 599, "prod_UtkvP5dvxrwLNa", "price_1TtxPrDZzb3r6Q3cIViE64O4", "Essential planning builders", "Save and revisit your plans", "A simple starting point for exploring ideas and building clear, practical plans.", "Start 30-day free trial", 1, 0, 10],
@@ -18,14 +24,13 @@ export async function onRequestGet(context) {
     const url = new URL(context.request.url);
     const planCode = String(url.searchParams.get("plan") || "").trim();
     const accountType = String(url.searchParams.get("accountType") || "").trim();
-
     if (!planCode) return redirectTo(getSiteUrl(context.env) + "/pricing/");
 
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
-    const ageRedirect = await requireCheckoutAge(context, identity);
-    if (ageRedirect) return ageRedirect;
-    return await createCheckoutSession(planCode, accountType, context.env, identity);
+    const authority = await requireCheckoutAccess(context, identity);
+    if (authority.response) return authority.response;
+    return await createCheckoutSession(planCode, accountType, context.env, identity, authority.access);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_get_failed", message: errorMessage(error) }));
     return redirectTo(getSiteUrl(context.env) + "/pricing/?checkout=unavailable");
@@ -39,9 +44,9 @@ export async function onRequestPost(context) {
     const accountType = String(formData.get("accountType") || "").trim();
     const identity = await customerIdentity(context);
     if (!identity?.email) return loginRedirect(context.request, "customer");
-    const ageRedirect = await requireCheckoutAge(context, identity);
-    if (ageRedirect) return ageRedirect;
-    return await createCheckoutSession(planCode, accountType, context.env, identity);
+    const authority = await requireCheckoutAccess(context, identity);
+    if (authority.response) return authority.response;
+    return await createCheckoutSession(planCode, accountType, context.env, identity, authority.access);
   } catch (error) {
     console.error(JSON.stringify({ event: "checkout_post_failed", message: errorMessage(error) }));
     return redirectTo(getSiteUrl(context.env) + "/pricing/?checkout=unavailable");
@@ -57,20 +62,43 @@ async function customerIdentity(context) {
   }
 }
 
-async function requireCheckoutAge(context, identity) {
-  if (!context.env?.DB || !identity?.email) return redirectTo(getSiteUrl(context.env) + "/age-check?return_to=%2Fpricing");
-  const status = await profileAgeStatus(context.env.DB, identity.email);
-  if (status.eligible) return null;
-  const code = status.reason === "under-16" ? "under_16_not_eligible" : "age_check_required";
-  return redirectTo(getSiteUrl(context.env) + `/age-check?return_to=%2Fpricing&error=${encodeURIComponent(code)}`);
+function protectedCheckoutRedirect(path, challengeCookie = "") {
+  const headers = new Headers({ Location: path, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
+  headers.append("Set-Cookie", expireOidcCookie("customer"));
+  if (challengeCookie) headers.append("Set-Cookie", challengeCookie);
+  return new Response(null, { status: 303, headers });
 }
 
-async function createCheckoutSession(planCode, requestedAccountType, env, identity) {
+async function requireCheckoutAccess(context, identity) {
+  if (!context.env?.DB || !identity?.email) {
+    return { response: protectedCheckoutRedirect("/account/access-restricted/") };
+  }
+  try {
+    const result = await checkHeadOfficeAccess(context.env, context.env.DB, identity);
+    const access = result.access || { decision: "review", revokeSessions: true };
+    if (!blocksAccess(access)) return { access };
+
+    let challengeCookie = "";
+    if (isHeadOfficeAgeStepUp(access)) {
+      const challenge = await issueCustomerAgeChallenge(context.env.DB, identity, result.reference, access.ageAssurance);
+      challengeCookie = challenge.cookie;
+    }
+    await revokeLocalCustomerSession(context.env.DB, identity, access.reason || "Head Office checkout protection");
+    return {
+      response: protectedCheckoutRedirect(
+        isHeadOfficeAgeStepUp(access) ? "/account/verification-required/" : "/account/access-restricted/",
+        challengeCookie
+      )
+    };
+  } catch (error) {
+    await revokeLocalCustomerSession(context.env.DB, identity, errorMessage(error)).catch(() => null);
+    return { response: protectedCheckoutRedirect("/account/access-restricted/") };
+  }
+}
+
+async function createCheckoutSession(planCode, requestedAccountType, env, identity, access) {
   const siteUrl = getSiteUrl(env);
   if (!env || !env.DB) return redirectTo(siteUrl + "/pricing/?checkout=unavailable");
-
-  const ageStatus = await profileAgeStatus(env.DB, identity.email);
-  if (!ageStatus.eligible) return redirectTo(siteUrl + "/age-check?return_to=%2Fpricing");
 
   const paymentsEnabled = await readFeatureFlag(env.DB, "payments", false);
   if (!paymentsEnabled) return redirectTo(siteUrl + "/pricing/?payments=disabled");
@@ -111,6 +139,8 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   const accountEmail = String(identity.email || "").trim().toLowerCase();
   const profile = await env.DB.prepare(`SELECT stripe_customer_id, age_band, minor_safeguards_enabled
     FROM profiles WHERE lower(email) = lower(?)`).bind(accountEmail).first().catch(() => null);
+  const threshold = Number(access?.ageAssurance?.evidence?.confirmedMinimumAge || access?.ageAssurance?.minimumAge || 16);
+  const ageDescriptor = String(profile?.age_band || `${threshold}+`);
   if (profile?.stripe_customer_id) params.append("customer", String(profile.stripe_customer_id));
   else params.append("customer_email", accountEmail);
   params.append("client_reference_id", accountEmail);
@@ -124,15 +154,19 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   params.append("metadata[account_type]", accountType);
   params.append("metadata[catalogue]", businessPlan ? "business" : "standard");
   params.append("metadata[account_email]", accountEmail);
-  params.append("metadata[age_band]", String(profile?.age_band || ageStatus.ageBand || "18+"));
-  params.append("metadata[young_person_safeguards]", Number(profile?.minor_safeguards_enabled || 0) === 1 ? "enabled" : "not_applicable");
+  params.append("metadata[age_band]", ageDescriptor);
+  params.append("metadata[age_assurance_authority]", "HEAD_OFFICE");
+  params.append("metadata[age_assurance_threshold]", String(threshold));
+  params.append("metadata[young_person_safeguards]", Number(profile?.minor_safeguards_enabled || 0) === 1 ? "enabled" : "head_office_policy");
   params.append("subscription_data[metadata][service_line]", "Planyx");
   params.append("subscription_data[metadata][plan_code]", selectedPlan.id);
   params.append("subscription_data[metadata][plan_name]", selectedPlan.plan_name || selectedPlan.id);
   params.append("subscription_data[metadata][account_type]", accountType);
   params.append("subscription_data[metadata][catalogue]", businessPlan ? "business" : "standard");
   params.append("subscription_data[metadata][customer_email]", accountEmail);
-  params.append("subscription_data[metadata][age_band]", String(profile?.age_band || ageStatus.ageBand || "18+"));
+  params.append("subscription_data[metadata][age_band]", ageDescriptor);
+  params.append("subscription_data[metadata][age_assurance_authority]", "HEAD_OFFICE");
+  params.append("subscription_data[metadata][age_assurance_threshold]", String(threshold));
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
@@ -198,7 +232,7 @@ async function resolveStripePriceId(plan, env, DB, stripeSecret) {
     business_personal: "Planyx Business – Explore", business_standard: "Planyx Business – Plan", business_professional: "Planyx Business – Complete", business_org_starter: "Planyx Business – Together"
   };
   const acceptedNames = new Set([String(plan.plan_name || "").trim().toLowerCase(), String(stripeProductNames[plan.id] || "").trim().toLowerCase()]);
-  const match = (catalogue.data || []).find((price) => {
+  const match = (catalogue.data || []).find(price => {
     const product = price && typeof price.product === "object" ? price.product : null;
     return product && product.active !== false
       && acceptedNames.has(String(product.name || "").trim().toLowerCase())
