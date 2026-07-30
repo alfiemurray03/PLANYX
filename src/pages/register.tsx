@@ -39,24 +39,24 @@ export default function RegisterPage() {
             </ul>
 
             <div className="rounded-xl border border-violet-200 bg-violet-50 p-4 dark:border-violet-500/30 dark:bg-violet-500/10">
-              <div className="flex items-start gap-3"><BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-700 dark:text-violet-200" /><div><p className="text-sm font-black text-violet-950 dark:text-white">Nobody under 16 may register</p><p className="mt-1 text-xs leading-5 text-violet-800 dark:text-violet-200">You will complete an age check before account creation. People aged 16–17 receive high-privacy and safeguarding defaults. A payment card is not treated as proof of age.</p></div></div>
+              <div className="flex items-start gap-3"><BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-700 dark:text-violet-200" /><div><p className="text-sm font-black text-violet-950 dark:text-white">Nobody under 16 may register</p><p className="mt-1 text-xs leading-5 text-violet-800 dark:text-violet-200">Sign in with JA Group Services ID first. Head Office then checks whether the customer account already holds valid 16+ assurance and, only where required, opens the approved Didit check. Staff accounts are outside this customer process.</p></div></div>
             </div>
 
             <p className="text-xs text-muted-foreground">Already have an account? <Link to="/sign-in" className="text-primary hover:underline font-medium">Sign in here</Link></p>
           </div>
 
           <div className="bg-card border border-border rounded-2xl shadow-lg p-8 space-y-6">
-            <div><h2 className="text-xl font-bold text-foreground">Create your 16+ account</h2><p className="text-sm text-muted-foreground mt-1">Age check first, followed by secure Microsoft account creation or sign-in.</p></div>
+            <div><h2 className="text-xl font-bold text-foreground">Create your 16+ account</h2><p className="text-sm text-muted-foreground mt-1">Secure Microsoft customer sign-in followed by the Head Office age decision.</p></div>
 
-            <Button size="lg" className="w-full h-12 gap-2 font-semibold text-sm" onClick={() => { window.location.href = '/age-check?return_to=%2Fdashboard'; }}>
-              Check eligibility and continue <ArrowRight className="w-4 h-4" />
+            <Button size="lg" className="w-full h-12 gap-2 font-semibold text-sm" onClick={() => { window.location.href = '/account/login?return_to=%2Fdashboard'; }}>
+              Continue securely <ArrowRight className="w-4 h-4" />
             </Button>
 
             <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div><div className="relative flex justify-center text-xs"><span className="bg-card px-3 text-muted-foreground">or</span></div></div>
 
             <Button variant="outline" size="lg" className="w-full h-11 text-sm" onClick={() => { window.location.href = '/account/login?return_to=%2Fdashboard'; }}>Sign in to existing account</Button>
 
-            <div className="rounded-xl bg-muted/40 border border-border px-4 py-3"><p className="text-xs text-muted-foreground leading-relaxed text-center">Existing users without a recorded age band must complete the same 16+ check before continuing.</p></div>
+            <div className="rounded-xl bg-muted/40 border border-border px-4 py-3"><p className="text-xs text-muted-foreground leading-relaxed text-center">Planyx does not ask for a date of birth before sign-in. Head Office controls whether the 16+ Didit check is enabled, paused or disabled.</p></div>
 
             <p className="text-center text-xs text-muted-foreground">By creating an account you confirm that you are aged 16 or over and agree to our <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>, <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link> and <Link to="/safety" className="text-primary hover:underline">Safety rules</Link>.</p>
           </div>
