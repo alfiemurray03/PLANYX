@@ -5,30 +5,36 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 
-test('customer age-check is a professional secure journey with accessible help', async () => {
-  const page = await read('functions/age-check.js');
-  const css = await read('public/assets/age-verification.css');
-  const guide = await read('public/assets/age-verification-guide.js');
+test('customer age assurance is a controlled Head Office and Didit journey', async () => {
+  const retiredRoute = await read('functions/age-check.js');
+  const page = await read('public/account/verification-required/index.html');
+  const client = await read('public/head-office-age-assurance.js');
+  const bridge = await read('functions/api/head-office-age-assurance.js');
 
-  assert.match(page, /age-verification\.css/);
-  assert.match(page, /Your date of birth/);
-  assert.match(page, /Secure field/);
-  assert.match(page, /account eligibility check, not independent identity verification/);
-  assert.match(page, /What happens next/);
-  assert.match(page, /age-verification-guide\.js/);
-  assert.match(page, /Do not enter your date of birth, upload identity documents or share payment details/);
+  assert.match(retiredRoute, /\/account\/login\?return_to=/);
+  assert.doesNotMatch(retiredRoute, /date_of_birth|createAgeAssurance/);
 
-  assert.match(css, /verification-layout/);
-  assert.match(css, /date-field:focus/);
-  assert.match(css, /@media \(max-width:860px\)/);
-  assert.match(css, /@media \(prefers-color-scheme:dark\)/);
+  assert.match(page, /Head Office age assurance/);
+  assert.match(page, /Confirm that you are 16 or over/);
+  assert.match(page, /uses Didit to carry out the secure check/);
+  assert.match(page, /does not affect staff accounts/);
+  assert.match(page, /Only the signed Didit webhook received by Head Office can approve/);
+  assert.match(page, /I understand that Didit will process/);
+  assert.match(page, /Start secure age check/);
 
-  assert.match(guide, /fetch\('\/api\/age-verification-assistant'/);
-  assert.match(guide, /textContent/);
-  assert.doesNotMatch(guide, /innerHTML/);
+  assert.match(client, /\/api\/head-office-age-assurance/);
+  assert.match(client, /consentAccepted: true/);
+  assert.match(client, /window\.open\(payload\.verificationUrl/);
+  assert.match(client, /setInterval/);
+  assert.doesNotMatch(client, /innerHTML/);
+
+  assert.match(bridge, /requestHeadOfficeAgeAssuranceSession/);
+  assert.match(bridge, /checkHeadOfficeAccessByReference/);
+  assert.match(bridge, /decisionAuthority: "HEAD_OFFICE"/);
+  assert.match(bridge, /staffAccountsAffected: false/);
 });
 
-test('Age Verification AI explains regulatory limits, stronger methods and safe customer actions', async () => {
+test('Age Verification AI retains safe explanatory guidance without deciding access', async () => {
   const api = await read('functions/api/age-verification-assistant.js');
 
   assert.match(api, /KNOWLEDGE_VERSION/);
@@ -36,8 +42,6 @@ test('Age Verification AI explains regulatory limits, stronger methods and safe 
   assert.match(api, /highly effective age assurance/);
   assert.match(api, /Online Safety Act/);
   assert.match(api, /ICO/);
-  assert.match(api, /open-banking age-check/);
-  assert.match(api, /mobile-network-operator age check/);
   assert.match(api, /facial age estimation/);
   assert.match(api, /photo-ID matching/);
   assert.match(api, /digital identity/);

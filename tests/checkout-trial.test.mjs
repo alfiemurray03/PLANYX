@@ -17,6 +17,8 @@ const OIDC_ENV = {
   CUSTOMER_OIDC_ISSUER: 'https://login.example.test/tenant/v2.0',
   CUSTOMER_OIDC_CLIENT_ID: 'client',
   CUSTOMER_OIDC_CLIENT_SECRET: 'secret',
+  CUSTOMEROPS_BASE_URL: 'https://customerops.example.test',
+  CUSTOMEROPS_API_KEY: 'platform-test-key',
 };
 
 const VERIFIED_ADULT_PROFILE = {
@@ -26,6 +28,9 @@ const VERIFIED_ADULT_PROFILE = {
   age_verified_at: '2026-07-25T00:00:00.000Z',
   registration_eligible: 1,
   minor_safeguards_enabled: 0,
+  universal_customer_number: '1000000001',
+  planyx_account_id: 'planyx-account-1',
+  email: 'customer@example.test',
 };
 
 function database(overrides = {}) {
@@ -35,28 +40,17 @@ function database(overrides = {}) {
         values: [],
         bind(...values) { this.values = values; return this; },
         async run() { return { success: true }; },
-        async all() {
-          if (sql.includes('PRAGMA table_info(profiles)')) {
-            return {
-              results: [
-                { name: 'age_band' },
-                { name: 'age_transition_at' },
-                { name: 'age_verified_at' },
-                { name: 'registration_eligible' },
-                { name: 'minor_safeguards_enabled' },
-              ],
-            };
-          }
-          return { results: [] };
-        },
+        async all() { return { results: [] }; },
         async first() {
           if (sql.includes('FROM site_settings')) return overrides[this.values[0]] ? { value: overrides[this.values[0]] } : null;
           if (sql.includes('FROM customer_oidc_sessions')) {
             return {
+              token_hash: 'test-session-hash',
               subject: 'customer-1',
               tenant_id: 'tenant-1',
               email: 'customer@example.test',
               name: 'Test Customer',
+              microsoft_object_id: 'object-1',
             };
           }
           if (sql.includes('FROM profiles')) return { ...VERIFIED_ADULT_PROFILE };
@@ -80,13 +74,38 @@ function database(overrides = {}) {
   };
 }
 
-test('Admin-edited service plan Price ID takes priority over a legacy Explore override', async () => {
+function installFetchMock(captureCheckout) {
   const originalFetch = globalThis.fetch;
-  let checkoutBody = '';
-  globalThis.fetch = async (_url, options) => {
-    checkoutBody = String(options?.body || '');
+  globalThis.fetch = async (url, options) => {
+    const address = String(url);
+    if (address.includes('/api/platform/access/decision')) {
+      return Response.json({
+        customer: { customerNumber: '1000000001' },
+        access: {
+          decision: 'allow',
+          revokeSessions: false,
+          reason: 'Valid Head Office 16+ age assurance is held.',
+          restrictions: [],
+          ageAssurance: {
+            required: true,
+            satisfied: true,
+            minimumAge: 16,
+            accountPopulation: 'customers_only',
+            staffAccountsExcluded: true,
+            evidence: { confirmedMinimumAge: 16, validUntil: '2027-07-30T00:00:00.000Z' },
+          },
+        },
+      });
+    }
+    captureCheckout(String(options?.body || ''));
     return new Response(JSON.stringify({ url: 'https://checkout.stripe.test/session' }), { status: 200 });
   };
+  return () => { globalThis.fetch = originalFetch; };
+}
+
+test('Admin-edited service plan Price ID takes priority over a legacy Explore override', async () => {
+  let checkoutBody = '';
+  const restore = installFetchMock(value => { checkoutBody = value; });
   try {
     const response = await onRequestGet({
       request: signedInRequest('https://planyx.example/create-checkout-session?plan=personal'),
@@ -100,18 +119,14 @@ test('Admin-edited service plan Price ID takes priority over a legacy Explore ov
     assert.equal(response.status, 303);
     assert.equal(new URLSearchParams(checkoutBody).get('line_items[0][price]'), 'price_personal');
   } finally {
-    globalThis.fetch = originalFetch;
+    restore();
   }
 });
 
 for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
-  test(`${plan} checkout includes trial, age assurance and correct account catalogue metadata`, async () => {
-    const originalFetch = globalThis.fetch;
+  test(`${plan} checkout includes trial, Head Office age assurance and correct account catalogue metadata`, async () => {
     let checkoutBody = '';
-    globalThis.fetch = async (_url, options) => {
-      checkoutBody = String(options?.body || '');
-      return new Response(JSON.stringify({ url: 'https://checkout.stripe.test/session' }), { status: 200 });
-    };
+    const restore = installFetchMock(value => { checkoutBody = value; });
     try {
       const response = await onRequestGet({
         request: signedInRequest(`https://planyx.example/create-checkout-session?plan=${plan}&accountType=${details[2]}`),
@@ -130,8 +145,10 @@ for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
       assert.equal(params.get('subscription_data[metadata][account_type]'), details[2]);
       assert.equal(params.get('subscription_data[metadata][catalogue]'), details[2] === 'organisation' ? 'business' : 'standard');
       assert.equal(params.get('subscription_data[metadata][age_band]'), '18+');
+      assert.equal(params.get('subscription_data[metadata][age_assurance_authority]'), 'HEAD_OFFICE');
+      assert.equal(params.get('subscription_data[metadata][age_assurance_threshold]'), '16');
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 }

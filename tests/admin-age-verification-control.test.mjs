@@ -5,7 +5,7 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 
-test('Admin Centre has a dedicated age verification control page and protected API', async () => {
+test('Admin Centre retains the protected legacy age-record workspace', async () => {
   const app = await read('src/App.tsx');
   const page = await read('src/pages/admin/age-verification.tsx');
   const api = await read('functions/api/admin/age-verification.js');
@@ -14,13 +14,9 @@ test('Admin Centre has a dedicated age verification control page and protected A
   assert.match(app, /path:\s*'\/admin\/age-verification'/);
   assert.match(page, /Age Verification Control Centre/);
   assert.match(page, /\/api\/admin\/age-verification/);
-  assert.match(page, /Service/);
-  assert.match(page, /Design/);
-  assert.match(page, /Provider/);
   assert.match(page, /Safeguards & governance/);
   assert.match(page, /Diagnostics/);
   assert.match(page, /Events/);
-  assert.match(page, /Customer preview/);
   assert.match(page, /Administrator session needs refreshing/);
 
   assert.match(api, /getNativeSession\(request, env, "admin"\)/);
@@ -31,22 +27,26 @@ test('Admin Centre has a dedicated age verification control page and protected A
   assert.match(api, /admin_audit_log/);
 });
 
-test('Age verification safe-off mode pauses registrations rather than bypassing the minimum age', async () => {
-  const controls = await read('functions/_shared/age-verification-settings.js');
+test('Planyx cannot use its retired self-declaration controls to bypass Head Office', async () => {
   const agePage = await read('functions/age-check.js');
+  const login = await read('functions/account/login.js');
+  const callback = await read('functions/account/auth/callback.js');
   const middleware = await read('functions/_shared/age-gate-middleware.js');
 
-  assert.match(controls, /const MINIMUM_AGE = 16/);
-  assert.match(controls, /minorSafeguardsLocked:\s*true/);
-  assert.match(controls, /requestedStatus === "off"[^\n]+"paused"/);
-  assert.match(controls, /Independent provider mode cannot go live/);
-  assert.match(agePage, /Safe registration pause/);
-  assert.match(agePage, /No unverified account can be created/);
-  assert.match(middleware, /age_verification_unavailable/);
-  assert.match(middleware, /Unverified customer access is currently blocked/);
+  assert.match(agePage, /retired Planyx self-declaration token/);
+  assert.match(agePage, /\/account\/login\?return_to=/);
+  assert.doesNotMatch(agePage, /date_of_birth|createAgeAssurance|Safe registration pause/);
+  assert.match(login, /beginLogin\(context, "customer"\)/);
+  assert.doesNotMatch(login, /readAgeAssurance|age-verification-settings/);
+  assert.match(callback, /syncCustomerWithHeadOffice/);
+  assert.match(callback, /isHeadOfficeAgeStepUp/);
+  assert.doesNotMatch(callback, /provider_result_missing|persistAgeAssurance|readAgeAssurance/);
+  assert.match(middleware, /checkHeadOfficeAccess/);
+  assert.match(middleware, /HEAD_OFFICE_AGE_ASSURANCE_REQUIRED/);
+  assert.doesNotMatch(middleware, /profileAgeStatus|age_verification_unavailable/);
 });
 
-test('16-17 safeguards and legal governance controls cannot be silently disabled', async () => {
+test('16-17 privacy fields and retained governance controls cannot be silently disabled', async () => {
   const controls = await read('functions/_shared/age-verification-settings.js');
   const page = await read('src/pages/admin/age-verification.tsx');
 
@@ -67,17 +67,20 @@ test('16-17 safeguards and legal governance controls cannot be silently disabled
   assert.match(controls, /eventRetentionDays/);
 });
 
-test('Independent provider secrets are never exposed or editable in the Admin browser', async () => {
+test('provider secrets remain server-side while new enforcement uses the Head Office connector', async () => {
   const controls = await read('functions/_shared/age-verification-settings.js');
   const page = await read('src/pages/admin/age-verification.tsx');
   const callback = await read('functions/account/auth/callback.js');
+  const central = await read('functions/_shared/customerops-central.js');
 
   assert.match(controls, /AGE_PROVIDER_API_KEY/);
   assert.match(controls, /AGE_PROVIDER_WEBHOOK_SECRET/);
   assert.doesNotMatch(controls, /apiKey:\s*clean/);
   assert.match(page, /Secrets are read from Cloudflare and are never returned to the browser/);
   assert.doesNotMatch(page, /type="password"[^>]+AGE_PROVIDER_API_KEY/);
-  assert.match(callback, /provider_result_missing/);
+  assert.match(callback, /syncCustomerWithHeadOffice/);
+  assert.match(central, /requestHeadOfficeAgeAssuranceSession/);
+  assert.doesNotMatch(callback, /AGE_PROVIDER_API_KEY|AGE_PROVIDER_WEBHOOK_SECRET/);
 });
 
 test('Age verification events exclude full dates of birth and sensitive provider material', async () => {

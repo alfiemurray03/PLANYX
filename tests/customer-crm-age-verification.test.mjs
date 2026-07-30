@@ -5,27 +5,23 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 
-test('eligible age checks create an encrypted verification record and link it to Microsoft identity', async () => {
-  const assurance = await read('functions/_shared/age-assurance.js');
-  const records = await read('functions/_shared/age-verification-records.js');
+test('new customer age decisions are owned by Head Office and do not create Planyx DOB records', async () => {
   const ageCheck = await read('functions/age-check.js');
   const callback = await read('functions/account/auth/callback.js');
+  const central = await read('functions/_shared/customerops-central.js');
+  const bridge = await read('functions/api/head-office-age-assurance.js');
 
-  assert.match(assurance, /verificationId/);
-  assert.match(assurance, /ref:\s*verificationId/);
-  assert.match(assurance, /age_verification_id TEXT/);
-  assert.match(assurance, /linkAgeVerificationRecord/);
-  assert.match(ageCheck, /createAgeVerificationRecord/);
-  assert.match(ageCheck, /dateOfBirth:\s*assurance\.dateOfBirth/);
-  assert.match(callback, /persistAgeAssurance/);
-
-  assert.match(records, /AES-GCM/);
-  assert.match(records, /encrypted_date_of_birth TEXT NOT NULL/);
-  assert.doesNotMatch(records, /\bdate_of_birth TEXT\b/);
-  assert.match(records, /AGE-\$\{date\}/);
+  assert.match(ageCheck, /retired Planyx self-declaration token/);
+  assert.doesNotMatch(ageCheck, /createAgeVerificationRecord|dateOfBirth|createAgeAssurance/);
+  assert.match(callback, /syncCustomerWithHeadOffice/);
+  assert.match(callback, /issueCustomerAgeChallenge/);
+  assert.doesNotMatch(callback, /persistAgeAssurance|readAgeAssurance/);
+  assert.match(central, /requestHeadOfficeAgeAssuranceSession/);
+  assert.match(bridge, /decisionAuthority: "HEAD_OFFICE"/);
+  assert.match(bridge, /staffAccountsAffected: false/);
 });
 
-test('Customer CRM masks DOB and requires an audited Admin PIN reveal', async () => {
+test('Customer CRM masks retained legacy DOB records and requires an audited Admin PIN reveal', async () => {
   const api = await read('functions/api/admin/customer-age-verification.js');
   const panel = await read('src/components/CustomerAgeVerificationCrmPanel.tsx');
   const enhancer = await read('src/components/CustomerCrmAgeVerificationEnhancer.tsx');
@@ -51,9 +47,10 @@ test('Customer CRM masks DOB and requires an audited Admin PIN reveal', async ()
   assert.doesNotMatch(app, /CustomerCrmAgeVerificationEnhancer/, 'The CRM DOM enhancer must never be mounted globally because it can affect every Admin route.');
 });
 
-test('public age-check wording explains restricted encrypted CRM retention', async () => {
-  const ageCheck = await read('functions/age-check.js');
-  assert.match(ageCheck, /encrypted in a restricted age-verification record linked to your Customer CRM profile/);
-  assert.match(ageCheck, /masked by default and access is audited/);
-  assert.match(ageCheck, /The normal customer profile stores only eligibility, age band and safeguarding status/);
+test('customer-facing central journey explains data minimisation and staff separation', async () => {
+  const page = await read('public/account/verification-required/index.html');
+  assert.match(page, /Planyx does not receive Didit’s API key, identity documents or biometric evidence/);
+  assert.match(page, /customer account and Unique Customer Number/);
+  assert.match(page, /does not affect staff accounts, staff numbers, Microsoft staff sign-in or Head Office staff access/);
+  assert.match(page, /Only the signed Didit webhook received by Head Office can approve/);
 });

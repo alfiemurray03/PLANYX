@@ -12,7 +12,7 @@ const errorMessages: Record<string, string> = {
   oidc_no_email: 'Your account does not have an email address. Please contact support.',
   account_suspended: 'This account is currently suspended. Please contact support.',
   oidc_unavailable: 'Sign-in is temporarily unavailable. Please try again shortly.',
-  age_check_required: 'Complete the Planyx 16+ age check before signing in.',
+  age_check_required: 'Head Office requires the customer 16+ check before access can continue.',
   under_16_not_eligible: 'Planyx accounts are not available to anyone under 16 years of age.',
 };
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
             <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-.04em] text-foreground">One secure sign-in for every <span className="text-blue-600 dark:text-blue-400">Planyx experience.</span></h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">Continue planning, save your itineraries and keep your experience details together without creating another password.</p>
             <div className="mt-7 grid max-w-lg gap-3 sm:grid-cols-3">
-              {['Microsoft secured', 'Strictly age 16+', 'Young-person safeguards'].map(item => <div key={item} className="rounded-xl border border-border bg-card/80 px-3 py-3 text-xs font-medium text-foreground">{item}</div>)}
+              {['Microsoft secured', 'Strictly age 16+', 'Head Office controlled'].map(item => <div key={item} className="rounded-xl border border-border bg-card/80 px-3 py-3 text-xs font-medium text-foreground">{item}</div>)}
             </div>
           </section>
 
@@ -55,7 +55,7 @@ export default function LoginPage() {
                 <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Sign in to Planyx</h2>
-              <p className="text-xs text-muted-foreground">Protected by JA Group Services ID · Account holders must be aged 16 or over</p>
+              <p className="text-xs text-muted-foreground">Protected by JA Group Services ID · Customer account holders must be aged 16 or over</p>
             </div>
 
             {error && (
@@ -68,7 +68,7 @@ export default function LoginPage() {
             <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div className="flex gap-2.5 rounded-xl border border-violet-200 bg-violet-50 p-3.5 dark:border-violet-800 dark:bg-violet-950/30">
                 <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-300" />
-                <p className="text-xs leading-relaxed text-violet-800 dark:text-violet-200"><strong>Planyx is strictly 16+.</strong> You will complete an age check before Microsoft sign-in. People aged 16–17 receive enhanced privacy and safeguarding defaults.</p>
+                <p className="text-xs leading-relaxed text-violet-800 dark:text-violet-200"><strong>Planyx is strictly 16+.</strong> Sign in with Microsoft first. Head Office then checks the customer account and opens the approved Didit age check only when the central Planyx deployment requires it. Staff sign-in is separate and unaffected.</p>
               </div>
 
               <Button
@@ -76,7 +76,7 @@ export default function LoginPage() {
                 disabled={redirecting}
                 className="h-12 w-full rounded-xl bg-blue-600 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500"
               >
-                {redirecting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Checking eligibility…</> : <>Continue to age check and sign in <ArrowRight className="ml-2 h-4 w-4" /></>}
+                {redirecting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Opening secure sign-in…</> : <>Continue with Microsoft <ArrowRight className="ml-2 h-4 w-4" /></>}
               </Button>
 
               <div className="flex gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3.5 dark:border-blue-800 dark:bg-blue-950/30">

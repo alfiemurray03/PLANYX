@@ -28,11 +28,12 @@ test("CustomerOps credential remains server-side", async () => {
 });
 
 test("customer number is displayed in Profile Information with a protected API", async () => {
-  const [redirectPage, profileClient, profileStyle, api] = await Promise.all([
+  const [redirectPage, profileClient, profileStyle, api, middleware] = await Promise.all([
     readFile(new URL("../static/account/customer-number/index.html", import.meta.url), "utf8"),
     readFile(new URL("../static/assets/customer-ucn-profile.js", import.meta.url), "utf8"),
     readFile(new URL("../static/assets/customer-ucn-profile.css", import.meta.url), "utf8"),
-    readFile(new URL("../functions/api/account/customer-number.js", import.meta.url), "utf8")
+    readFile(new URL("../functions/api/account/customer-number.js", import.meta.url), "utf8"),
+    readFile(new URL("../functions/api/_middleware.js", import.meta.url), "utf8")
   ]);
 
   assert.match(redirectPage, /\/settings\?tab=profile#universal-customer-number/);
@@ -43,7 +44,8 @@ test("customer number is displayed in Profile Information with a protected API",
   assert.match(profileClient, /\^\\d\{10\}\$/);
   assert.match(profileStyle, /\.planyx-ucn-profile/);
   assert.match(api, /getNativeSession\(context\.request, context\.env, "customer"\)/);
-  assert.match(api, /profileAgeStatus/);
+  assert.doesNotMatch(api, /profileAgeStatus|AGE_CHECK_REQUIRED/);
+  assert.match(middleware, /enforceCustomerAge/);
   assert.doesNotMatch(profileClient, /CUSTOMEROPS_API_KEY/);
 
   await assert.rejects(access(new URL("../functions/account/customer-number.js", import.meta.url)));
