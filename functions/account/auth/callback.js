@@ -1,6 +1,4 @@
 import { completeLogin, expireOidcCookie, getNativeSession } from "../../_shared/oidc.js";
-import { readAgeAssurance, persistAgeAssurance } from "../../_shared/age-assurance.js";
-import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../../_shared/age-verification-settings.js";
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
@@ -58,10 +56,14 @@ function scheduleAllowedTelemetry(context, identity, syncResult) {
         deviceSummary: String(context.request.headers.get("User-Agent") || "").slice(0, 500),
         ipCountry: String(context.request.headers.get("CF-IPCountry") || "").slice(0, 8)
       },
-      metadata: { matchedBy: syncResult.matchedBy || null }
+      metadata: {
+        matchedBy: syncResult.matchedBy || null,
+        ageAssuranceAuthority: "HEAD_OFFICE",
+        ageAssurance: syncResult.enforcement?.ageAssurance || null
+      }
     });
     await reportCustomerSnapshot(context.env, context.env.DB, identity, {
-      metadata: { signInSource: "JA Group Services ID" }
+      metadata: { signInSource: "JA Group Services ID", ageAssuranceAuthority: "HEAD_OFFICE" }
     }).catch(() => null);
     await reportPlatformHeartbeat(context.env, context.env.DB, { trigger: "customer_sign_in" }).catch(() => null);
     await flushCustomerOpsOutbox(context.env, context.env.DB).catch(() => null);
@@ -77,48 +79,11 @@ function scheduleAllowedTelemetry(context, identity, syncResult) {
 
 export async function onRequestGet(context) {
   try {
-    const settings = await getAgeVerificationSettings(context.env.DB, context.env);
-    if (settings.serviceStatus !== "live") {
-      await recordAgeVerificationEvent(context.env.DB, context.request, {
-        eventType: "microsoft_callback_during_unavailable_service", outcome: "failed",
-        method: settings.verificationMethod, provider: settings.providerName,
-        detail: `Microsoft callback blocked while age-verification status was ${settings.serviceStatus}.`,
-      }).catch(() => null);
-      return new Response("New customer registration is temporarily paused while age verification is maintained.", {
-        status: 503,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "900" },
-      });
-    }
-    if (settings.verificationMethod === "independent_provider") {
-      await recordAgeVerificationEvent(context.env.DB, context.request, {
-        eventType: "provider_result_missing", outcome: "failed", method: settings.verificationMethod,
-        provider: settings.providerName, detail: "Microsoft callback did not contain a supported independent-provider result.",
-      }).catch(() => null);
-      return new Response("Independent age verification must be completed before Microsoft sign-in can finish.", {
-        status: 403,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
-      });
-    }
-
-    const assurance = await readAgeAssurance(context.request, context.env);
-    if (!assurance?.eligible) {
-      await recordAgeVerificationEvent(context.env.DB, context.request, {
-        eventType: "microsoft_callback_without_age_result", outcome: "failed",
-        method: settings.verificationMethod, detail: "No valid signed 16+ age result was present at the Microsoft callback.",
-      }).catch(() => null);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/age-check?return_to=%2Fdashboard",
-          "Cache-Control": "no-store",
-          "Referrer-Policy": "no-referrer",
-        },
-      });
-    }
-
+    // Microsoft resolves the customer first. Head Office then resolves the UCN
+    // and returns the authoritative customer age-assurance/access decision.
     const response = await completeLogin(context, "customer");
     const sessionToken = customerSessionCookie(response);
-    if (!sessionToken) throw new Error("The customer session could not be linked to the age assurance result.");
+    if (!sessionToken) throw new Error("The customer session could not be linked to the Head Office decision.");
 
     const headers = new Headers(context.request.headers);
     headers.set("Cookie", `ja_customer_oidc_session=${encodeURIComponent(sessionToken)}`);
@@ -126,17 +91,6 @@ export async function onRequestGet(context) {
     const identity = await getNativeSession(identityRequest, context.env, "customer");
     if (!identity?.email) throw new Error("The verified customer identity could not be resolved.");
 
-    assurance.policyVersion = settings.policyVersion;
-    await persistAgeAssurance(context.env.DB, identity.email, assurance);
-    await recordAgeVerificationEvent(context.env.DB, context.request, {
-      eventType: "microsoft_account_linked", outcome: "passed", ageBand: assurance.ageBand,
-      subjectEmail: identity.email, method: assurance.method || settings.verificationMethod,
-      provider: settings.providerName, detail: "The signed age result was linked to the verified Microsoft customer identity.",
-    }).catch(() => null);
-
-    // Head Office is the authoritative access controller. A customer session is
-    // not released to Planyx until the UCN is synchronised and CustomerOps has
-    // returned an allow decision.
     const syncResult = await syncCustomerWithHeadOffice(context, identity);
     if (!syncResult?.ok) {
       const reason = syncResult?.error || "Head Office customer protection is temporarily unavailable.";
@@ -153,7 +107,13 @@ export async function onRequestGet(context) {
       return restrictedRedirect(reason, "review", 303);
     }
 
-    const access = syncResult.enforcement || { decision: "review", action: "review", revokeSessions: true, reason: "Head Office did not return an access decision." };
+    const access = syncResult.enforcement || {
+      decision: "review",
+      action: "review",
+      revokeSessions: true,
+      reason: "Head Office did not return an access decision."
+    };
+
     if (blocksAccess(access)) {
       const reason = access.reason || "Head Office has restricted access to this customer account.";
       let challengeCookie = "";
@@ -166,6 +126,7 @@ export async function onRequestGet(context) {
         }, access.ageAssurance);
         challengeCookie = challenge.cookie;
       }
+
       await revokeLocalCustomerSession(context.env.DB, identity, reason);
       await reportCustomerEvent(context.env, context.env.DB, identity, {
         eventType: isHeadOfficeAgeStepUp(access) ? "age_assurance.required" : "auth.denied",
@@ -198,11 +159,7 @@ export async function onRequestGet(context) {
       auth_stage: error instanceof Error ? (error.authStage || null) : null
     }));
     await recordAuthenticationFailure(context.env.DB, context.request, "customer", error).catch(() => null);
-    await recordAgeVerificationEvent(context.env.DB, context.request, {
-      eventType: "microsoft_callback_failure", outcome: "failed",
-      detail: error instanceof Error ? error.message : "Customer sign-in could not be completed.",
-    }).catch(() => null);
-    return new Response("Customer sign-in could not be completed. Complete the 16+ age check and try again.", {
+    return new Response("Customer sign-in could not be completed. Please try again or contact Planyx support.", {
       status: 401,
       headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
     });
