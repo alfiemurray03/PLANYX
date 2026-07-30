@@ -3,10 +3,9 @@ import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
 import { issueCustomerAgeChallenge } from "../../_shared/customerops-age-assurance.js";
+import { blocksAccess, isHeadOfficeAgeStepUp } from "../../_shared/customerops-access-policy.js";
 import {
-  blocksAccess,
   flushCustomerOpsOutbox,
-  isHeadOfficeAgeStepUp,
   reportCustomerEvent,
   reportCustomerSnapshot,
   reportPlatformHeartbeat,
@@ -59,7 +58,8 @@ function scheduleAllowedTelemetry(context, identity, syncResult) {
       metadata: {
         matchedBy: syncResult.matchedBy || null,
         ageAssuranceAuthority: "HEAD_OFFICE",
-        ageAssurance: syncResult.enforcement?.ageAssurance || null
+        ageAssurance: syncResult.enforcement?.ageAssurance || null,
+        headOfficeProtectionStatus: syncResult.protectionStatus || "confirmed"
       }
     });
     await reportCustomerSnapshot(context.env, context.env.DB, identity, {
@@ -77,10 +77,14 @@ function scheduleAllowedTelemetry(context, identity, syncResult) {
   if (typeof context.waitUntil === "function") context.waitUntil(task);
 }
 
+function requiresIdentityHold(syncResult) {
+  return ["review_required", "ucn_conflict"].includes(String(syncResult?.status || ""));
+}
+
 export async function onRequestGet(context) {
   try {
     // Microsoft resolves the customer first. Head Office then resolves the UCN
-    // and returns the authoritative customer age-assurance/access decision.
+    // and returns the authoritative customer access decision when available.
     const response = await completeLogin(context, "customer");
     const sessionToken = customerSessionCookie(response);
     if (!sessionToken) throw new Error("The customer session could not be linked to the Head Office decision.");
@@ -94,24 +98,45 @@ export async function onRequestGet(context) {
     const syncResult = await syncCustomerWithHeadOffice(context, identity);
     if (!syncResult?.ok) {
       const reason = syncResult?.error || "Head Office customer protection is temporarily unavailable.";
-      await revokeLocalCustomerSession(context.env.DB, identity, reason);
-      await reportCustomerEvent(context.env, context.env.DB, identity, {
-        eventType: "auth.failed",
-        title: "Planyx sign-in stopped because CustomerOps was unavailable",
-        category: "authentication",
-        outcome: "blocked",
-        severity: "high",
-        reason,
-        metadata: { customerOpsStatus: syncResult?.status || "error" }
-      }).catch(() => null);
-      return restrictedRedirect(reason, "review", 303);
+
+      // A confirmed identity conflict or review remains blocking. Transport,
+      // configuration and availability failures are not security decisions and
+      // must not fabricate an account restriction.
+      if (requiresIdentityHold(syncResult)) {
+        await revokeLocalCustomerSession(context.env.DB, identity, reason);
+        await reportCustomerEvent(context.env, context.env.DB, identity, {
+          eventType: "auth.failed",
+          title: "Planyx sign-in held for Head Office identity review",
+          category: "authentication",
+          outcome: "blocked",
+          severity: "high",
+          reason,
+          metadata: { customerOpsStatus: syncResult?.status || "review_required" }
+        }).catch(() => null);
+        return restrictedRedirect(reason, "review", 303);
+      }
+
+      console.error(JSON.stringify({
+        event: "customerops_sign_in_degraded",
+        email: identity.email,
+        status: syncResult?.status || "error",
+        message: reason
+      }));
+      await recordCompletedLogin(context, response, "customer").catch(() => null);
+      scheduleAllowedTelemetry(context, identity, {
+        ...syncResult,
+        matchedBy: null,
+        protectionStatus: "temporarily_unavailable",
+        enforcement: { action: "allow", decision: "allow", restrictions: [] }
+      });
+      return response;
     }
 
     const access = syncResult.enforcement || {
-      decision: "review",
-      action: "review",
-      revokeSessions: true,
-      reason: "Head Office did not return an access decision."
+      decision: "allow",
+      action: "allow",
+      revokeSessions: false,
+      restrictions: []
     };
 
     if (blocksAccess(access)) {
