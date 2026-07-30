@@ -1,5 +1,4 @@
 import { assertSameOrigin, getNativeSession } from "../../_shared/oidc.js";
-import { profileAgeStatus } from "../../_shared/age-assurance.js";
 import { getCustomerOpsConnection, syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
 
 function json(body, status = 200) {
@@ -17,11 +16,9 @@ async function authenticatedCustomer(context) {
   if (!identity?.email) return { response: json({ success: false, code: "NOT_SIGNED_IN", error: "Please sign in to continue." }, 401) };
   if (!context.env.DB) return { response: json({ success: false, code: "DATABASE_UNAVAILABLE", error: "Customer records are temporarily unavailable." }, 503) };
 
-  const age = await profileAgeStatus(context.env.DB, identity.email).catch(() => null);
-  if (!age?.eligible) {
-    return { response: json({ success: false, code: "AGE_CHECK_REQUIRED", error: "Complete the Planyx age check before continuing." }, 403) };
-  }
-
+  // Customer access, including any age requirement, has already been decided by
+  // Head Office in the customer middleware. Do not consult the retired local
+  // date-of-birth eligibility record here.
   return { identity };
 }
 
@@ -40,7 +37,7 @@ export async function onRequestPost(context) {
     return json({ success: false, code: "INVALID_ORIGIN", error: "The request origin was rejected." }, 403);
   }
 
-  const result = await syncCustomerWithHeadOffice(context, auth.identity).catch((error) => ({
+  const result = await syncCustomerWithHeadOffice(context, auth.identity).catch(error => ({
     ok: false,
     status: "error",
     error: error instanceof Error ? error.message : "CustomerOps connection failed."
