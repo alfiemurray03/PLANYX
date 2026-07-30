@@ -1,9 +1,11 @@
 import { assertSameOrigin, expireOidcCookie, getNativeSession } from "../_shared/oidc.js";
 import { recordSessionHeartbeat, recordSessionLogout } from "../_shared/session-tracking.js";
+import { issueCustomerAgeChallenge } from "../_shared/customerops-age-assurance.js";
 import {
   blocksAccess,
   checkHeadOfficeAccess,
   flushCustomerOpsOutbox,
+  isHeadOfficeAgeStepUp,
   reportCustomerEvent,
   reportPlatformHeartbeat,
   revokeLocalCustomerSession
@@ -39,6 +41,13 @@ function schedule(context, task) {
   if (typeof context.waitUntil === "function") context.waitUntil(safe);
 }
 
+function blockedResponse(payload, status, challengeCookie = "") {
+  const response = json(payload, status);
+  response.headers.append("Set-Cookie", expireOidcCookie("customer"));
+  if (challengeCookie) response.headers.append("Set-Cookie", challengeCookie);
+  return response;
+}
+
 export async function onRequestPost(context) {
   if (!assertSameOrigin(context.request)) return json({ success: false, error: "Request origin was rejected." }, 403);
   if (!context.env.DB) return json({ success: false, error: "Session audit storage is unavailable." }, 503);
@@ -70,13 +79,19 @@ export async function onRequestPost(context) {
       const result = await checkHeadOfficeAccess(context.env, context.env.DB, identity);
       if (blocksAccess(result.access)) {
         const reason = result.access.reason || "Head Office has restricted access to this customer account.";
+        const ageStepUp = isHeadOfficeAgeStepUp(result.access);
+        let challengeCookie = "";
+        if (ageStepUp) {
+          const challenge = await issueCustomerAgeChallenge(context.env.DB, identity, result.reference, result.access.ageAssurance);
+          challengeCookie = challenge.cookie;
+        }
         await revokeLocalCustomerSession(context.env.DB, identity, reason);
         await reportCustomerEvent(context.env, context.env.DB, identity, {
-          eventType: "session.revoked",
-          title: "Planyx session revoked by Head Office",
+          eventType: ageStepUp ? "age_assurance.required" : "session.revoked",
+          title: ageStepUp ? "Head Office age assurance required" : "Planyx session revoked by Head Office",
           category: "security",
           outcome: "revoked",
-          severity: "high",
+          severity: ageStepUp ? "moderate" : "high",
           reason,
           session: {
             id: identity.tokenHash,
@@ -86,24 +101,32 @@ export async function onRequestPost(context) {
             deviceSummary: String(context.request.headers.get("User-Agent") || "").slice(0, 500),
             ipCountry: String(context.request.headers.get("CF-IPCountry") || "").slice(0, 8)
           },
-          metadata: { decision: result.access.decision, restrictions: result.access.restrictions || [] }
+          metadata: {
+            decision: result.access.decision,
+            restrictions: result.access.restrictions || [],
+            ageAssurance: ageStepUp ? {
+              minimumAge: result.access.ageAssurance?.minimumAge || 16,
+              decisionAuthority: "HEAD_OFFICE",
+              staffAccountsAffected: false
+            } : undefined
+          }
         }).catch(() => null);
-        return json({
+        return blockedResponse({
           success: false,
-          access: "denied",
+          access: ageStepUp ? "step_up" : "denied",
           decision: result.access.decision,
           reason,
-          logoutUrl: "/account/access-restricted/"
-        }, 403, { "Set-Cookie": expireOidcCookie("customer") });
+          ageAssurance: ageStepUp ? result.access.ageAssurance : undefined,
+          staffAccountsAffected: false,
+          logoutUrl: ageStepUp ? "/account/verification-required/" : "/account/access-restricted/"
+        }, 403, challengeCookie);
       }
     } catch (error) {
       // CustomerOps is the central security authority. An authenticated customer
       // session is not allowed to continue without a current access decision.
       const reason = error instanceof Error ? error.message : "Head Office customer protection is unavailable.";
       await revokeLocalCustomerSession(context.env.DB, identity, reason);
-      return json({ success: false, access: "review", reason, logoutUrl: "/account/access-restricted/" }, 503, {
-        "Set-Cookie": expireOidcCookie("customer")
-      });
+      return blockedResponse({ success: false, access: "review", reason, logoutUrl: "/account/access-restricted/" }, 503);
     }
   }
 
