@@ -54,6 +54,7 @@ jobs:
           set -o pipefail
           node --test \
             tests/customerops-central-enforcement.test.mjs \
+            tests/head-office-age-assurance-bridge.test.mjs \
             tests/customerops-ucn.test.mjs \
             tests/admin-ui-payments-reliability.test.mjs \
             tests/stripe-support-coming-soon-fixes.test.mjs \

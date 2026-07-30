@@ -4,9 +4,11 @@ import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../../_s
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
+import { issueCustomerAgeChallenge } from "../../_shared/customerops-age-assurance.js";
 import {
   blocksAccess,
   flushCustomerOpsOutbox,
+  isHeadOfficeAgeStepUp,
   reportCustomerEvent,
   reportCustomerSnapshot,
   reportPlatformHeartbeat,
@@ -25,20 +27,19 @@ function customerSessionCookie(response) {
   return "";
 }
 
-function restrictedRedirect(_reason, decision = "deny", status = 303) {
+function restrictedRedirect(_reason, decision = "deny", status = 303, challengeCookie = "") {
   const normalized = String(decision || "deny").trim().toLowerCase();
   const location = normalized === "step_up"
     ? "/account/verification-required/"
     : "/account/access-restricted/";
-  return new Response(null, {
-    status,
-    headers: {
-      Location: location,
-      "Set-Cookie": expireOidcCookie("customer"),
-      "Cache-Control": "no-store",
-      "Referrer-Policy": "no-referrer"
-    }
+  const headers = new Headers({
+    Location: location,
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer"
   });
+  headers.append("Set-Cookie", expireOidcCookie("customer"));
+  if (challengeCookie) headers.append("Set-Cookie", challengeCookie);
+  return new Response(null, { status, headers });
 }
 
 function scheduleAllowedTelemetry(context, identity, syncResult) {
@@ -155,17 +156,35 @@ export async function onRequestGet(context) {
     const access = syncResult.enforcement || { decision: "review", action: "review", revokeSessions: true, reason: "Head Office did not return an access decision." };
     if (blocksAccess(access)) {
       const reason = access.reason || "Head Office has restricted access to this customer account.";
+      let challengeCookie = "";
+      if (isHeadOfficeAgeStepUp(access)) {
+        const challenge = await issueCustomerAgeChallenge(context.env.DB, identity, {
+          customerNumber: syncResult.ucn,
+          platformCustomerId: syncResult.accountId,
+          entraTenantId: identity.tenantId,
+          entraObjectId: identity.objectId || identity.subject
+        }, access.ageAssurance);
+        challengeCookie = challenge.cookie;
+      }
       await revokeLocalCustomerSession(context.env.DB, identity, reason);
       await reportCustomerEvent(context.env, context.env.DB, identity, {
-        eventType: "auth.denied",
-        title: "Customer sign-in denied by Head Office",
+        eventType: isHeadOfficeAgeStepUp(access) ? "age_assurance.required" : "auth.denied",
+        title: isHeadOfficeAgeStepUp(access) ? "Head Office age assurance required" : "Customer sign-in denied by Head Office",
         category: "security",
         outcome: "denied",
-        severity: "high",
+        severity: isHeadOfficeAgeStepUp(access) ? "moderate" : "high",
         reason,
-        metadata: { decision: access.decision || access.action, restrictions: access.restrictions || [] }
+        metadata: {
+          decision: access.decision || access.action,
+          restrictions: access.restrictions || [],
+          ageAssurance: isHeadOfficeAgeStepUp(access) ? {
+            minimumAge: access.ageAssurance?.minimumAge || 16,
+            decisionAuthority: "HEAD_OFFICE",
+            staffAccountsAffected: false
+          } : undefined
+        }
       }).catch(() => null);
-      return restrictedRedirect(reason, access.decision || access.action || "deny", 303);
+      return restrictedRedirect(reason, access.decision || access.action || "deny", 303, challengeCookie);
     }
 
     await recordCompletedLogin(context, response, "customer").catch(() => null);
