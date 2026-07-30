@@ -12,6 +12,7 @@ import RouteErrorPage from '@/components/RouteErrorPage';
 import AccessibilityRuntime from '@/components/AccessibilityRuntime';
 import AdminKeyboardShortcuts from '@/components/AdminKeyboardShortcuts';
 import AdminSupportLauncher from '@/components/AdminSupportLauncher';
+import HeadOfficeSecurityCrmEnhancer from '@/components/HeadOfficeSecurityCrmEnhancer';
 import RootLayout from './layouts/RootLayout';
 import Spinner from './components/Spinner';
 import AdminDashboardPage from './pages/admin/dashboard-stable';
@@ -176,6 +177,7 @@ export default function App() {
                     <>
                       <AccessibilityRuntime />
                       <RouterProvider router={router} />
+                      <HeadOfficeSecurityCrmEnhancer />
                       <AdminKeyboardShortcuts />
                       <AdminSupportLauncher />
                       <CookieBannerErrorBoundary>
