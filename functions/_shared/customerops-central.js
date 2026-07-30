@@ -1,5 +1,7 @@
 const UCN_PATTERN = /^\d{10}$/;
 const OUTBOX_LIMIT = 25;
+export const HEAD_OFFICE_AGE_CONTRACT = "ja-head-office-age-assurance-v1";
+export const HEAD_OFFICE_SECURITY_CONTRACT = "ja-head-office-security-state-v1";
 
 function clean(value, max = 1000) {
   return String(value ?? "").trim().slice(0, max);
@@ -27,23 +29,24 @@ function safeJson(value, fallback = {}) {
   catch { return JSON.stringify(fallback); }
 }
 
-async function customerOpsRequest(env, path, body, timeoutMs = 8_000) {
+async function customerOpsFetch(env, path, options = {}) {
   const key = apiKey(env);
   if (!key) throw Object.assign(new Error("The secure CustomerOps connector is not configured."), { code: "CUSTOMEROPS_NOT_CONFIGURED" });
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), Number(options.timeoutMs || 8_000));
+  const method = clean(options.method || "POST", 12).toUpperCase();
   try {
-    const response = await fetch(`${baseUrl(env)}${path}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "User-Agent": "Planyx-Central-CustomerOps/1.0"
-      },
-      body: JSON.stringify(body || {}),
-      signal: controller.signal
-    });
+    const headers = {
+      Authorization: `Bearer ${key}`,
+      Accept: "application/json",
+      "User-Agent": "Planyx-Central-CustomerOps/1.1"
+    };
+    const request = { method, headers, signal: controller.signal };
+    if (method !== "GET" && method !== "HEAD") {
+      headers["Content-Type"] = "application/json";
+      request.body = JSON.stringify(options.body || {});
+    }
+    const response = await fetch(`${baseUrl(env)}${path}`, request);
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       const error = new Error(clean(payload?.error?.message || payload?.message || `CustomerOps returned HTTP ${response.status}.`, 1000));
@@ -61,6 +64,10 @@ async function customerOpsRequest(env, path, body, timeoutMs = 8_000) {
   }
 }
 
+async function customerOpsRequest(env, path, body, timeoutMs = 8_000) {
+  return customerOpsFetch(env, path, { method: "POST", body, timeoutMs });
+}
+
 async function profileForIdentity(DB, identity) {
   const email = cleanEmail(identity?.email);
   const objectId = clean(identity?.objectId, 180);
@@ -68,6 +75,12 @@ async function profileForIdentity(DB, identity) {
     WHERE lower(email)=lower(?) OR (?<>'' AND microsoft_object_id=?)
     ORDER BY CASE WHEN lower(email)=lower(?) THEN 0 ELSE 1 END LIMIT 1`)
     .bind(email, objectId, objectId, email).first();
+}
+
+export async function profileForCustomerEmail(DB, email) {
+  const target = cleanEmail(email);
+  if (!target || !DB) return null;
+  return DB.prepare("SELECT * FROM profiles WHERE lower(email)=lower(?) LIMIT 1").bind(target).first();
 }
 
 function customerReference(identity, profile) {
@@ -79,12 +92,51 @@ function customerReference(identity, profile) {
   };
 }
 
+export function customerReferenceForProfile(profile) {
+  return {
+    customerNumber: UCN_PATTERN.test(String(profile?.universal_customer_number || "")) ? String(profile.universal_customer_number) : undefined,
+    platformCustomerId: clean(profile?.planyx_account_id, 180) || undefined
+  };
+}
+
 export async function customerReferenceForIdentity(DB, identity) {
   const profile = await profileForIdentity(DB, identity);
   return { profile, reference: customerReference(identity, profile) };
 }
 
+export function headOfficeAgeAuthorityReady(access) {
+  const assurance = access?.ageAssurance;
+  return assurance?.contractVersion === HEAD_OFFICE_AGE_CONTRACT
+    && assurance?.configured === true
+    && assurance?.deploymentKey === "PLANYX"
+    && assurance?.platformCode === "PLANYX"
+    && assurance?.minimumAge === 16
+    && assurance?.accountPopulation === "customers_only"
+    && assurance?.staffAccountsExcluded === true;
+}
+
+function enforceHeadOfficeAgeContract(access = {}) {
+  if (headOfficeAgeAuthorityReady(access)) return access;
+  return {
+    ...access,
+    decision: "review",
+    action: "review",
+    revokeSessions: true,
+    reason: "Planyx could not confirm its governed 16+ deployment with Head Office. Customer access has been held safely rather than bypassing age assurance.",
+    ageAssurance: {
+      ...(access.ageAssurance || {}),
+      expectedContractVersion: HEAD_OFFICE_AGE_CONTRACT,
+      expectedDeploymentKey: "PLANYX",
+      minimumAge: 16,
+      accountPopulation: "customers_only",
+      staffAccountsExcluded: true,
+      authorityValid: false
+    }
+  };
+}
+
 export function blocksAccess(access) {
+  if (!headOfficeAgeAuthorityReady(access)) return true;
   const decision = clean(access?.decision || access?.action, 40).toLowerCase();
   return decision === "deny" || decision === "step_up" || (decision === "review" && Boolean(access?.revokeSessions));
 }
@@ -92,17 +144,17 @@ export function blocksAccess(access) {
 export function isHeadOfficeAgeStepUp(access) {
   const decision = clean(access?.decision || access?.action, 40).toLowerCase();
   const assurance = access?.ageAssurance;
-  return decision === "step_up"
-    && assurance?.required === true
-    && assurance?.accountPopulation === "customers_only"
-    && assurance?.staffAccountsExcluded === true;
+  return headOfficeAgeAuthorityReady(access)
+    && decision === "step_up"
+    && assurance?.required === true;
 }
 
 export async function checkHeadOfficeAccessByReference(env, reference) {
   const payload = await customerOpsRequest(env, "/api/platform/access/decision", reference || {});
+  const access = payload.access || { decision: "review", revokeSessions: true, reason: "Head Office did not return an access decision." };
   return {
     customer: payload.customer || null,
-    access: payload.access || { decision: "review", revokeSessions: true, reason: "Head Office did not return an access decision." }
+    access: enforceHeadOfficeAgeContract(access)
   };
 }
 
@@ -110,6 +162,30 @@ export async function checkHeadOfficeAccess(env, DB, identity) {
   const { profile, reference } = await customerReferenceForIdentity(DB, identity);
   const result = await checkHeadOfficeAccessByReference(env, reference);
   return { profile, reference, ...result };
+}
+
+export async function readHeadOfficeSecurityState(env, reference = {}) {
+  const customerNumber = clean(reference.customerNumber, 30);
+  if (!UCN_PATTERN.test(customerNumber)) {
+    throw Object.assign(new Error("The customer does not yet have a valid Universal Customer Number."), { code: "CUSTOMER_UCN_REQUIRED", status: 409 });
+  }
+  const payload = await customerOpsFetch(env, `/api/platform/security/state?ucn=${encodeURIComponent(customerNumber)}`, { method: "GET", timeoutMs: 8_000 });
+  if (payload.contractVersion !== HEAD_OFFICE_SECURITY_CONTRACT) {
+    throw Object.assign(new Error("Head Office returned an unsupported customer-security contract."), {
+      code: "CUSTOMEROPS_SECURITY_CONTRACT_INVALID",
+      status: 502,
+      expected: HEAD_OFFICE_SECURITY_CONTRACT
+    });
+  }
+  return payload;
+}
+
+export async function readHeadOfficeSecurityForEmail(env, DB, email) {
+  const profile = await profileForCustomerEmail(DB, email);
+  if (!profile) throw Object.assign(new Error("Customer not found."), { code: "CUSTOMER_NOT_FOUND", status: 404 });
+  const reference = customerReferenceForProfile(profile);
+  const state = await readHeadOfficeSecurityState(env, reference);
+  return { profile, reference, state };
 }
 
 export async function requestHeadOfficeAgeAssuranceSession(env, reference, consentVersion) {
@@ -211,8 +287,8 @@ export async function reportPlatformHeartbeat(env, DB, extra = {}) {
     releaseCommit: commit || undefined,
     healthStatus: "operational",
     healthMessage: "Planyx customer authentication, subscriptions and CustomerOps enforcement are operational.",
-    capabilities: ["customer_identity", "security_enforcement", "sessions", "subscriptions", "orders", "payments", "fraud_events", "head_office_age_assurance"],
-    integrations: { customerIdentity: "JA Group Services ID", customerOps: "connected", ageAssurance: "head_office_controlled", stripe: env.STRIPE_SECRET_KEY ? "connected" : "not_configured" },
+    capabilities: ["customer_identity", "security_enforcement", "security_marker_display", "sessions", "subscriptions", "orders", "payments", "fraud_events", "head_office_age_assurance"],
+    integrations: { customerIdentity: "JA Group Services ID", customerOps: "connected", ageAssurance: "head_office_controlled", securityMarkers: "head_office_controlled", stripe: env.STRIPE_SECRET_KEY ? "connected" : "not_configured" },
     customerCount: Number(customers.results?.[0]?.count || 0),
     activeSessionCount: Number(sessions.results?.[0]?.count || 0),
     openErrorCount: Number(errors.results?.[0]?.count || 0),
