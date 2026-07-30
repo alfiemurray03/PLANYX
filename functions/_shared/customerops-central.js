@@ -79,19 +79,45 @@ function customerReference(identity, profile) {
   };
 }
 
+export async function customerReferenceForIdentity(DB, identity) {
+  const profile = await profileForIdentity(DB, identity);
+  return { profile, reference: customerReference(identity, profile) };
+}
+
 export function blocksAccess(access) {
   const decision = clean(access?.decision || access?.action, 40).toLowerCase();
   return decision === "deny" || decision === "step_up" || (decision === "review" && Boolean(access?.revokeSessions));
 }
 
-export async function checkHeadOfficeAccess(env, DB, identity) {
-  const profile = await profileForIdentity(DB, identity);
-  const payload = await customerOpsRequest(env, "/api/platform/access/decision", customerReference(identity, profile));
+export function isHeadOfficeAgeStepUp(access) {
+  const decision = clean(access?.decision || access?.action, 40).toLowerCase();
+  const assurance = access?.ageAssurance;
+  return decision === "step_up"
+    && assurance?.required === true
+    && assurance?.accountPopulation === "customers_only"
+    && assurance?.staffAccountsExcluded === true;
+}
+
+export async function checkHeadOfficeAccessByReference(env, reference) {
+  const payload = await customerOpsRequest(env, "/api/platform/access/decision", reference || {});
   return {
-    profile,
     customer: payload.customer || null,
     access: payload.access || { decision: "review", revokeSessions: true, reason: "Head Office did not return an access decision." }
   };
+}
+
+export async function checkHeadOfficeAccess(env, DB, identity) {
+  const { profile, reference } = await customerReferenceForIdentity(DB, identity);
+  const result = await checkHeadOfficeAccessByReference(env, reference);
+  return { profile, reference, ...result };
+}
+
+export async function requestHeadOfficeAgeAssuranceSession(env, reference, consentVersion) {
+  return customerOpsRequest(env, "/api/platform/age-assurance/session", {
+    ...(reference || {}),
+    consentAccepted: true,
+    consentVersion: clean(consentVersion, 80)
+  }, 12_000);
 }
 
 export async function revokeLocalCustomerSession(DB, identity, reason = "Head Office access restriction") {
@@ -185,8 +211,8 @@ export async function reportPlatformHeartbeat(env, DB, extra = {}) {
     releaseCommit: commit || undefined,
     healthStatus: "operational",
     healthMessage: "Planyx customer authentication, subscriptions and CustomerOps enforcement are operational.",
-    capabilities: ["customer_identity", "security_enforcement", "sessions", "subscriptions", "orders", "payments", "fraud_events"],
-    integrations: { customerIdentity: "JA Group Services ID", customerOps: "connected", stripe: env.STRIPE_SECRET_KEY ? "connected" : "not_configured" },
+    capabilities: ["customer_identity", "security_enforcement", "sessions", "subscriptions", "orders", "payments", "fraud_events", "head_office_age_assurance"],
+    integrations: { customerIdentity: "JA Group Services ID", customerOps: "connected", ageAssurance: "head_office_controlled", stripe: env.STRIPE_SECRET_KEY ? "connected" : "not_configured" },
     customerCount: Number(customers.results?.[0]?.count || 0),
     activeSessionCount: Number(sessions.results?.[0]?.count || 0),
     openErrorCount: Number(errors.results?.[0]?.count || 0),
