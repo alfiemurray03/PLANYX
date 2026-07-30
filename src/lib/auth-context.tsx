@@ -24,12 +24,13 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 type SessionHeartbeatResponse = {
   success?: boolean;
-  access?: 'allowed' | 'denied' | 'review' | 'step_up';
+  access?: 'allowed' | 'denied' | 'review' | 'step_up' | 'unavailable';
   logoutUrl?: string;
+  protectionStatus?: 'confirmed' | 'temporarily_unavailable';
 };
 
-function protectedDestination(payload: SessionHeartbeatResponse, responseStatus: number): string {
-  const access = payload.access || (responseStatus === 503 ? 'review' : 'denied');
+function protectedDestination(payload: SessionHeartbeatResponse): string {
+  const access = payload.access || 'denied';
   const fallback = access === 'step_up'
     ? '/account/verification-required/'
     : '/account/access-restricted/';
@@ -43,6 +44,10 @@ function protectedDestination(payload: SessionHeartbeatResponse, responseStatus:
   }
 }
 
+function isBlockingDecision(access: SessionHeartbeatResponse['access']): boolean {
+  return access === 'denied' || access === 'review' || access === 'step_up';
+}
+
 async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<boolean> {
   try {
     const response = await fetch('/api/session-heartbeat', {
@@ -53,16 +58,25 @@ async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<bo
       body: JSON.stringify({ action }),
     });
     const payload = await response.json().catch(() => ({})) as SessionHeartbeatResponse;
-    const blocked = action === 'heartbeat'
-      && (!response.ok || (payload.access && payload.access !== 'allowed'));
-    if (blocked) {
-      window.location.replace(protectedDestination(payload, response.status));
+
+    if (action === 'heartbeat' && isBlockingDecision(payload.access)) {
+      window.location.replace(protectedDestination(payload));
       return false;
     }
+
+    if (action === 'heartbeat' && response.status === 401) {
+      window.location.replace('/sign-in');
+      return false;
+    }
+
+    // A temporary service or network failure is not a Head Office security
+    // decision. Preserve the current local session and retry on the next focus or
+    // scheduled heartbeat instead of sending the customer to a restriction page.
+    if (action === 'heartbeat' && response.status >= 500) return true;
+
     return response.ok;
   } catch {
-    if (action === 'heartbeat') window.location.replace('/account/access-restricted/');
-    return false;
+    return action === 'heartbeat';
   }
 }
 
