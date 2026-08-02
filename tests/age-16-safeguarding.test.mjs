@@ -106,7 +106,7 @@ test('support assistant separates safeguarding from ordinary customer support', 
   assert.match(source, /safeguardingIntent/);
   assert.match(source, /immediateDangerIntent/);
   assert.match(source, /call 999 now/i);
-  assert.match(source, /children’s social care team at their local council/);
+  assert.match(source, /local authority children’s social care team/);
   assert.match(source, /underSixteenIntent/);
   assert.match(source, /Nobody under 16 is permitted/);
   assert.match(source, /href: "\/safety"/);
