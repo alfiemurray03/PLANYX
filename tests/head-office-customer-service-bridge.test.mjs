@@ -21,7 +21,8 @@ assert.match(shared, /senderType: "ai"/);
 assert.match(shared, /HUMAN_ONLY_CATEGORIES/);
 assert.match(shared, /request_human/);
 
-assert.match(handler, /mirrorCentralAssistantExchange/);
+assert.match(handler, /centralPreflight/);
+assert.match(handler, /centralRecordAnswer/);
 assert.match(handler, /centralCategoryFromSupportResult/);
 assert.match(runtime, /CentralCustomerServiceChatbot/);
 assert.doesNotMatch(runtime, /return <AtlassianCustomerServiceWidget/);
