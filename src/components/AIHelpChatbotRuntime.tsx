@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, LifeBuoy, Mail, Phone, Wrench, X } from 'lucide-react';
-import AtlassianCustomerServiceWidget from './AtlassianCustomerServiceWidget';
+import CentralCustomerServiceChatbot from './CentralCustomerServiceChatbot';
 
 type ContactStatus = 'online' | 'maintenance' | 'offline';
 
@@ -9,13 +9,20 @@ interface RuntimeConfig {
   maintenanceEnabled: boolean;
   maintenanceMessage: string;
   escalationEnabled: boolean;
+  humanTakeoverEnabled: boolean;
   assistantName: string;
+  welcomeMessage: string;
+  inputPlaceholder: string;
   position: 'bottom-right' | 'bottom-left';
   primaryColor: string;
+  accentColor: string;
   panelWidth: number;
+  panelHeight: number;
   borderRadius: number;
   launcherSize: number;
   launcherLabel: string;
+  showPoweredBy: boolean;
+  emergencyNotice: string;
   contactPageEnabled: boolean;
   contactEnquiriesAvailable: boolean;
   contactPageStatus: ContactStatus;
@@ -33,13 +40,20 @@ const DEFAULT_CONFIG: RuntimeConfig = {
   maintenanceEnabled: false,
   maintenanceMessage: 'The Help Centre assistant is undergoing maintenance.',
   escalationEnabled: true,
+  humanTakeoverEnabled: true,
   assistantName: 'Planyx Support Assistant',
+  welcomeMessage: 'How can I help with Planyx today?',
+  inputPlaceholder: 'Ask a Planyx support question…',
   position: 'bottom-right',
   primaryColor: '#2563eb',
+  accentColor: '#0f172a',
   panelWidth: 430,
+  panelHeight: 650,
   borderRadius: 18,
   launcherSize: 56,
   launcherLabel: 'Help',
+  showPoweredBy: true,
+  emergencyNotice: '',
   contactPageEnabled: true,
   contactEnquiriesAvailable: true,
   contactPageStatus: 'online',
@@ -163,5 +177,5 @@ export default function AIHelpChatbotRuntime() {
 
   if (!ready || hiddenForPortal || !config.enabled) return null;
   if (config.maintenanceEnabled) return <MaintenanceWidget config={config} />;
-  return <AtlassianCustomerServiceWidget />;
+  return <CentralCustomerServiceChatbot config={config} />;
 }
