@@ -62,11 +62,13 @@ test('Admin manual access is permission-aware and hidden before PIN unlock', asy
   assert.match(shortcuts, /key: 'm'[\s\S]{0,180}href: '\/admin\/manuals'[\s\S]{0,80}section: 'support'/);
 });
 
-test('Customer Service Workspace remains separate from Admin Support manuals', async () => {
+test('Customer Service remains separate from Admin Support manuals and is controlled by Head Office', async () => {
   const routes = await read('src/routes.tsx');
   const supportPage = await read('src/pages/admin/support.tsx');
   assert.match(routes, /const AdminSupportPage = lazy\(\(\) => import\('\.\/pages\/admin\/support'\)\)/);
   assert.match(routes, /path: '\/admin\/support'/);
-  assert.match(supportPage, /Customer Service Workspace/);
-  assert.match(supportPage, /Request queue/);
+  assert.match(supportPage, /Head Office Customer Service/);
+  assert.match(supportPage, /customerops\.jagroupservices\.co\.uk/);
+  assert.match(supportPage, /Third-party chat and ticketing services have been retired/);
+  assert.doesNotMatch(supportPage, /Request queue/);
 });
