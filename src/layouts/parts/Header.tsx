@@ -5,6 +5,7 @@ import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown } from 'lucide-reac
 import { useState, useRef, useEffect } from 'react';
 import { useBranding } from '@/lib/branding';
 import { Button } from '@/components/ui/button';
+import CustomerWebsitesMenu, { MobileCustomerWebsitesMenu } from '@/components/CustomerWebsitesMenu';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useAuth } from '@/lib/auth-context';
 import { useSiteSettings } from '@/lib/site-settings-context';
@@ -150,6 +151,8 @@ export default function SiteNavHeader() {
                 </Link>
               </>
             )}
+
+            <CustomerWebsitesMenu />
           </div>
 
           {/* Mobile: theme toggle + hamburger */}
@@ -179,6 +182,8 @@ export default function SiteNavHeader() {
           <Link to="/contact" className="flex items-center px-4 py-3 rounded-xl text-sm font-semibold text-foreground hover:bg-muted" onClick={() => setOpen(false)}>
             Contact
           </Link>
+
+          <MobileCustomerWebsitesMenu onNavigate={() => setOpen(false)} />
 
           {!loading && (
             <div className="pt-3 border-t border-border space-y-2">
