@@ -1,5 +1,3 @@
-import { ensureCsmCustomerAccount } from "../../_shared/csm-customer.js";
-
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -19,73 +17,6 @@ function clean(value, max = 500) {
 function cleanEmail(value) {
   const email = clean(value, 254).toLowerCase();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
-}
-
-async function resolveAtlassianCustomers(DB, body) {
-  const action = clean(body.action, 80).toLowerCase();
-  if (action === "create_customer_request") {
-    const email = cleanEmail(body.customerEmail || body.email);
-    if (!email) return [];
-    const profile = await DB.prepare(`SELECT email,verified_name,display_name
-      FROM profiles WHERE lower(email)=lower(?)`).bind(email).first().catch(() => null);
-    if (!profile) return [];
-    return [{
-      email: cleanEmail(profile.email),
-      displayName: clean(profile.verified_name || profile.display_name || profile.email, 160)
-    }];
-  }
-
-  if (action === "retry") {
-    const reference = clean(body.localReference, 120);
-    if (!reference) return [];
-    let row = await DB.prepare(`SELECT c.email,p.verified_name,p.display_name
-      FROM customer_support_cases c
-      LEFT JOIN profiles p ON lower(p.email)=lower(c.email)
-      WHERE c.planyx_reference=? OR c.reference=? LIMIT 1`)
-      .bind(reference, reference).first().catch(() => null);
-    if (!row) {
-      row = await DB.prepare(`SELECT e.email,e.name AS verified_name,NULL AS display_name
-        FROM enquiries e WHERE e.reference=? LIMIT 1`).bind(reference).first().catch(() => null);
-    }
-    const email = cleanEmail(row?.email);
-    return email ? [{ email, displayName: clean(row?.verified_name || row?.display_name || email, 160) }] : [];
-  }
-
-  if (action === "retry_all_failed") {
-    const rows = await DB.prepare(`SELECT DISTINCT r.customer_email AS email,
-        COALESCE(NULLIF(r.customer_name,''),p.verified_name,p.display_name,r.customer_email) AS display_name
-      FROM atlassian_support_requests r
-      LEFT JOIN profiles p ON lower(p.email)=lower(r.customer_email)
-      WHERE r.status IN ('failed','not_configured') AND r.customer_email IS NOT NULL AND r.customer_email<>''
-      ORDER BY r.updated_at DESC LIMIT 20`).all().catch(() => ({ results: [] }));
-    return (rows.results || []).map((row) => ({
-      email: cleanEmail(row.email),
-      displayName: clean(row.display_name || row.email, 160)
-    })).filter((customer) => customer.email);
-  }
-
-  return [];
-}
-
-async function provisionAtlassianCustomers(context) {
-  const { request, env } = context;
-  if (!env.DB || request.method !== "POST" || !cleanEmail(request.headers.get("x-ja-auth-email"))) return;
-  const body = await request.clone().json().catch(() => ({}));
-  const customers = await resolveAtlassianCustomers(env.DB, body);
-  for (const customer of customers) {
-    try {
-      await ensureCsmCustomerAccount(env, customer);
-    } catch (error) {
-      console.error(JSON.stringify({
-        event: "atlassian_csm_customer_provision_failed",
-        customer_email: customer.email,
-        error_code: clean(error?.code || "ATLASSIAN_CSM_CUSTOMER_FAILED", 120),
-        http_status: Number(error?.status || 500)
-      }));
-      // The downstream handler still saves the CRM case before attempting Atlassian.
-      // Once the token scope or Jira permission is corrected, the saved case can be retried safely.
-    }
-  }
 }
 
 async function ensureLockTable(DB) {
@@ -167,11 +98,6 @@ function withLock(payload, lock) {
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-
-  if (url.pathname === "/api/admin/atlassian-connection" && request.method === "POST") {
-    await provisionAtlassianCustomers(context);
-    return context.next();
-  }
 
   if (url.pathname !== "/api/admin/customer-verification" || !env.DB) return context.next();
 
