@@ -4,6 +4,38 @@ import CentralCustomerServiceChatbot from './CentralCustomerServiceChatbot';
 
 type ContactStatus = 'online' | 'maintenance' | 'offline';
 
+type CentralAppearance = {
+  accentColour?: string;
+  launcherColour?: string;
+  launcherTextColour?: string;
+  headerBackground?: string;
+  headerTextColour?: string;
+  panelBackground?: string;
+  panelTextColour?: string;
+  position?: 'bottom-right' | 'bottom-left';
+  panelWidth?: number;
+  panelHeight?: number;
+  borderRadius?: number;
+  launcherSize?: number;
+  launcherLabel?: string;
+  headerSubtitle?: string;
+  inputPlaceholder?: string;
+  showLauncherLabel?: boolean;
+  showPoweredBy?: boolean;
+};
+
+type CentralBranchConfig = {
+  assistantEnabled?: boolean;
+  aiEnabled?: boolean;
+  humanTakeoverEnabled?: boolean;
+  maintenanceEnabled?: boolean;
+  maintenanceMessage?: string;
+  emergencyNotice?: string;
+  assistantName?: string;
+  greeting?: string;
+  appearance?: CentralAppearance;
+};
+
 interface RuntimeConfig {
   enabled: boolean;
   maintenanceEnabled: boolean;
@@ -66,6 +98,32 @@ const DEFAULT_CONFIG: RuntimeConfig = {
   contactPhoneHref: 'tel:+442038342790',
 };
 
+function applyHeadOfficeControls(current: RuntimeConfig, branch?: CentralBranchConfig | null): RuntimeConfig {
+  if (!branch) return current;
+  const appearance = branch.appearance || {};
+  return {
+    ...current,
+    enabled: branch.assistantEnabled !== false,
+    maintenanceEnabled: branch.maintenanceEnabled === true,
+    maintenanceMessage: branch.maintenanceMessage || current.maintenanceMessage,
+    escalationEnabled: branch.humanTakeoverEnabled !== false,
+    humanTakeoverEnabled: branch.humanTakeoverEnabled !== false,
+    assistantName: branch.assistantName || current.assistantName,
+    welcomeMessage: branch.greeting || current.welcomeMessage,
+    emergencyNotice: branch.emergencyNotice || '',
+    inputPlaceholder: appearance.inputPlaceholder || current.inputPlaceholder,
+    position: appearance.position || current.position,
+    primaryColor: appearance.launcherColour || appearance.accentColour || current.primaryColor,
+    accentColor: appearance.headerBackground || appearance.accentColour || current.accentColor,
+    panelWidth: Number(appearance.panelWidth || current.panelWidth),
+    panelHeight: Number(appearance.panelHeight || current.panelHeight),
+    borderRadius: Number(appearance.borderRadius ?? current.borderRadius),
+    launcherSize: Number(appearance.launcherSize || current.launcherSize),
+    launcherLabel: appearance.showLauncherLabel === false ? '' : appearance.launcherLabel || current.launcherLabel,
+    showPoweredBy: appearance.showPoweredBy !== false,
+  };
+}
+
 function MaintenanceWidget({ config }: { config: RuntimeConfig }) {
   const [open, setOpen] = useState(false);
   const side = config.position === 'bottom-left' ? 'left-5' : 'right-5';
@@ -104,10 +162,10 @@ function MaintenanceWidget({ config }: { config: RuntimeConfig }) {
           style={{ width: `min(calc(100vw - 1.5rem), ${config.panelWidth}px)`, borderRadius: config.borderRadius }}
           className={`fixed inset-x-3 bottom-20 z-[69] overflow-hidden border border-slate-200 bg-white text-slate-950 shadow-2xl sm:left-auto ${panelSide}`}
         >
-          <header style={{ backgroundColor: config.primaryColor }} className="flex items-center justify-between px-4 py-3 text-white">
+          <header style={{ backgroundColor: config.accentColor }} className="flex items-center justify-between px-4 py-3 text-white">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15"><Wrench className="h-5 w-5" /></span>
-              <div><p className="text-sm font-bold">{config.assistantName}</p><p className="text-[11px] text-white/80">Maintenance mode</p></div>
+              <div><p className="text-sm font-bold">{config.assistantName}</p><p className="text-[11px] text-white/80">Maintenance mode · Head Office controlled</p></div>
             </div>
             <button type="button" onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-white/80 hover:bg-white/10" aria-label="Close"><X className="h-4 w-4" /></button>
           </header>
@@ -165,13 +223,22 @@ export default function AIHelpChatbotRuntime() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/support-assistant', { credentials: 'include', cache: 'no-store' })
-      .then(response => response.json())
-      .then((data: { success?: boolean; config?: Partial<RuntimeConfig> }) => {
-        if (active && data.success && data.config) setConfig({ ...DEFAULT_CONFIG, ...data.config });
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setReady(true); });
+    Promise.allSettled([
+      fetch('/api/support-assistant', { credentials: 'include', cache: 'no-store' }).then(response => response.json()),
+      fetch('/api/customer-service/config', { credentials: 'include', cache: 'no-store' }).then(response => response.json()),
+    ]).then(results => {
+      if (!active) return;
+      let next = DEFAULT_CONFIG;
+      const local = results[0];
+      if (local.status === 'fulfilled' && local.value?.success && local.value?.config) {
+        next = { ...next, ...local.value.config };
+      }
+      const central = results[1];
+      if (central.status === 'fulfilled' && central.value?.centralEnabled === true) {
+        next = applyHeadOfficeControls(next, central.value.branch || central.value.config);
+      }
+      setConfig(next);
+    }).finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, []);
 
