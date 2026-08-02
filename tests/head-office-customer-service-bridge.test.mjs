@@ -23,7 +23,8 @@ assert.match(shared, /request_human/);
 
 assert.match(handler, /centralPreflight/);
 assert.match(handler, /centralRecordAnswer/);
-assert.match(handler, /centralCategoryFromSupportResult/);
+assert.match(handler, /\["safeguarding", "data protection", "security"\]/);
+assert.match(handler, /centralConversationEvent\(context\.env, body\.sessionId, "request_human"/);
 assert.match(runtime, /CentralCustomerServiceChatbot/);
 assert.doesNotMatch(runtime, /return <AtlassianCustomerServiceWidget/);
 assert.match(client, /Planyx Support Assistant/);
