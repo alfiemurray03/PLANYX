@@ -30,7 +30,7 @@ export default function AdminSupport() {
             <div>
               <h2 className="font-semibold text-emerald-950 dark:text-emerald-100">Central control is active</h2>
               <p className="mt-1 text-sm leading-6 text-emerald-900 dark:text-emerald-200">
-                Tawk.to and Atlassian/Jira are no longer used as Planyx customer-service channels. Use the Head Office Portal for authorised case handling and customer replies.
+                Third-party chat and ticketing services have been retired. Use the Head Office Portal for authorised case handling and customer replies.
               </p>
             </div>
           </div>
