@@ -40,7 +40,7 @@ function normaliseCategory(value) {
 }
 
 function baseUrl(env) {
-  const configured = clean(env.CUSTOMEROPS_BASE_URL || DEFAULT_BASE_URL, 500).replace(/\/$/, "");
+  const configured = clean(env.HEAD_OFFICE_CUSTOMEROPS_URL || env.CUSTOMEROPS_BASE_URL || DEFAULT_BASE_URL, 500).replace(/\/$/, "");
   const url = new URL(configured);
   if (url.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(url.hostname)) {
     throw Object.assign(new Error("The Head Office Customer Service URL must use HTTPS."), { code: "CENTRAL_SUPPORT_URL_INVALID" });
@@ -52,9 +52,21 @@ function apiKey(env) {
   return clean(env.CUSTOMEROPS_API_KEY, 500);
 }
 
+export function centralCustomerServiceSwitchEnabled(env) {
+  return String(env.HEAD_OFFICE_SUPPORT_CENTRE_ENABLED ?? "true").trim().toLowerCase() !== "false";
+}
+
+export function centralCustomerServiceKeyPresent(env) {
+  return apiKey(env).length > 20;
+}
+
+export function centralCustomerServiceOrigin(env) {
+  try { return baseUrl(env); }
+  catch { return DEFAULT_BASE_URL; }
+}
+
 export function centralCustomerServiceEnabled(env) {
-  const switchValue = String(env.HEAD_OFFICE_SUPPORT_CENTRE_ENABLED ?? "true").trim().toLowerCase();
-  return switchValue !== "false" && Boolean(apiKey(env));
+  return centralCustomerServiceSwitchEnabled(env) && centralCustomerServiceKeyPresent(env);
 }
 
 export async function centralSupportRequest(env, path, options = {}) {
@@ -68,7 +80,7 @@ export async function centralSupportRequest(env, path, options = {}) {
     const headers = {
       Authorization: `Bearer ${apiKey(env)}`,
       Accept: "application/json",
-      "User-Agent": "Planyx-Head-Office-Customer-Service/1.0"
+      "User-Agent": "Planyx-Head-Office-Customer-Service/2026-08-02-connection-recovery-1"
     };
     const request = { method, headers, signal: controller.signal };
     if (!["GET", "HEAD"].includes(method)) {
@@ -80,9 +92,8 @@ export async function centralSupportRequest(env, path, options = {}) {
     if (!response.ok) {
       const message = clean(payload?.error?.message || payload?.message || `Head Office returned HTTP ${response.status}.`, 1000);
       throw Object.assign(new Error(message), {
-        code: clean(payload?.error?.code || "CENTRAL_SUPPORT_REQUEST_FAILED", 120),
-        status: response.status,
-        payload
+        code: `HEAD_OFFICE_HTTP_${response.status}`,
+        status: response.status
       });
     }
     return payload;
@@ -193,10 +204,7 @@ export async function centralAiMessage(env, sessionId, input = {}) {
     }
   });
   if (metadata.category || metadata.priority) {
-    await centralClassifyConversation(env, sessionId, {
-      category: metadata.category,
-      priority: metadata.priority
-    });
+    await centralClassifyConversation(env, sessionId, { category: metadata.category, priority: metadata.priority });
   }
   return message;
 }
