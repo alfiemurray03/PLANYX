@@ -4,22 +4,29 @@ import {
   centralConversationMessages,
   centralCustomerMessage,
   centralCustomerServiceEnabled,
+  centralCustomerServiceKeyPresent,
+  centralCustomerServiceOrigin,
+  centralCustomerServiceSwitchEnabled,
   centralEscalateConversation,
   centralKnowledge,
   centralSupportRequest,
   ensureCentralConversation
 } from "../../_shared/customer-service-centre.js";
 
+const BRIDGE_VERSION = "2026-08-02-connection-recovery-1";
+
+function responseHeaders() {
+  return {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "same-origin",
+    "X-JA-Customer-Service-Bridge": BRIDGE_VERSION
+  };
+}
+
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "same-origin"
-    }
-  });
+  return new Response(JSON.stringify(data), { status, headers: responseHeaders() });
 }
 
 function clean(value, max = 1000) {
@@ -29,6 +36,25 @@ function clean(value, max = 1000) {
 function segments(value) {
   if (Array.isArray(value)) return value.flatMap(item => String(item).split('/')).filter(Boolean);
   return String(value || '').split('/').filter(Boolean);
+}
+
+function diagnostics(env, overrides = {}) {
+  return {
+    bridgeVersion: BRIDGE_VERSION,
+    supportSwitchEnabled: centralCustomerServiceSwitchEnabled(env),
+    keyPresent: centralCustomerServiceKeyPresent(env),
+    headOfficeOrigin: centralCustomerServiceOrigin(env),
+    centralStatus: 'not_attempted',
+    centralHttpStatus: null,
+    errorCode: null,
+    ...overrides
+  };
+}
+
+function activationError(env) {
+  if (!centralCustomerServiceSwitchEnabled(env)) return 'SUPPORT_SWITCH_DISABLED';
+  if (!centralCustomerServiceKeyPresent(env)) return 'CUSTOMEROPS_API_KEY_MISSING';
+  return null;
 }
 
 async function readBody(request, maximum = 64_000) {
@@ -65,18 +91,39 @@ async function getConfig(context) {
       centralEnabled: false,
       connected: false,
       branch: null,
-      config: null
+      config: null,
+      diagnostics: diagnostics(context.env, { errorCode: activationError(context.env) })
     });
   }
-  const payload = await centralSupportRequest(context.env, '/api/v1/platform/support-control', { method: 'GET' });
-  return json({
-    success: true,
-    centralEnabled: true,
-    connected: payload.connected === true,
-    branch: payload.branch || payload.config || null,
-    config: payload.config || payload.branch || null,
-    connection: payload.connection || null
-  });
+  try {
+    const payload = await centralSupportRequest(context.env, '/api/v1/platform/support-control', { method: 'GET' });
+    return json({
+      success: true,
+      centralEnabled: true,
+      connected: payload.connected === true,
+      branch: payload.branch || payload.config || null,
+      config: payload.config || payload.branch || null,
+      connection: payload.connection || null,
+      diagnostics: diagnostics(context.env, {
+        centralStatus: payload.connected === true ? 'connected' : 'responded',
+        centralHttpStatus: 200,
+        errorCode: payload.connected === true ? null : 'HEAD_OFFICE_NOT_CONFIRMED'
+      })
+    });
+  } catch (error) {
+    return json({
+      success: true,
+      centralEnabled: true,
+      connected: false,
+      branch: null,
+      config: null,
+      diagnostics: diagnostics(context.env, {
+        centralStatus: error?.code === 'CENTRAL_SUPPORT_TIMEOUT' ? 'timeout' : 'rejected',
+        centralHttpStatus: Number(error?.status || 0) || null,
+        errorCode: clean(error?.code || 'HEAD_OFFICE_UNREACHABLE', 120)
+      })
+    });
+  }
 }
 
 async function getKnowledge(context) {
@@ -174,7 +221,7 @@ export async function onRequest(context) {
     }
     if (context.request.method === 'POST') {
       if (!centralCustomerServiceEnabled(context.env)) {
-        return json({ success: false, error: 'Head Office Customer Service is not enabled for Planyx.', code: 'CENTRAL_SUPPORT_DISABLED' }, 503);
+        return json({ success: false, error: 'Head Office Customer Service is not enabled for Planyx.', code: activationError(context.env) || 'CENTRAL_SUPPORT_DISABLED' }, 503);
       }
       if (route.length === 1 && route[0] === 'conversations') return startConversation(context);
       if (route.length === 3 && route[0] === 'conversations' && route[2] === 'messages') return addCustomerMessage(context, route[1]);
@@ -187,7 +234,6 @@ export async function onRequest(context) {
       event: 'planyx_customer_service_bridge_error',
       code: clean(error?.code, 120),
       status: Number(error?.status || 0),
-      message: clean(error?.message, 1000),
       route,
       method: context.request.method
     }));
