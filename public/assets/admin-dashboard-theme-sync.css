@@ -69,3 +69,8 @@ html.dark .admin-portal main section.bg-slate-950.rounded-3xl {
 html.dark .admin-portal main section.bg-slate-950.rounded-3xl h1 {
   color: #ffffff !important;
 }
+
+/* The legacy Atlassian/Jira support area has been retired. */
+.admin-portal a[href="/admin/atlassian-support"] {
+  display: none !important;
+}
