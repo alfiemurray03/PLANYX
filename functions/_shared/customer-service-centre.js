@@ -53,7 +53,8 @@ function apiKey(env) {
 }
 
 export function centralCustomerServiceEnabled(env) {
-  return String(env.HEAD_OFFICE_SUPPORT_CENTRE_ENABLED || "").toLowerCase() === "true" && Boolean(apiKey(env));
+  const switchValue = String(env.HEAD_OFFICE_SUPPORT_CENTRE_ENABLED ?? "true").trim().toLowerCase();
+  return switchValue !== "false" && Boolean(apiKey(env));
 }
 
 export async function centralSupportRequest(env, path, options = {}) {
