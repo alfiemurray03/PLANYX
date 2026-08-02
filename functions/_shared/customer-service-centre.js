@@ -70,8 +70,8 @@ export async function centralSupportRequest(env, path, options = {}) {
       "User-Agent": "Planyx-Head-Office-Customer-Service/1.0"
     };
     const request = { method, headers, signal: controller.signal };
-    if (!['GET', 'HEAD'].includes(method)) {
-      headers['Content-Type'] = 'application/json';
+    if (!["GET", "HEAD"].includes(method)) {
+      headers["Content-Type"] = "application/json";
       request.body = JSON.stringify(options.body || {});
     }
     const response = await fetch(`${baseUrl(env)}${path}`, request);
@@ -86,7 +86,7 @@ export async function centralSupportRequest(env, path, options = {}) {
     }
     return payload;
   } catch (error) {
-    if (error?.name === 'AbortError') {
+    if (error?.name === "AbortError") {
       throw Object.assign(new Error("Head Office Customer Service did not respond within the secure timeout."), { code: "CENTRAL_SUPPORT_TIMEOUT", status: 504 });
     }
     throw error;
@@ -122,9 +122,9 @@ export async function centralBranchConfig(env) {
 
 export async function centralKnowledge(env, query = {}) {
   const params = new URLSearchParams();
-  if (query.service) params.set('service', clean(query.service, 80));
-  if (query.accountType) params.set('accountType', clean(query.accountType, 80));
-  if (query.plan) params.set('plan', clean(query.plan, 80));
+  if (query.service) params.set("service", clean(query.service, 80));
+  if (query.accountType) params.set("accountType", clean(query.accountType, 80));
+  if (query.plan) params.set("plan", clean(query.plan, 80));
   return centralSupportRequest(env, `/api/v1/platform/support/knowledge?${params}`, { method: "GET" });
 }
 
@@ -149,9 +149,20 @@ export async function ensureCentralConversation(env, DB, identity, input = {}) {
   return { ...result, category, humanOnly: HUMAN_ONLY_CATEGORIES.has(category) };
 }
 
+export async function centralClassifyConversation(env, sessionId, input = {}) {
+  return centralSupportRequest(env, "/api/v1/platform/support-classification", {
+    method: "POST",
+    body: {
+      externalConversationId: clean(sessionId, 180),
+      category: normaliseCategory(input.category),
+      priority: clean(input.priority || "normal", 20).toLowerCase()
+    }
+  });
+}
+
 export async function centralConversationMessages(env, sessionId, after = "") {
   const params = new URLSearchParams();
-  if (after) params.set('after', clean(after, 40));
+  if (after) params.set("after", clean(after, 40));
   return centralSupportRequest(env, `/api/v1/platform/support/conversations/${encodeURIComponent(clean(sessionId, 180))}/messages?${params}`, { method: "GET" });
 }
 
@@ -169,16 +180,24 @@ export async function centralCustomerMessage(env, sessionId, input = {}) {
 }
 
 export async function centralAiMessage(env, sessionId, input = {}) {
-  return centralSupportRequest(env, `/api/v1/platform/support/conversations/${encodeURIComponent(clean(sessionId, 180))}/messages`, {
+  const metadata = safeObject(input.metadata);
+  const message = await centralSupportRequest(env, `/api/v1/platform/support/conversations/${encodeURIComponent(clean(sessionId, 180))}/messages`, {
     method: "POST",
     body: {
       externalMessageId: clean(input.externalMessageId, 180) || undefined,
       senderType: "ai",
       senderName: clean(input.senderName || "Planyx Support Assistant", 120),
       body: clean(input.body, 8000),
-      metadata: safeObject(input.metadata)
+      metadata
     }
   });
+  if (metadata.category || metadata.priority) {
+    await centralClassifyConversation(env, sessionId, {
+      category: metadata.category,
+      priority: metadata.priority
+    });
+  }
+  return message;
 }
 
 export async function centralConversationEvent(env, sessionId, eventType, input = {}) {
@@ -217,23 +236,23 @@ export async function mirrorCentralAssistantExchange(env, DB, identity, input = 
   const priority = clean(result.priority || input.priority || "normal", 20).toLowerCase();
   const conversation = await ensureCentralConversation(env, DB, identity, {
     sessionId,
-    category,
-    priority,
+    category: "general",
+    priority: "normal",
     pagePath: input.pagePath,
     pageTitle: input.pageTitle,
     serviceContext: input.serviceContext
   });
   const state = await centralConversationMessages(env, sessionId).catch(() => ({ conversation: conversation.conversation, messages: [] }));
-  const handlingMode = state?.conversation?.handlingMode || conversation?.conversation?.handlingMode || 'ai';
+  const handlingMode = state?.conversation?.handlingMode || conversation?.conversation?.handlingMode || "ai";
   const customerMessageId = clean(input.messageId, 160) || `customer-${sessionId}-${Number(input.turn || 0)}`;
   await centralCustomerMessage(env, sessionId, {
     externalMessageId: customerMessageId,
-    senderName: clean(identity?.name, 120) || 'Customer',
+    senderName: clean(identity?.name, 120) || "Customer",
     body: input.message,
-    metadata: { pagePath: input.pagePath, source: 'planyx_support_assistant' }
+    metadata: { pagePath: input.pagePath, source: "planyx_support_assistant" }
   });
 
-  if (!['ai', 'hybrid'].includes(handlingMode)) {
+  if (!["ai", "hybrid"].includes(handlingMode)) {
     return { enabled: true, humanHandling: true, conversation: state.conversation || conversation.conversation };
   }
 
@@ -245,10 +264,10 @@ export async function mirrorCentralAssistantExchange(env, DB, identity, input = 
       metadata: { category, priority, source: clean(result.source, 100), articleId: clean(result.article?.id, 100) }
     });
   }
-  if (conversation.humanOnly || result.escalate) {
+  if (HUMAN_ONLY_CATEGORIES.has(category) || result.escalate) {
     await centralConversationEvent(env, sessionId, "request_human", {
       pagePath: input.pagePath,
-      metadata: { category, priority, reason: conversation.humanOnly ? "restricted_category" : "assistant_escalation" }
+      metadata: { category, priority, reason: HUMAN_ONLY_CATEGORIES.has(category) ? "restricted_category" : "assistant_escalation" }
     });
   }
   return { enabled: true, humanHandling: false, conversation: conversation.conversation, category, priority };
