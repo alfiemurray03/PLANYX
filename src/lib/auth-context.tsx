@@ -44,10 +44,6 @@ function protectedDestination(payload: SessionHeartbeatResponse): string {
   }
 }
 
-function isBlockingDecision(access: SessionHeartbeatResponse['access']): boolean {
-  return access === 'denied' || access === 'review' || access === 'step_up';
-}
-
 async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<boolean> {
   try {
     const response = await fetch('/api/session-heartbeat', {
@@ -59,7 +55,7 @@ async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<bo
     });
     const payload = await response.json().catch(() => ({})) as SessionHeartbeatResponse;
 
-    if (action === 'heartbeat' && isBlockingDecision(payload.access)) {
+    if (action === 'heartbeat' && payload.access && payload.access !== 'allowed') {
       window.location.replace(protectedDestination(payload));
       return false;
     }
@@ -69,9 +65,9 @@ async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<bo
       return false;
     }
 
-    // A temporary service or network failure is not a Head Office security
-    // decision. Preserve the current local session and retry on the next focus or
-    // scheduled heartbeat instead of sending the customer to a restriction page.
+    // A temporary service or network failure without an explicit Head Office
+    // decision is not treated as a restriction. Preserve the current local session
+    // and retry on the next focus or scheduled heartbeat.
     if (action === 'heartbeat' && response.status >= 500) return true;
 
     return response.ok;
