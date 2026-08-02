@@ -1,12 +1,12 @@
 import { assertSameOrigin, getNativeSession } from "../../_shared/oidc.js";
 import {
-  centralBranchConfig,
   centralConversationEvent,
   centralConversationMessages,
   centralCustomerMessage,
   centralCustomerServiceEnabled,
   centralEscalateConversation,
   centralKnowledge,
+  centralSupportRequest,
   ensureCentralConversation
 } from "../../_shared/customer-service-centre.js";
 
@@ -60,10 +60,23 @@ function failure(error) {
 
 async function getConfig(context) {
   if (!centralCustomerServiceEnabled(context.env)) {
-    return json({ success: true, centralEnabled: false, branch: null });
+    return json({
+      success: true,
+      centralEnabled: false,
+      connected: false,
+      branch: null,
+      config: null
+    });
   }
-  const payload = await centralBranchConfig(context.env);
-  return json({ success: true, centralEnabled: true, branch: payload.branch || null });
+  const payload = await centralSupportRequest(context.env, '/api/v1/platform/support-control', { method: 'GET' });
+  return json({
+    success: true,
+    centralEnabled: true,
+    connected: payload.connected === true,
+    branch: payload.branch || payload.config || null,
+    config: payload.config || payload.branch || null,
+    connection: payload.connection || null
+  });
 }
 
 async function getKnowledge(context) {
