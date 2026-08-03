@@ -28,7 +28,18 @@ export function installPwaSupport() {
   }
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=7', { scope: '/', updateViaCache: 'none' })
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let refreshedForWorkerUpdate = false;
+
+    if (hadController) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshedForWorkerUpdate) return;
+        refreshedForWorkerUpdate = true;
+        window.location.reload();
+      });
+    }
+
+    navigator.serviceWorker.register('/sw.js?v=8', { scope: '/', updateViaCache: 'none' })
       .then((registration) => {
         void registration.update();
       })
