@@ -9,6 +9,10 @@ import {
   reportPlatformHeartbeat,
   revokeLocalCustomerSession
 } from "../_shared/customerops-central.js";
+import {
+  closePlanyxSession,
+  registerPlanyxSession
+} from "../_shared/connected-sessions.js";
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -47,6 +51,10 @@ function blockedResponse(payload, status, challengeCookie = "") {
   return response;
 }
 
+function centrallyRevoked(status) {
+  return ["revocation_required", "revoked", "expired", "signed_out"].includes(String(status || "").toLowerCase());
+}
+
 export async function onRequestPost(context) {
   if (!assertSameOrigin(context.request)) return json({ success: false, error: "Request origin was rejected." }, 403);
   if (!context.env.DB) return json({ success: false, error: "Session audit storage is unavailable." }, 503);
@@ -62,14 +70,22 @@ export async function onRequestPost(context) {
   const payload = await body(context.request);
   if (payload.action === "logout") {
     await recordSessionLogout(context.env.DB, context.request, identity, realm);
-    if (realm === "customer") schedule(context, reportCustomerEvent(context.env, context.env.DB, identity, {
-      eventType: "session.signed_out",
-      title: "Customer signed out of Planyx",
-      category: "authentication",
-      outcome: "signed_out",
-      severity: "information",
-      session: { id: identity.tokenHash, status: "signed_out", lastSeenAt: new Date().toISOString() }
-    }));
+    if (realm === "customer") {
+      await closePlanyxSession(context.env, identity, "Customer signed out of Planyx.").catch(error => {
+        console.error(JSON.stringify({
+          event: "planyx_connected_session_close_failed",
+          message: error instanceof Error ? error.message : "The central session could not be closed."
+        }));
+      });
+      schedule(context, reportCustomerEvent(context.env, context.env.DB, identity, {
+        eventType: "session.signed_out",
+        title: "Customer signed out of Planyx",
+        category: "authentication",
+        outcome: "signed_out",
+        severity: "information",
+        session: { id: identity.tokenHash, status: "signed_out", lastSeenAt: new Date().toISOString() }
+      }));
+    }
     return json({ success: true, action: "logout", realm });
   }
 
@@ -131,6 +147,44 @@ export async function onRequestPost(context) {
         event: "customerops_access_check_unavailable",
         email: identity.email,
         message: error instanceof Error ? error.message : "Head Office customer protection is unavailable."
+      }));
+    }
+
+    try {
+      const central = await registerPlanyxSession(context.env, context.env.DB, context.request, identity);
+      const centralStatus = central?.session?.status || "active";
+      if (centrallyRevoked(centralStatus)) {
+        const reason = "This Planyx device session was revoked through the JA Group Services central session register.";
+        await revokeLocalCustomerSession(context.env.DB, identity, reason);
+        await reportCustomerEvent(context.env, context.env.DB, identity, {
+          eventType: "session.revoked",
+          title: "Planyx session revoked through the central register",
+          category: "security",
+          outcome: "revoked",
+          severity: "high",
+          reason,
+          session: {
+            id: identity.tokenHash,
+            status: centralStatus,
+            revokedAt: new Date().toISOString(),
+            revocationReason: reason
+          }
+        }).catch(() => null);
+        return blockedResponse({
+          success: false,
+          access: "session_revoked",
+          decision: "deny",
+          reason,
+          staffAccountsAffected: false,
+          logoutUrl: "/account/login?error=session_revoked"
+        }, 401);
+      }
+    } catch (error) {
+      if (protectionStatus === "confirmed") protectionStatus = "session_register_temporarily_unavailable";
+      console.error(JSON.stringify({
+        event: "planyx_connected_session_register_failed",
+        email: identity.email,
+        message: error instanceof Error ? error.message : "The central session register is unavailable."
       }));
     }
   }
