@@ -1,9 +1,9 @@
 {
-  "id": "/?app=planyx-v5",
+  "id": "/?app=planyx-v8",
   "name": "Planyx",
   "short_name": "Planyx",
   "description": "Guided planning builders, destination discovery and secure customer support.",
-  "start_url": "/?source=pwa&launch=public-v5",
+  "start_url": "/?source=pwa&launch=public-v8",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
@@ -25,7 +25,7 @@
     {
       "name": "Planyx Home",
       "short_name": "Home",
-      "url": "/?source=pwa&launch=public-v5",
+      "url": "/?source=pwa&launch=public-v8",
       "icons": [{ "src": "/assets/brand/planyx-icon.png", "sizes": "2000x2000", "type": "image/png" }]
     },
     {

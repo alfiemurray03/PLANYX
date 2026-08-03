@@ -45,7 +45,8 @@ assert.match(heartbeat, /logoutUrl: ageStepUp \? "\/account\/verification-requir
 assert.match(heartbeat, /reportPlatformHeartbeat/, 'Live activity must update website health in CustomerOps.');
 assert.match(auth, /60_000/, 'The browser must re-check customer access at least every minute.');
 assert.match(auth, /'step_up'/, 'The browser access model must explicitly recognise Head Office step-up decisions.');
-assert.match(auth, /payload\.access && payload\.access !== 'allowed'/, 'Every non-allow decision must leave the customer account.');
+assert.match(auth, /function explicitlyBlocked[\s\S]*'denied'[\s\S]*'review'[\s\S]*'step_up'[\s\S]*'session_revoked'/, 'Explicit Head Office restrictions and central session revocation must leave the customer account.');
+assert.match(auth, /response\.status >= 500 \|\| payload\.access === 'unavailable'/, 'A temporary central-register outage must preserve an otherwise valid local session.');
 assert.match(auth, /access === 'step_up'[\s\S]*\/account\/verification-required\//, 'Step-up decisions must use the dedicated verification journey.');
 assert.doesNotMatch(auth, /searchParams\.set\(['"]reason['"]/, 'Confidential Head Office reasons must never be added to the browser URL.');
 assert.doesNotMatch(auth, /searchParams\.set\(['"]decision['"]/, 'Access decisions must not remain in the visible browser URL.');
