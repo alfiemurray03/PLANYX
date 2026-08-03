@@ -98,9 +98,11 @@ jobs:
           grep -F ':has(#admin-security-pin)' public/admin-pin.css >/dev/null
           grep -F 'planyx-logo.svg' public/admin-pin-shell.css >/dev/null
 
-          grep -F "planyx-shell-v8" public/sw.js >/dev/null
+          grep -F "planyx-shell-v9" public/sw.js >/dev/null
           grep -F "isProtectedNavigation(url.pathname)" public/sw.js >/dev/null
-          grep -F "isIdentityResponse(url.pathname)" public/sw.js >/dev/null
+          grep -F "isIdentityNavigation(url.pathname)" public/sw.js >/dev/null
+          grep -F "pathname === '/account/login'" public/sw.js >/dev/null
+          grep -F "if (request.mode === 'navigate' && isIdentityNavigation(url.pathname)) return;" public/sw.js >/dev/null
           grep -F "fetch(request, { cache: 'no-store', redirect: 'follow' })" public/sw.js >/dev/null
           if grep -F "isColdProtectedLaunch" public/sw.js >/dev/null; then
             echo 'Protected navigations must never be served from the cached public shell.' >&2
