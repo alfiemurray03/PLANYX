@@ -1,4 +1,4 @@
-const CACHE_NAME = 'planyx-shell-v8';
+const CACHE_NAME = 'planyx-shell-v9';
 const PUBLIC_LAUNCH = '/?source=pwa&launch=public-v8';
 const SHELL = ['/', PUBLIC_LAUNCH, '/manifest.webmanifest?v=8', '/pwa-icon.svg', '/favicon.svg'];
 
@@ -24,8 +24,17 @@ function isProtectedNavigation(pathname) {
     pathname === '/sign-in' || pathname.startsWith('/sign-in/');
 }
 
-function isIdentityResponse(pathname) {
-  return pathname.includes('/callback') || pathname.includes('/logout') || pathname.startsWith('/signed-out');
+function isIdentityNavigation(pathname) {
+  return pathname === '/account/login' || pathname.startsWith('/account/login/') ||
+    pathname === '/account/auth/callback' || pathname.startsWith('/account/auth/callback/') ||
+    pathname === '/account/logout' || pathname.startsWith('/account/logout/') ||
+    pathname === '/auth/login' || pathname.startsWith('/auth/login/') ||
+    pathname === '/auth/callback' || pathname.startsWith('/auth/callback/') ||
+    pathname === '/auth/logout' || pathname.startsWith('/auth/logout/') ||
+    pathname === '/admin/login' || pathname.startsWith('/admin/login/') ||
+    pathname === '/admin/auth/callback' || pathname.startsWith('/admin/auth/callback/') ||
+    pathname === '/admin/logout' || pathname.startsWith('/admin/logout/') ||
+    pathname === '/signed-out' || pathname.startsWith('/signed-out/');
 }
 
 function isAdminRoute(pathname) {
@@ -43,13 +52,17 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Authenticated pages, Microsoft identity responses and the Admin Centre must
-  // always receive the current network document. Serving a cached public shell
-  // here can leave the browser pointing at JavaScript bundles removed by a newer
-  // deployment, producing an unexplained white page after sign-in.
+  // The browser, not the service worker, must own Microsoft sign-in, callback
+  // and sign-out navigations. These endpoints can issue cross-origin redirects
+  // to ciamlogin.com, and wrapping them in event.respondWith(fetch(...)) can turn
+  // a valid top-level redirect into ERR_FAILED.
+  if (request.mode === 'navigate' && isIdentityNavigation(url.pathname)) return;
+
+  // Authenticated application pages and the Admin Centre always receive the
+  // current network document. They are never served from the cached public shell.
   if (
     request.mode === 'navigate' &&
-    (isAdminRoute(url.pathname) || isProtectedNavigation(url.pathname) || isIdentityResponse(url.pathname))
+    (isAdminRoute(url.pathname) || isProtectedNavigation(url.pathname))
   ) {
     event.respondWith(fetch(request, { cache: 'no-store', redirect: 'follow' }));
     return;
@@ -58,8 +71,7 @@ self.addEventListener('fetch', (event) => {
   // Never cache authenticated APIs or identity traffic.
   if (
     url.pathname.startsWith('/api/') ||
-    url.pathname.includes('/logout') ||
-    url.pathname.includes('/callback') ||
+    isIdentityNavigation(url.pathname) ||
     isProtectedNavigation(url.pathname)
   ) return;
 
