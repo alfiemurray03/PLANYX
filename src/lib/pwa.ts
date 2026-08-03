@@ -39,7 +39,7 @@ export function installPwaSupport() {
       });
     }
 
-    navigator.serviceWorker.register('/sw.js?v=8', { scope: '/', updateViaCache: 'none' })
+    navigator.serviceWorker.register('/sw.js?v=9', { scope: '/', updateViaCache: 'none' })
       .then((registration) => {
         void registration.update();
       })
