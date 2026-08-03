@@ -1,4 +1,5 @@
 import { completeLogin, expireOidcCookie, getNativeSession } from "../../_shared/oidc.js";
+import { recoverCustomerOidcTransactionRequest } from "../../_shared/oidc-transaction-recovery.js";
 import { recordAuthenticationFailure } from "../../_shared/auth-attempt-audit.js";
 import { recordCompletedLogin } from "../../_shared/completed-login-audit.js";
 import { syncCustomerWithHeadOffice } from "../../_shared/customerops.js";
@@ -81,6 +82,74 @@ function requiresIdentityHold(syncResult) {
   return ["review_required", "ucn_conflict"].includes(String(syncResult?.status || ""));
 }
 
+function callbackRequestId(context) {
+  return String(
+    context.request.headers.get("cf-ray") ||
+    context.request.headers.get("x-request-id") ||
+    context.request.headers.get("x-correlation-id") ||
+    crypto.randomUUID()
+  ).trim();
+}
+
+function tagCallbackStage(error, context, stage, extra = {}) {
+  if (!(error instanceof Error) || error.authStage) return error;
+  error.authStage = {
+    realm: "customer",
+    stage,
+    file: "functions/account/auth/callback.js",
+    function: "completeCustomerLogin",
+    requestId: callbackRequestId(context),
+    ...extra
+  };
+  return error;
+}
+
+async function completeCustomerLogin(context) {
+  try {
+    return await completeLogin(context, "customer");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message !== "Authentication state validation failed.") {
+      throw tagCallbackStage(error, context, "callback_preflight");
+    }
+
+    let recoveredRequest;
+    try {
+      recoveredRequest = await recoverCustomerOidcTransactionRequest(context);
+    } catch (recoveryError) {
+      if (error instanceof Error) {
+        error.details = {
+          ...(error.details || {}),
+          transaction_recovery: "lookup_failed",
+          recovery_message: recoveryError instanceof Error ? recoveryError.message : "Unknown recovery error"
+        };
+      }
+      throw tagCallbackStage(error, context, "transaction_recovery_lookup");
+    }
+
+    if (!recoveredRequest) {
+      if (error instanceof Error) {
+        error.details = {
+          ...(error.details || {}),
+          transaction_recovery: "not_found_or_already_used"
+        };
+      }
+      throw tagCallbackStage(error, context, "transaction_state_missing");
+    }
+
+    console.error(JSON.stringify({
+      event: "customer_oidc_transaction_recovered",
+      requestId: callbackRequestId(context)
+    }));
+
+    try {
+      return await completeLogin({ ...context, request: recoveredRequest }, "customer");
+    } catch (retryError) {
+      throw tagCallbackStage(retryError, context, "transaction_recovery_retry");
+    }
+  }
+}
+
 async function continueAfterDeferredReadback(context, response, reason) {
   console.error(JSON.stringify({
     event: "customer_oidc_callback_readback_deferred",
@@ -124,7 +193,7 @@ export async function onRequestGet(context) {
   try {
     // Microsoft resolves the customer first. Head Office then resolves the UCN
     // and returns the authoritative customer access decision when available.
-    const response = await completeLogin(context, "customer");
+    const response = await completeCustomerLogin(context);
 
     let sessionToken = "";
     try {
