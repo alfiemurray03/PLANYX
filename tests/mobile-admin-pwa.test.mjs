@@ -44,20 +44,32 @@ test('standalone launch guard recovers installed copies from protected pages', (
 });
 
 
-test('authenticated navigations always bypass the cached public shell', () => {
+test('authenticated application pages bypass the cached public shell', () => {
   assert.match(main, /installPwaSupport\(\)/);
-  assert.match(pwa, /serviceWorker\.register\('\/sw\.js\?v=8'/);
+  assert.match(pwa, /serviceWorker\.register\('\/sw\.js\?v=9'/);
   assert.match(pwa, /updateViaCache: 'none'/);
   assert.match(pwa, /controllerchange/);
-  assert.match(serviceWorker, /planyx-shell-v8/);
+  assert.match(serviceWorker, /planyx-shell-v9/);
   assert.match(serviceWorker, /isProtectedNavigation/);
-  assert.match(serviceWorker, /isIdentityResponse/);
   assert.match(serviceWorker, /request\.mode === 'navigate'/);
   assert.match(serviceWorker, /fetch\(request, \{ cache: 'no-store', redirect: 'follow' \}\)/);
   assert.doesNotMatch(serviceWorker, /isColdProtectedLaunch/);
   assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/);
   assert.match(serviceWorker, /request\.destination === 'manifest'/);
   assert.equal(publicServiceWorker, serviceWorker, 'The production and static service-worker sources must remain identical.');
+});
+
+
+test('Microsoft identity navigations remain browser-owned', () => {
+  assert.match(serviceWorker, /function isIdentityNavigation/);
+  assert.match(serviceWorker, /pathname === '\/account\/login'/);
+  assert.match(serviceWorker, /pathname === '\/account\/auth\/callback'/);
+  assert.match(serviceWorker, /pathname === '\/account\/logout'/);
+  assert.match(serviceWorker, /if \(request\.mode === 'navigate' && isIdentityNavigation\(url\.pathname\)\) return;/);
+
+  const identityBypass = serviceWorker.indexOf("if (request.mode === 'navigate' && isIdentityNavigation(url.pathname)) return;");
+  const applicationRespondWith = serviceWorker.indexOf("event.respondWith(fetch(request, { cache: 'no-store', redirect: 'follow' }));");
+  assert.ok(identityBypass >= 0 && identityBypass < applicationRespondWith, 'Identity routes must bypass the worker before any respondWith branch.');
 });
 
 
