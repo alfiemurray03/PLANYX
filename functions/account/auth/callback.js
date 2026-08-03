@@ -81,19 +81,82 @@ function requiresIdentityHold(syncResult) {
   return ["review_required", "ucn_conflict"].includes(String(syncResult?.status || ""));
 }
 
+async function continueAfterDeferredReadback(context, response, reason) {
+  console.error(JSON.stringify({
+    event: "customer_oidc_callback_readback_deferred",
+    reason,
+    requestId: String(
+      context.request.headers.get("cf-ray") ||
+      context.request.headers.get("x-request-id") ||
+      context.request.headers.get("x-correlation-id") ||
+      "not-recorded"
+    ).slice(0, 160)
+  }));
+
+  // completeLogin has already validated Microsoft, created the local D1 session
+  // and issued the secure customer cookie. Do not turn a delayed same-request
+  // cookie/session read-back into a false authentication failure. The dashboard
+  // AuthProvider performs an immediate server heartbeat before releasing the
+  // customer session, where Head Office restrictions remain authoritative.
+  await recordCompletedLogin(context, response, "customer").catch(() => null);
+  return response;
+}
+
+function callbackReference(context, error) {
+  const stage = String(error instanceof Error ? error.authStage?.stage || "callback" : "callback")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 36) || "CALLBACK";
+  const requestId = String(
+    error instanceof Error ? error.authStage?.requestId || "" : ""
+  ).trim() || String(
+    context.request.headers.get("cf-ray") ||
+    context.request.headers.get("x-request-id") ||
+    context.request.headers.get("x-correlation-id") ||
+    crypto.randomUUID()
+  ).trim();
+  const suffix = requestId.replace(/[^A-Za-z0-9]/g, "").slice(-12).toUpperCase() || "UNAVAILABLE";
+  return `PLX-AUTH-${stage}-${suffix}`;
+}
+
 export async function onRequestGet(context) {
   try {
     // Microsoft resolves the customer first. Head Office then resolves the UCN
     // and returns the authoritative customer access decision when available.
     const response = await completeLogin(context, "customer");
-    const sessionToken = customerSessionCookie(response);
-    if (!sessionToken) throw new Error("The customer session could not be linked to the Head Office decision.");
+
+    let sessionToken = "";
+    try {
+      sessionToken = customerSessionCookie(response);
+    } catch (error) {
+      return continueAfterDeferredReadback(
+        context,
+        response,
+        error instanceof Error ? `cookie_parse_failed:${error.message}` : "cookie_parse_failed"
+      );
+    }
+    if (!sessionToken) {
+      return continueAfterDeferredReadback(context, response, "session_cookie_not_visible_to_callback");
+    }
 
     const headers = new Headers(context.request.headers);
     headers.set("Cookie", `ja_customer_oidc_session=${encodeURIComponent(sessionToken)}`);
     const identityRequest = new Request(context.request.url, { method: "GET", headers });
-    const identity = await getNativeSession(identityRequest, context.env, "customer");
-    if (!identity?.email) throw new Error("The verified customer identity could not be resolved.");
+
+    let identity;
+    try {
+      identity = await getNativeSession(identityRequest, context.env, "customer");
+    } catch (error) {
+      return continueAfterDeferredReadback(
+        context,
+        response,
+        error instanceof Error ? `session_readback_failed:${error.message}` : "session_readback_failed"
+      );
+    }
+    if (!identity?.email) {
+      return continueAfterDeferredReadback(context, response, "session_not_immediately_visible_after_creation");
+    }
 
     const syncResult = await syncCustomerWithHeadOffice(context, identity);
     if (!syncResult?.ok) {
@@ -177,16 +240,25 @@ export async function onRequestGet(context) {
     scheduleAllowedTelemetry(context, identity, syncResult);
     return response;
   } catch (error) {
+    const reference = callbackReference(context, error);
     console.error(JSON.stringify({
       event: "customer_oidc_callback_failed",
+      reference,
       message: error instanceof Error ? error.message : "Unknown error",
       details: error instanceof Error ? (error.details || null) : null,
       auth_stage: error instanceof Error ? (error.authStage || null) : null
     }));
     await recordAuthenticationFailure(context.env.DB, context.request, "customer", error).catch(() => null);
-    return new Response("Customer sign-in could not be completed. Please try again or contact Planyx support.", {
-      status: 401,
-      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
-    });
+    return new Response(
+      `Customer sign-in could not be completed. Please try again or contact Planyx support.\n\nReference: ${reference}`,
+      {
+        status: 401,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+          "X-Planyx-Authentication-Reference": reference
+        }
+      }
+    );
   }
 }
