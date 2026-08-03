@@ -24,24 +24,38 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 type SessionHeartbeatResponse = {
   success?: boolean;
-  access?: 'allowed' | 'denied' | 'review' | 'step_up' | 'unavailable';
+  access?: 'allowed' | 'denied' | 'review' | 'step_up' | 'unavailable' | 'session_revoked';
   logoutUrl?: string;
-  protectionStatus?: 'confirmed' | 'temporarily_unavailable';
+  protectionStatus?: 'confirmed' | 'temporarily_unavailable' | 'session_register_temporarily_unavailable';
 };
 
 function protectedDestination(payload: SessionHeartbeatResponse): string {
   const access = payload.access || 'denied';
   const fallback = access === 'step_up'
     ? '/account/verification-required/'
-    : '/account/access-restricted/';
+    : access === 'session_revoked'
+      ? '/sign-in?error=session_revoked'
+      : '/account/access-restricted/';
   try {
     const candidate = new URL(payload.logoutUrl || fallback, window.location.origin);
     if (candidate.origin !== window.location.origin) return fallback;
-    if (!['/account/access-restricted/', '/account/verification-required/'].includes(candidate.pathname)) return fallback;
-    return candidate.pathname;
+    const allowedPaths = new Set([
+      '/account/access-restricted/',
+      '/account/verification-required/',
+      '/account/login',
+      '/account/login/',
+      '/sign-in',
+      '/sign-in/',
+    ]);
+    if (!allowedPaths.has(candidate.pathname)) return fallback;
+    return `${candidate.pathname}${candidate.search}`;
   } catch {
     return fallback;
   }
+}
+
+function explicitlyBlocked(access?: SessionHeartbeatResponse['access']): boolean {
+  return ['denied', 'review', 'step_up', 'session_revoked'].includes(String(access || ''));
 }
 
 async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<boolean> {
@@ -55,20 +69,20 @@ async function recordCustomerSession(action: 'heartbeat' | 'logout'): Promise<bo
     });
     const payload = await response.json().catch(() => ({})) as SessionHeartbeatResponse;
 
-    if (action === 'heartbeat' && payload.access && payload.access !== 'allowed') {
+    if (action === 'heartbeat' && explicitlyBlocked(payload.access)) {
       window.location.replace(protectedDestination(payload));
       return false;
     }
 
     if (action === 'heartbeat' && response.status === 401) {
-      window.location.replace('/sign-in');
+      window.location.replace('/sign-in?error=session_expired');
       return false;
     }
 
     // A temporary service or network failure without an explicit Head Office
     // decision is not treated as a restriction. Preserve the current local session
     // and retry on the next focus or scheduled heartbeat.
-    if (action === 'heartbeat' && response.status >= 500) return true;
+    if (action === 'heartbeat' && (response.status >= 500 || payload.access === 'unavailable')) return true;
 
     return response.ok;
   } catch {
@@ -90,14 +104,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    refreshCurrentUser().then(async (serverUser) => {
-      if (serverUser) {
-        const allowed = await recordCustomerSession('heartbeat');
-        if (!allowed) return;
+    let active = true;
+
+    const initialise = async () => {
+      try {
+        const serverUser = await refreshCurrentUser();
+        if (!active) return;
+
+        if (serverUser) {
+          const allowed = await recordCustomerSession('heartbeat');
+          if (!active) return;
+          if (!allowed) {
+            setUser(null);
+            return;
+          }
+        }
+
+        setUser(serverUser);
+      } catch (error) {
+        console.error('Planyx customer session initialisation failed.', error);
+        if (active) setUser(null);
+      } finally {
+        // Never leave protected routes on an unexplained permanent loading page.
+        // Any redirect started above can continue, while React still receives a
+        // completed authentication state if navigation is delayed or blocked.
+        if (active) setIsLoading(false);
       }
-      setUser(serverUser);
-      setIsLoading(false);
-    });
+    };
+
+    void initialise();
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -152,9 +188,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void refreshCurrentUser().then(async serverUser => {
       if (serverUser) {
         const allowed = await recordCustomerSession('heartbeat');
-        if (!allowed) return;
+        if (!allowed) {
+          setUser(null);
+          return;
+        }
       }
       setUser(serverUser);
+    }).catch(error => {
+      console.error('Planyx customer session refresh failed.', error);
+      setUser(null);
     });
   }, []);
 
