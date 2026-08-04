@@ -1,0 +1,1 @@
+Revalidates Planyx D1 write reduction after updating the public catalogue contract to require a fully read-only request path.
