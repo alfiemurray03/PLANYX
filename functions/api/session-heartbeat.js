@@ -1,5 +1,5 @@
 import { assertSameOrigin, expireOidcCookie, getNativeSession } from "../_shared/oidc.js";
-import { recordSessionHeartbeat, recordSessionLogout } from "../_shared/session-tracking.js";
+import { recordSessionHeartbeat, recordSessionLogout, sessionReference } from "../_shared/session-tracking.js";
 import { issueCustomerAgeChallenge } from "../_shared/customerops-age-assurance.js";
 import { blocksAccess, isHeadOfficeAgeStepUp } from "../_shared/customerops-access-policy.js";
 import {
@@ -13,6 +13,8 @@ import {
   closePlanyxSession,
   registerPlanyxSession
 } from "../_shared/connected-sessions.js";
+
+const HEARTBEAT_WRITE_INTERVAL_MS = 5 * 60 * 1000;
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -55,6 +57,30 @@ function centrallyRevoked(status) {
   return ["revocation_required", "revoked", "expired", "signed_out"].includes(String(status || "").toLowerCase());
 }
 
+function parsedTimestamp(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return 0;
+  const normalised = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(raw) ? `${raw.replace(" ", "T")}Z` : raw;
+  const parsed = Date.parse(normalised);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+async function heartbeatState(DB, identity, realm) {
+  const reference = sessionReference(realm, identity?.tokenHash || "");
+  if (!DB || !identity?.tokenHash) return { due: true, reference };
+  try {
+    const row = await DB.prepare(`SELECT session_reference,last_seen_at FROM auth_sessions
+      WHERE session_id=? LIMIT 1`).bind(`${realm}:${identity.tokenHash}`).first();
+    const lastSeen = parsedTimestamp(row?.last_seen_at);
+    return {
+      due: !lastSeen || Date.now() - lastSeen >= HEARTBEAT_WRITE_INTERVAL_MS,
+      reference: row?.session_reference || reference
+    };
+  } catch {
+    return { due: true, reference };
+  }
+}
+
 export async function onRequestPost(context) {
   if (!assertSameOrigin(context.request)) return json({ success: false, error: "Request origin was rejected." }, 403);
   if (!context.env.DB) return json({ success: false, error: "Session audit storage is unavailable." }, 503);
@@ -87,6 +113,19 @@ export async function onRequestPost(context) {
       }));
     }
     return json({ success: true, action: "logout", realm });
+  }
+
+  const heartbeat = await heartbeatState(context.env.DB, identity, realm);
+  if (!heartbeat.due) {
+    return json({
+      success: true,
+      action: "heartbeat",
+      realm,
+      session_reference: heartbeat.reference,
+      access: "allowed",
+      protectionStatus: "recently_confirmed",
+      persisted: false
+    }, 200, { "X-Planyx-Heartbeat": "throttled" });
   }
 
   let protectionStatus = "confirmed";
@@ -141,7 +180,7 @@ export async function onRequestPost(context) {
     } catch (error) {
       // Connector availability is not itself a Head Office restriction. Keep the
       // locally authenticated session active, record degraded protection and retry
-      // on the next heartbeat. Only an explicit Head Office decision may revoke it.
+      // on the next persisted heartbeat. Only an explicit Head Office decision may revoke it.
       protectionStatus = "temporarily_unavailable";
       console.error(JSON.stringify({
         event: "customerops_access_check_unavailable",
@@ -213,10 +252,11 @@ export async function onRequestPost(context) {
     success: true,
     action: "heartbeat",
     realm,
-    session_reference: session?.session_reference || null,
+    session_reference: session?.session_reference || heartbeat.reference || null,
     access: "allowed",
-    protectionStatus
-  });
+    protectionStatus,
+    persisted: true
+  }, 200, { "X-Planyx-Heartbeat": "persisted" });
 }
 
 export async function onRequest(context) {
