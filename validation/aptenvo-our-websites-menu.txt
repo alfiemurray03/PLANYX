@@ -1,0 +1,1 @@
+Validates that Aptenvo appears in the shared desktop and mobile Our Websites menu.
