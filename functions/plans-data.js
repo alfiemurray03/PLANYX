@@ -9,39 +9,33 @@ const DEFAULT_PLANS = [
   ["business_org_starter", "Together Plan", "Business monthly subscription", "£39.99", 3999, "prod_Uwgu4EVCfy4wKb", "price_1TwnWxDZzb3r6Q3cxqCPgI3o", "Shared planning for teams", "Invited editing and member workspace", "For businesses, teams and organisations that need shared planning, invited editing and member administration.", "Start 30-day free trial", 1, 0, 140]
 ];
 
-export async function onRequestGet(context) {
-  const { env } = context;
+export async function onRequestGet({ env }) {
+  const fallback = defaultPlanPayload();
+  if (!env.DB) return json({ plans: fallback, source: "code" });
 
-  if (!env.DB) {
-    return json({ error: "Plan database binding DB is missing.", plans: [] }, 500);
-  }
-
-  await syncServicePlans(env.DB);
-
-  let result;
   try {
-    result = await env.DB.prepare(`
+    const result = await env.DB.prepare(`
       SELECT id, plan_name, plan_type, price_label, price_pence, delivery_time, revisions,
         description, button_label, is_active, is_featured, sort_order,
         CASE WHEN stripe_price_id IS NOT NULL AND stripe_price_id != '' THEN 1 ELSE 0 END AS has_stripe_price
       FROM service_plans
       ORDER BY sort_order ASC, plan_name ASC
     `).all();
+
+    const rows = result.results || [];
+    const plans = rows.map((plan) => ({
+      ...plan,
+      is_active: Number(plan.is_active || 0),
+      is_featured: Number(plan.is_featured || 0),
+      catalogue: String(plan.id || "").startsWith("business_") ? "business" : "standard",
+      payment_available: Number(plan.is_active || 0) === 1 && Number(plan.has_stripe_price || 0) === 1
+    }));
+
+    return json({ plans: rows.length ? plans : fallback, source: rows.length ? "database-overrides" : "code" });
   } catch (error) {
     console.error("Plan catalogue read failed:", error instanceof Error ? error.message : String(error));
-    return json({ plans: defaultPlanPayload().map((plan) => ({ ...plan, is_active: 0, payment_available: false })), source: "safe-fallback" });
+    return json({ plans: fallback, source: "code-fallback" });
   }
-
-  const rows = result.results || [];
-  const plans = rows.map((plan) => ({
-    ...plan,
-    is_active: Number(plan.is_active || 0),
-    is_featured: Number(plan.is_featured || 0),
-    catalogue: String(plan.id || "").startsWith("business_") ? "business" : "standard",
-    payment_available: Number(plan.is_active || 0) === 1 && Number(plan.has_stripe_price || 0) === 1
-  }));
-
-  return json({ plans: rows.length ? plans : defaultPlanPayload().map((plan) => ({ ...plan, is_active: 0, payment_available: false })), source: rows.length ? "database" : "safe-fallback" });
 }
 
 function defaultPlanPayload() {
@@ -54,53 +48,13 @@ function defaultPlanPayload() {
   }));
 }
 
-async function syncServicePlans(DB) {
-  await DB.prepare(`
-    CREATE TABLE IF NOT EXISTS service_plans (
-      id TEXT PRIMARY KEY,
-      plan_name TEXT,
-      plan_type TEXT,
-      price_label TEXT,
-      price_pence INTEGER,
-      stripe_price_id TEXT,
-      delivery_time TEXT,
-      revisions TEXT,
-      description TEXT,
-      button_label TEXT,
-      is_active INTEGER DEFAULT 1,
-      is_featured INTEGER DEFAULT 0,
-      sort_order INTEGER DEFAULT 100,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `).run();
-
-  await safeAlter(DB, `ALTER TABLE service_plans ADD COLUMN stripe_product_id TEXT`);
-
-  for (const plan of DEFAULT_PLANS) {
-    await DB.prepare(`
-      INSERT INTO service_plans (
-        id, plan_name, plan_type, price_label, price_pence, stripe_product_id, stripe_price_id,
-        delivery_time, revisions, description, button_label, is_active, is_featured, sort_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO NOTHING
-    `).bind(...plan).run();
-  }
-}
-
-async function safeAlter(DB, sql) {
-  try {
-    await DB.prepare(sql).run();
-  } catch {
-    // Column already exists.
-  }
-}
-
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store"
+      "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
+      "X-Planyx-Plan-Catalogue": "code-first"
     }
   });
 }
