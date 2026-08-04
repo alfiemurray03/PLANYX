@@ -3,7 +3,8 @@ function json(data, status = 200) {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store"
+      "Cache-Control": "public, max-age=30, s-maxage=120, stale-while-revalidate=600",
+      "X-Planyx-Settings-Cache": "edge"
     }
   });
 }
