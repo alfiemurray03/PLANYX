@@ -1,0 +1,1 @@
+Validates Planyx D1 write reduction: code-first public plans, edge-cached public settings/status, cached Head Office decisions, and five-minute persisted session heartbeats.
