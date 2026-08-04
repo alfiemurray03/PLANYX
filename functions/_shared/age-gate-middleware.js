@@ -7,6 +7,8 @@ import {
   revokeLocalCustomerSession
 } from "./customerops-central.js";
 
+const ACCESS_DECISION_CACHE_SECONDS = 30;
+
 function hasCustomerSession(request) {
   return (request.headers.get("Cookie") || "")
     .split(";")
@@ -71,6 +73,35 @@ function unavailableResponse(request, message) {
   return new Response(null, { status: 303, headers });
 }
 
+async function cacheKeyForIdentity(identity) {
+  const source = `${identity?.tenantId || ""}:${identity?.objectId || identity?.subject || ""}:${String(identity?.email || "").toLowerCase()}`;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(source));
+  const hash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+  return new Request(`https://planyx.internal/head-office-access/${hash}`, { method: "GET" });
+}
+
+async function checkHeadOfficeAccessCached(env, DB, identity) {
+  if (typeof caches === "undefined" || !caches.default) return checkHeadOfficeAccess(env, DB, identity);
+
+  const key = await cacheKeyForIdentity(identity);
+  const cached = await caches.default.match(key);
+  if (cached) {
+    try { return await cached.json(); }
+    catch { /* Ignore an invalid cache entry and refresh it. */ }
+  }
+
+  const result = await checkHeadOfficeAccess(env, DB, identity);
+  if (!blocksAccess(result.access)) {
+    await caches.default.put(key, new Response(JSON.stringify(result), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": `public, max-age=${ACCESS_DECISION_CACHE_SECONDS}`
+      }
+    })).catch(() => null);
+  }
+  return result;
+}
+
 export async function enforceCustomerAge(context) {
   // This middleware is mounted only around customer routes. Admin/staff OIDC
   // uses a separate cookie and realm and is never evaluated here.
@@ -81,7 +112,7 @@ export async function enforceCustomerAge(context) {
   if (!context.env.DB) return unavailableResponse(context.request, "Head Office customer protection is temporarily unavailable.");
 
   try {
-    const result = await checkHeadOfficeAccess(context.env, context.env.DB, identity);
+    const result = await checkHeadOfficeAccessCached(context.env, context.env.DB, identity);
     const access = result.access || { decision: "review", revokeSessions: true };
     if (!blocksAccess(access)) {
       const headers = new Headers(context.request.headers);
