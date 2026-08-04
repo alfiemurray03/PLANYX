@@ -6,6 +6,7 @@ const customerWebsites = [
   { name: 'Profile Centre', href: 'https://profilecentre.jagroupservices.co.uk/' },
   { name: 'Planyx', href: 'https://planyx.jagroupservices.co.uk/' },
   { name: 'JA Domain Hub', href: 'https://jadomainhub.jagroupservices.co.uk/' },
+  { name: 'Aptenvo', href: 'https://aptenvo.jagroupservices.co.uk/' },
 ];
 
 export default function CustomerWebsitesMenu() {
