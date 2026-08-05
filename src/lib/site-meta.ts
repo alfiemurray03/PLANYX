@@ -16,5 +16,5 @@ export interface SiteMeta {
 
 export const siteMeta: SiteMeta = {
 	name: "Sousa Murray Planeia",
-	summary: "Guided digital builders for creating and managing personalised everyday, travel and accessibility plans.",
+	summary: "A guided planning-builder for personalised everyday, travel, accessibility and shared experience plans.",
 };
