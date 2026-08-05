@@ -1,0 +1,45 @@
+name: Sousa Murray Planeia rebrand snapshot
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit current public branding
+        shell: bash
+        run: |
+          echo "=== PLANYX REFERENCES ==="
+          grep -RInE \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=dist \
+            --exclude='package-lock.json' \
+            --exclude='planeia-rebrand-snapshot.yml' \
+            'Planyx|PLANYX|planyx\.jagroupservices\.co\.uk|planyx@jagroupservices\.co\.uk' \
+            src public functions scripts index.html package.json README.md docs 2>/dev/null || true
+          echo "=== END REFERENCES ==="
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: planyx-source
+          path: |
+            src
+            public
+            functions
+            scripts
+            docs
+            index.html
+            package.json
+            package-lock.json
+            tsconfig*.json
+            vite.config.*
+            tailwind.config.*
+            wrangler.toml
+            README.md
+          if-no-files-found: error
+          retention-days: 1
