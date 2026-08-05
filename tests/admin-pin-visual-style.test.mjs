@@ -10,7 +10,7 @@ async function read(relativePath) {
   return readFile(new URL(relativePath, root), 'utf8');
 }
 
-test('Admin PIN gate uses a stable centred Planyx card', async () => {
+test('Admin PIN gate uses a stable centred Sousa Murray Planeia card', async () => {
   const entry = await read('src/main.tsx');
   const styles = await read('src/styles/admin-pin-gate.css');
   const index = await read('index.html');
@@ -19,7 +19,7 @@ test('Admin PIN gate uses a stable centred Planyx card', async () => {
   assert.match(styles, /#admin-theme-root:has\(#admin-security-pin\)/);
   assert.match(styles, /width: min\(100%, 470px\)/);
   assert.match(styles, /linear-gradient\(90deg, #2563eb 0%, #06b6d4 55%, #8b5cf6 100%\)/);
-  assert.match(styles, /Planyx Admin Centre/);
+  assert.match(styles, /Sousa Murray Planeia Admin Centre/);
   assert.match(styles, /\.dark #admin-theme-root:has\(#admin-security-pin\)/);
   assert.match(styles, /@media \(max-width: 640px\)/);
   assert.doesNotMatch(styles, /grid-template-columns:/);
