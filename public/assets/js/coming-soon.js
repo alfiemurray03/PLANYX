@@ -11,33 +11,27 @@
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4l3 2"></path></svg>',
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3-6.2"></path><path d="m9 12 2 2 5-6"></path></svg>'
   ];
-  const brandIcon = '<rect x="4" y="3" width="16" height="18" rx="3"></rect><path d="M8 8h8M8 12h8M8 16h5"></path>';
   let countdownTimer = null;
 
-  function straightenBrandMark() {
-    const icon = document.querySelector(".brand-mark svg");
-    if (!icon) return;
-
-    icon.setAttribute("viewBox", "0 0 24 24");
-    icon.setAttribute("fill", "none");
-    icon.setAttribute("stroke", "currentColor");
-    icon.setAttribute("stroke-width", "2");
-    icon.setAttribute("stroke-linecap", "round");
-    icon.setAttribute("stroke-linejoin", "round");
-    icon.innerHTML = brandIcon;
-    icon.style.display = "block";
-    icon.style.transform = "none";
+  function cleanPublicBranding(value) {
+    return String(value || "")
+      .replace(/https?:\/\/(?:www\.)?planyx\.jagroupservices\.co\.uk/gi, "https://sousamurrayplaneia.jagroupservices.co.uk")
+      .replace(/\bplanyx\.jagroupservices\.co\.uk\b/gi, "sousamurrayplaneia.jagroupservices.co.uk")
+      .replace(/\bJA Plan Studio\b/gi, "Sousa Murray Planeia")
+      .replace(/\bPlanyx\b/gi, "Sousa Murray Planeia")
+      .replace(/\bplanyx@jagroupservices\.co\.uk\b/gi, "contact@jagroupservices.co.uk");
   }
 
   function setText(id, value) {
     const element = byId(id);
-    if (element && typeof value === "string" && value.trim()) element.textContent = value.trim();
+    const cleaned = cleanPublicBranding(value).trim();
+    if (element && cleaned) element.textContent = cleaned;
   }
 
   function renderFeatures(features) {
     const list = byId("coming-soon-features");
     if (!list || !Array.isArray(features)) return;
-    const values = features.map((item) => String(item || "").trim()).filter(Boolean);
+    const values = features.map((item) => cleanPublicBranding(item).trim()).filter(Boolean);
     if (!values.length) return;
 
     list.replaceChildren(...values.map((value, index) => {
@@ -98,15 +92,16 @@
       const config = await response.json();
       if (!config || config.success === false) return;
 
-      setText("platform-name", config.platformName === "Sousa Murray Planeia" ? "Sousa Murray Planeia is nearly ready" : config.platformName);
+      const platformName = cleanPublicBranding(config.platformName || "Sousa Murray Planeia").trim() || "Sousa Murray Planeia";
+      setText("platform-name", `${platformName} is nearly ready`);
       setText("coming-soon-title", config.headline || "Your next experience starts here.");
       setText("coming-soon-subtext", config.subtext || "We are shaping a smarter, calmer way to turn ideas into experiences worth remembering.");
       setText("coming-soon-description", config.description || "Build plans around the people, places and moments that matter—then keep everything together in one beautifully organised space.");
       renderFeatures(config.features);
       startCountdown(config.launchDate, config.countdownEnabled === true);
 
-      const title = String(config.headline || "Coming Soon").trim();
-      document.title = `${title} — ${String(config.platformName || "Sousa Murray Planeia").trim()}`;
+      const title = cleanPublicBranding(config.headline || "Coming Soon").trim();
+      document.title = `${title} — ${platformName}`;
     } catch (error) {
       console.warn("Coming Soon configuration could not be loaded.", error instanceof Error ? error.message : error);
     }
@@ -122,14 +117,8 @@
         });
         if (!response.ok) continue;
         const data = await response.json();
-        const tabName = String(data.browser?.tab_name || data.settings?.browser_tab_name || "Sousa Murray Planeia").trim();
-        const faviconUrl = String(data.browser?.favicon_url || data.settings?.favicon_url || "").trim();
-        if (faviconUrl) {
-          document.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"]').forEach((link) => {
-            link.href = faviconUrl;
-          });
-        }
-        const headline = String(byId("coming-soon-title")?.textContent || "Coming Soon").trim();
+        const tabName = cleanPublicBranding(data.browser?.tab_name || data.settings?.browser_tab_name || "Sousa Murray Planeia").trim();
+        const headline = cleanPublicBranding(byId("coming-soon-title")?.textContent || "Coming Soon").trim();
         document.title = `${headline} — ${tabName || "Sousa Murray Planeia"}`;
         return;
       } catch {
@@ -139,7 +128,6 @@
   }
 
   async function initialisePage() {
-    straightenBrandMark();
     await loadConfiguration();
     await loadBrowserBranding();
   }

@@ -1,4 +1,4 @@
-# Planyx public website crawler policy
+# Sousa Murray Planeia public website crawler policy
 # Public marketing, legal, help and discovery pages may be indexed.
 
 User-agent: *
@@ -31,4 +31,4 @@ Disallow: /customer
 Disallow: /invoices
 Disallow: /subscriptions
 
-Sitemap: https://planyx.jagroupservices.co.uk/sitemap.xml
+Sitemap: https://sousamurrayplaneia.jagroupservices.co.uk/sitemap.xml

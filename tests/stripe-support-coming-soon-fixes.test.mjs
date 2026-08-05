@@ -85,16 +85,19 @@ test("Stripe verifier rejects a Price ID mapped to the wrong amount", async () =
   assert.match(result.error, /wrong amount/i);
 });
 
-test("Coming Soon page follows the current Planyx launch-page structure", async () => {
+test("Coming Soon page follows the approved Sousa Murray Planeia launch-page structure", async () => {
   const html = await readFile(new URL("public/coming-soon/index.html", root), "utf8");
   const script = await readFile(new URL("public/assets/js/coming-soon.js", root), "utf8");
-  assert.match(html, /class="signal"/);
+
+  assert.match(html, /Sousa Murray Planeia/);
+  assert.match(html, /sousamurrayplaneia\.jagroupservices\.co\.uk/);
   assert.match(html, /class="countdown-grid"/);
   assert.match(html, /id="coming-soon-features"/);
-  assert.match(html, /Build experiences\. Create memories\./);
   assert.match(html, /Copyright 2025–2026 JA Group Services Ltd/);
+  assert.doesNotMatch(html, /\bPlanyx\b|JA Plan Studio|planyx\.jagroupservices\.co\.uk/i);
   assert.doesNotMatch(html, /sign[ -]?in/i);
   assert.match(script, /renderFeatures/);
   assert.match(script, /startCountdown/);
+  assert.match(script, /cleanPublicBranding/);
   assert.match(script, /cache: "no-store"/);
 });
