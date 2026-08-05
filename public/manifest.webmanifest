@@ -1,44 +1,40 @@
 {
   "id": "/?app=planyx-v8",
-  "name": "Planyx",
-  "short_name": "Planyx",
+  "name": "Sousa Murray Planeia",
+  "short_name": "Planeia",
   "description": "Guided planning builders, destination discovery and secure customer support.",
   "start_url": "/?source=pwa&launch=public-v8",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "background_color": "#0b172d",
   "theme_color": "#0b172d",
-  "categories": ["productivity", "travel", "business"],
+  "categories": [
+    "productivity",
+    "travel",
+    "business"
+  ],
   "lang": "en-GB",
   "dir": "auto",
-  "icons": [
-    {
-      "src": "/assets/brand/planyx-icon.png",
-      "sizes": "2000x2000",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
   "shortcuts": [
     {
-      "name": "Planyx Home",
+      "name": "Sousa Murray Planeia Home",
       "short_name": "Home",
-      "url": "/?source=pwa&launch=public-v8",
-      "icons": [{ "src": "/assets/brand/planyx-icon.png", "sizes": "2000x2000", "type": "image/png" }]
+      "url": "/?source=pwa&launch=public-v8"
     },
     {
       "name": "Help Centre",
       "short_name": "Help",
-      "url": "/help-centre?source=pwa",
-      "icons": [{ "src": "/assets/brand/planyx-icon.png", "sizes": "2000x2000", "type": "image/png" }]
+      "url": "/help-centre?source=pwa"
     },
     {
       "name": "Get Your Guide",
       "short_name": "GetYourGuide",
-      "url": "/getyourguide?source=pwa",
-      "icons": [{ "src": "/assets/brand/planyx-icon.png", "sizes": "2000x2000", "type": "image/png" }]
+      "url": "/getyourguide?source=pwa"
     }
   ]
 }

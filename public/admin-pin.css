@@ -1,4 +1,4 @@
-/* Planyx Admin Centre PIN gate
+/* Sousa Murray Planeia Admin Centre PIN gate
    Presentation only: authentication, lockout and PIN handling remain in React. */
 
 @supports selector(:has(*)) {
@@ -19,21 +19,25 @@
   }
 
   #app > div:has(#admin-security-pin)::before {
-    content: "";
+    content: "Sousa Murray Planeia";
     position: relative;
     z-index: 3;
-    display: block;
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid #dbe3ef;
-    background:
-      url('/assets/brand/planyx-logo.svg?v=1') no-repeat left max(24px, calc((100vw - 1120px) / 2)) center / 148px auto,
-      rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.96);
+    padding-left: max(24px, calc((100vw - 1120px) / 2));
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
     box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
 
   #app > div:has(#admin-security-pin)::after {
-    content: "Planyx Admin Centre  •  Restricted to authorised JA Group Services staff";
+    content: "Sousa Murray Planeia Admin Centre  •  Restricted to authorised JA Group Services staff";
     position: relative;
     z-index: 3;
     display: flex;
@@ -74,7 +78,7 @@
   }
 
   #app > div:has(#admin-security-pin) > div::before {
-    content: "SECURE STAFF ACCESS\A\AAdministrator verification\A\AYour Microsoft sign-in has been accepted. Enter your personal four-digit PIN to unlock the Planyx Admin Centre.\A\A✓ Personal administrator PIN\A✓ Audited privileged access\A✓ Automatic lockout protection";
+    content: "SECURE STAFF ACCESS\A\AAdministrator verification\A\AYour Microsoft sign-in has been accepted. Enter your personal four-digit PIN to unlock the Sousa Murray Planeia Admin Centre.\A\A✓ Personal administrator PIN\A✓ Audited privileged access\A✓ Automatic lockout protection";
     grid-column: 1;
     grid-row: 1 / span 20;
     min-height: 570px;

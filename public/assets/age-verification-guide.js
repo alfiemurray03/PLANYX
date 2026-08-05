@@ -11,7 +11,7 @@
 
   const history = [];
   const safeSuggestions = [
-    'Why is Planyx 16+?',
+    'Why is Sousa Murray Planeia 16+?',
     'What happens to my date of birth?',
     'What safeguards apply at 16–17?',
     'Is this independent age verification?',
@@ -84,7 +84,7 @@
     .then(({ response, payload }) => {
       if (!response.ok || !payload.enabled || payload.maintenance) return;
       root.hidden = false;
-      welcome.textContent = payload.welcomeMessage || 'I can explain the Planyx 16+ age check and privacy safeguards.';
+      welcome.textContent = payload.welcomeMessage || 'I can explain the Sousa Murray Planeia 16+ age check and privacy safeguards.';
       input.placeholder = payload.inputPlaceholder || 'Ask about the 16+ age check…';
       const labels = Array.isArray(payload.suggestions) && payload.suggestions.length ? payload.suggestions : safeSuggestions;
       for (const label of labels) {

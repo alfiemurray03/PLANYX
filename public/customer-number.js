@@ -10,11 +10,11 @@ const statusDescription = document.getElementById("statusDescription");
 const retryButton = document.getElementById("retryButton");
 
 const STATUS_COPY = {
-  synced: ["Connected", "Planyx is linked to your Head Office customer record."],
-  pending: ["Pending", "Planyx is waiting to complete the Head Office connection."],
-  not_configured: ["Not configured", "The secure Planyx connector has not been activated yet."],
+  synced: ["Connected", "Sousa Murray Planeia is linked to your Head Office customer record."],
+  pending: ["Pending", "Sousa Murray Planeia is waiting to complete the Head Office connection."],
+  not_configured: ["Not configured", "The secure Sousa Murray Planeia connector has not been activated yet."],
   review_required: ["Head Office review", "The identity match needs Head Office staff review."],
-  ucn_conflict: ["Head Office review", "Planyx protected the existing customer number because a different number was returned."],
+  ucn_conflict: ["Head Office review", "Sousa Murray Planeia protected the existing customer number because a different number was returned."],
   error: ["Temporarily unavailable", "The connection will retry automatically at the next sign-in."],
 };
 

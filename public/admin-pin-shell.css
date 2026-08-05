@@ -1,11 +1,16 @@
-/* Loaded after admin-pin.css to keep the shared Planyx shell explicit. */
+/* Loaded after admin-pin.css to keep the shared Sousa Murray Planeia shell explicit. */
 @supports selector(:has(*)) {
   #app > div:has(#admin-security-pin)::before {
     background-color: rgba(255, 255, 255, 0.96) !important;
-    background-image: url('/assets/brand/planyx-logo.svg?v=1') !important;
-    background-repeat: no-repeat !important;
-    background-position: left max(24px, calc((100vw - 1120px) / 2)) center !important;
-    background-size: 148px auto !important;
+    background-image: none !important;
+    content: "Sousa Murray Planeia" !important;
+    display: flex !important;
+    align-items: center !important;
+    padding-left: max(24px, calc((100vw - 1120px) / 2)) !important;
+    color: #0f172a !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
   }
 
   .dark #app > div:has(#admin-security-pin)::before {
@@ -14,8 +19,8 @@
 
   @media (max-width: 800px) {
     #app > div:has(#admin-security-pin)::before {
-      background-position: center !important;
-      background-size: 132px auto !important;
+      justify-content: center !important;
+      padding-left: 0 !important;
     }
   }
 }
