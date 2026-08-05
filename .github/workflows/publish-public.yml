@@ -96,7 +96,7 @@ jobs:
           test -f public/admin-pin.css
           test -f public/admin-pin-shell.css
           grep -F ':has(#admin-security-pin)' public/admin-pin.css >/dev/null
-          grep -F 'planyx-logo.svg' public/admin-pin-shell.css >/dev/null
+          grep -F 'Sousa Murray Planeia' public/admin-pin-shell.css >/dev/null
 
           grep -F "planyx-shell-v9" public/sw.js >/dev/null
           grep -F "isProtectedNavigation(url.pathname)" public/sw.js >/dev/null
