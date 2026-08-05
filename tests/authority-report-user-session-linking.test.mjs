@@ -15,7 +15,7 @@ test('Authority reporting searches customers administrators and tracked identiti
   assert.match(api, /verified_name/);
   assert.match(api, /linked_user_name/);
   assert.match(api, /recordType: "Administrator"/);
-  assert.match(panel, /Search and link a Planyx user/);
+  assert.match(panel, /Search and link a Sousa Murray Planeia user/);
   assert.match(panel, /Name, email address or organisation/);
   assert.match(panel, /authority-user-search\?q=/);
   assert.match(panel, /Link selected details/);
@@ -26,7 +26,7 @@ test('Billing address prefers Stripe and safely falls back to the saved account 
   assert.match(api, /stripeBillingAddress/);
   assert.match(api, /https:\/\/api\.stripe\.com\/v1\/customers/);
   assert.match(api, /Stripe billing address/);
-  assert.match(api, /Saved Planyx account address/);
+  assert.match(api, /Saved Sousa Murray Planeia account address/);
   assert.match(api, /street_address/);
   assert.match(api, /postcode/);
 });
@@ -50,7 +50,7 @@ test('Multiple user sessions are attached through a junction table and evidence 
   assert.match(api, /legal_hold=1/);
   assert.match(api, /Evidence hold applied by authority report/);
   assert.match(embedded, /session_ids: context\.sessions\.map/);
-  assert.match(embedded, /Linked Planyx sessions:/);
+  assert.match(embedded, /Linked Sousa Murray Planeia sessions:/);
   assert.match(embedded, /investigation_context/);
 });
 
