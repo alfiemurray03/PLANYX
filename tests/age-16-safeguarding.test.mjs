@@ -66,7 +66,7 @@ test('sign-in, customer routes and checkout use Head Office instead of the retir
   assert.match(callback, /isHeadOfficeAgeStepUp/);
   assert.match(callback, /issueCustomerAgeChallenge/);
   assert.doesNotMatch(callback, /readAgeAssurance|persistAgeAssurance|microsoft_callback_without_age_result/);
-  assert.match(ageRoute, /retired Planyx self-declaration token/);
+  assert.match(ageRoute, /retired Sousa Murray Planeia self-declaration token/);
   assert.match(ageRoute, /\/account\/login\?return_to=/);
   assert.doesNotMatch(ageRoute, /date_of_birth|createAgeAssurance/);
   assert.match(middleware, /checkHeadOfficeAccess/);
@@ -92,7 +92,7 @@ test('registration and public website state the strict 16+ Head Office journey',
   assert.match(register, /Nobody under 16 may register/);
   assert.match(register, /Head Office then checks/);
   assert.doesNotMatch(register, /\/age-check\?return_to=/);
-  assert.match(login, /Planyx is strictly 16\+/);
+  assert.match(login, /Sousa Murray Planeia is strictly 16\+/);
   assert.match(login, /Sign in with Microsoft first/);
   assert.match(login, /Head Office/);
   assert.match(safety, /Nobody under 16 is permitted to register/);
