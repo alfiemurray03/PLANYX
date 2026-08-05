@@ -1,5 +1,5 @@
 // @refresh reset
-// v11 — concise public navigation for Planyx
+// v11 — concise public navigation for Sousa Murray Planeia
 import { Link } from 'react-router-dom';
 import { Menu, X, LayoutDashboard, LogOut, User, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -49,16 +49,16 @@ export default function SiteNavHeader() {
         <div className="flex h-16 md:h-[72px] items-center justify-between gap-4">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group" aria-label="Planyx — home">
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group" aria-label="Sousa Murray Planeia — home">
             {branding.platform_logo_url ? (
               <img
                 src={branding.platform_logo_url}
-                alt={branding.platform_name || 'Planyx'}
+                alt={branding.platform_name || 'Sousa Murray Planeia'}
                 className="h-9 w-auto object-contain shrink-0 md:h-11"
               />
             ) : (
               <span className="font-extrabold text-lg tracking-tight text-foreground">
-                Planyx
+                Sousa Murray Planeia
               </span>
             )}
           </Link>

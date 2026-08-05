@@ -1,6 +1,6 @@
 # Customer CRM identity verification protocol
 
-**Service:** Planyx  
+**Service:** Sousa Murray Planeia  
 **Operator:** JA Group Services Ltd  
 **Applies to:** Customer CRM access by authorised administrators  
 **Status:** Operational security procedure
@@ -23,7 +23,7 @@ Verification of one customer never verifies another customer. Verification by on
 Administrators should use the least exceptional available method in this order:
 
 1. **Customer Support PIN** — the customer supplies the current single-use six-digit Support PIN.
-2. **Registered-email support code** — during an expected support interaction, a six-digit one-time code is sent to the email address registered on the Planyx account.
+2. **Registered-email support code** — during an expected support interaction, a six-digit one-time code is sent to the email address registered on the Sousa Murray Planeia account.
 3. **Governed administrator override** — used only when ordinary verification cannot reasonably be completed and protected CRM access is necessary.
 
 The registered-email code confirms control of the registered email during the support interaction. It is not Microsoft MFA and must not be described as high-assurance identity proof.

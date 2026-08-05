@@ -79,7 +79,7 @@ export default async function handler(req: Request, res: Response) {
           html: `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
               <div style="background:#1B4F8A;padding:24px;text-align:center;">
-                <h1 style="color:#fff;margin:0;font-size:22px;">Planyx</h1>
+                <h1 style="color:#fff;margin:0;font-size:22px;">Sousa Murray Planeia</h1>
                 <p style="color:#cce0ff;margin:4px 0 0;">JA Group Services</p>
               </div>
               <div style="padding:32px;background:#f9fafb;border:1px solid #e5e7eb;">
@@ -89,7 +89,7 @@ export default async function handler(req: Request, res: Response) {
                 <p>If you believe this is an error, please contact us at <a href="mailto:${adminNotifyEmail}">${adminNotifyEmail}</a>.</p>
               </div>
               <div style="padding:16px;text-align:center;color:#6b7280;font-size:12px;">
-                JA Group Services &bull; Planyx
+                JA Group Services &bull; Sousa Murray Planeia
               </div>
             </div>
           `,
@@ -139,11 +139,11 @@ export default async function handler(req: Request, res: Response) {
         await sendEmail({
           to: resetReq.email,
           replyTo: adminNotifyEmail,
-          subject: 'Reset Your Planyx Password',
+          subject: 'Reset Your Sousa Murray Planeia Password',
           html: `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
               <div style="background:#1B4F8A;padding:24px;text-align:center;">
-                <h1 style="color:#fff;margin:0;font-size:22px;">Planyx</h1>
+                <h1 style="color:#fff;margin:0;font-size:22px;">Sousa Murray Planeia</h1>
                 <p style="color:#cce0ff;margin:4px 0 0;">JA Group Services</p>
               </div>
               <div style="padding:32px;background:#f9fafb;border:1px solid #e5e7eb;">
@@ -158,7 +158,7 @@ export default async function handler(req: Request, res: Response) {
                 <p style="margin-top:16px;color:#6b7280;font-size:13px;">If the button doesn't work, copy and paste this link into your browser:<br><a href="${resetUrl}" style="color:#1B4F8A;word-break:break-all;">${resetUrl}</a></p>
               </div>
               <div style="padding:16px;text-align:center;color:#6b7280;font-size:12px;">
-                JA Group Services &bull; Planyx &bull; This link expires ${expiresAt.toLocaleString('en-GB', { timeZone: 'Europe/London' })}
+                JA Group Services &bull; Sousa Murray Planeia &bull; This link expires ${expiresAt.toLocaleString('en-GB', { timeZone: 'Europe/London' })}
               </div>
             </div>
           `,
@@ -168,11 +168,11 @@ export default async function handler(req: Request, res: Response) {
         await sendEmail({
           to: resetReq.email,
           replyTo: adminNotifyEmail,
-          subject: 'Your Password Reset PIN — Planyx',
+          subject: 'Your Password Reset PIN — Sousa Murray Planeia',
           html: `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
               <div style="background:#1B4F8A;padding:24px;text-align:center;">
-                <h1 style="color:#fff;margin:0;font-size:22px;">Planyx</h1>
+                <h1 style="color:#fff;margin:0;font-size:22px;">Sousa Murray Planeia</h1>
                 <p style="color:#cce0ff;margin:4px 0 0;">JA Group Services</p>
               </div>
               <div style="padding:32px;background:#f9fafb;border:1px solid #e5e7eb;">
@@ -187,7 +187,7 @@ export default async function handler(req: Request, res: Response) {
                 </div>
               </div>
               <div style="padding:16px;text-align:center;color:#6b7280;font-size:12px;">
-                JA Group Services &bull; Planyx &bull; PIN expires ${expiresAt.toLocaleString('en-GB', { timeZone: 'Europe/London' })}
+                JA Group Services &bull; Sousa Murray Planeia &bull; PIN expires ${expiresAt.toLocaleString('en-GB', { timeZone: 'Europe/London' })}
               </div>
             </div>
           `,

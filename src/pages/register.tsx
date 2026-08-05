@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
             <Button variant="outline" size="lg" className="w-full h-11 text-sm" onClick={() => { window.location.href = '/account/login?return_to=%2Fdashboard'; }}>Sign in to existing account</Button>
 
-            <div className="rounded-xl bg-muted/40 border border-border px-4 py-3"><p className="text-xs text-muted-foreground leading-relaxed text-center">Planyx does not ask for a date of birth before sign-in. Head Office controls whether the 16+ Didit check is enabled, paused or disabled.</p></div>
+            <div className="rounded-xl bg-muted/40 border border-border px-4 py-3"><p className="text-xs text-muted-foreground leading-relaxed text-center">Sousa Murray Planeia does not ask for a date of birth before sign-in. Head Office controls whether the 16+ Didit check is enabled, paused or disabled.</p></div>
 
             <p className="text-center text-xs text-muted-foreground">By creating an account you confirm that you are aged 16 or over and agree to our <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>, <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link> and <Link to="/safety" className="text-primary hover:underline">Safety rules</Link>.</p>
           </div>

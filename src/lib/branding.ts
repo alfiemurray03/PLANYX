@@ -24,12 +24,12 @@ export interface Branding {
 }
 
 const DEFAULTS: Branding = {
-  platform_name: 'Planyx',
+  platform_name: 'Sousa Murray Planeia',
   platform_tagline: 'Personalised plans, built step by step.',
-  platform_description: 'Build destination, itinerary, experience, accessibility and practical travel plans with guided Planyx tools and planning support.',
-  platform_url: 'https://planyx.jagroupservices.co.uk',
-  platform_logo_url: '/assets/brand/planyx-logo.svg?v=3',
-  platform_favicon_url: '/assets/brand/planyx-icon.png?v=1',
+  platform_description: 'Build destination, itinerary, experience, accessibility and practical travel plans with guided Sousa Murray Planeia tools and planning support.',
+  platform_url: 'https://sousamurrayplaneia.jagroupservices.co.uk',
+  platform_logo_url: '',
+  platform_favicon_url: '',
   master_brand_name: 'JA Group Services Ltd',
   master_brand_url: 'https://jagroupservices.co.uk',
   legal_company_name: 'JA Group Services Ltd',

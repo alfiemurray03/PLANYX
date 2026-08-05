@@ -159,7 +159,7 @@ export default function PublicSignerPage() {
     finally { setSubmitting(false); }
   }
 
-  const APP_NAME = 'Planyx';
+  const APP_NAME = 'Sousa Murray Planeia';
 
   if (loading) return (
     <div className="min-h-screen bg-muted/20 flex items-center justify-center">

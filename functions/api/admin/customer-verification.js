@@ -303,7 +303,7 @@ async function providerSettings(DB, env) {
     provider: clean(stored.email_provider || env.EMAIL_PROVIDER || "resend", 40).toLowerCase(),
     apiKey: clean(stored.email_api_key || env.EMAIL_API_TOKEN || env.RESEND_API_KEY || env.SENDGRID_API_KEY || env.POSTMARK_API_KEY || env.BREVO_API_KEY, 1000),
     endpoint: clean(stored.email_api_endpoint || env.EMAIL_API_ENDPOINT, 500),
-    fromName: clean(stored.smtp_from_name || "Planyx", 120),
+    fromName: clean(stored.smtp_from_name || "Sousa Murray Planeia", 120),
     fromEmail: cleanEmail(stored.smtp_from_email || env.EMAIL_FROM || "noreply@jagroupservices.co.uk"),
   };
 }
@@ -383,9 +383,9 @@ async function sendCustomerEmailCode(DB, env, admin, customerEmail) {
   try {
     await sendEmail(DB, env, {
       to: email,
-      subject: "Your Planyx support verification code",
-      text: `Your Planyx support verification code is ${code}. It expires in ${EMAIL_CODE_MINUTES} minutes and can be used once. Only use this code during a Planyx support conversation you initiated or expected. Planyx will never ask for your Microsoft password.`,
-      html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#0b172d"><h1 style="font-size:22px">Planyx support verification</h1><p>Your one-time support code is:</p><p style="font-size:30px;font-weight:700;letter-spacing:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:18px;text-align:center">${code}</p><p>This code expires in ${EMAIL_CODE_MINUTES} minutes and can be used once.</p><p style="font-size:13px;color:#475569">Only use it during a Planyx support conversation you initiated or expected. Planyx will never ask for your Microsoft password.</p></div>`,
+      subject: "Your Sousa Murray Planeia support verification code",
+      text: `Your Sousa Murray Planeia support verification code is ${code}. It expires in ${EMAIL_CODE_MINUTES} minutes and can be used once. Only use this code during a Sousa Murray Planeia support conversation you initiated or expected. Sousa Murray Planeia will never ask for your Microsoft password.`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#0b172d"><h1 style="font-size:22px">Sousa Murray Planeia support verification</h1><p>Your one-time support code is:</p><p style="font-size:30px;font-weight:700;letter-spacing:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:18px;text-align:center">${code}</p><p>This code expires in ${EMAIL_CODE_MINUTES} minutes and can be used once.</p><p style="font-size:13px;color:#475569">Only use it during a Sousa Murray Planeia support conversation you initiated or expected. Sousa Murray Planeia will never ask for your Microsoft password.</p></div>`,
     });
   } catch (error) {
     await DB.prepare("UPDATE customer_support_email_codes SET status='Delivery failed',revoked_at=CURRENT_TIMESTAMP WHERE id=?").bind(id).run();
@@ -461,7 +461,7 @@ async function notifyApprovers(DB, env, request, profile) {
     try {
       await sendEmail(DB, env, {
         to,
-        subject: "Planyx CRM override approval required",
+        subject: "Sousa Murray Planeia CRM override approval required",
         text: `${request.requested_by} has requested supervised access to ${request.customer_email}. Reason: ${request.reason_code}. Request ${request.id} expires at ${request.expires_at}. Review it in Customer CRM.`,
         html: `<div style="font-family:Arial,sans-serif;color:#0b172d"><h2>CRM override approval required</h2><p><strong>Requested by:</strong> ${request.requested_by}</p><p><strong>Customer:</strong> ${request.customer_email}</p><p><strong>Reason:</strong> ${request.reason_code}</p><p><strong>Request:</strong> ${request.id}</p><p>Open the customer’s CRM Security tab to approve or reject it.</p></div>`,
       });
@@ -515,7 +515,7 @@ async function reviewOverride(DB, env, admin, body) {
   try {
     await sendEmail(DB, env, {
       to: request.requested_by,
-      subject: `Planyx CRM override ${decision === "approve" ? "approved" : "rejected"}`,
+      subject: `Sousa Murray Planeia CRM override ${decision === "approve" ? "approved" : "rejected"}`,
       text: `Your CRM override request ${requestId} for ${request.customer_email} was ${decision === "approve" ? "approved" : "rejected"} by ${admin.email}. ${decision === "approve" ? "Re-enter your own administrator PIN before the approval expires." : "Review the supervisor note in Customer CRM."}`,
       html: `<div style="font-family:Arial,sans-serif;color:#0b172d"><h2>CRM override ${decision === "approve" ? "approved" : "rejected"}</h2><p>Request ${requestId} was reviewed by ${admin.email}.</p><p>${decision === "approve" ? "Return to Customer CRM and re-enter your own administrator PIN before the approval expires." : "Review the supervisor note in Customer CRM."}</p></div>`,
     });

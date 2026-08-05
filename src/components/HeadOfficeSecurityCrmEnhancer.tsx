@@ -87,7 +87,7 @@ function BranchSecurityPanel({ email }: { email: string }) {
       <header className="flex flex-col gap-3 border-b border-blue-100 bg-blue-50/70 px-4 py-3 dark:border-blue-900 dark:bg-blue-950/20 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 rounded-lg bg-blue-100 p-2 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200"><ShieldCheck className="h-4 w-4" /></div>
-          <div><h3 className="text-sm font-semibold text-slate-950 dark:text-white">Head Office security authority</h3><p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-300">Live branch-safe access decision, security markers and instructions for this Planyx customer.</p></div>
+          <div><h3 className="text-sm font-semibold text-slate-950 dark:text-white">Head Office security authority</h3><p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-300">Live branch-safe access decision, security markers and instructions for this Sousa Murray Planeia customer.</p></div>
         </div>
         <button type="button" onClick={() => void load()} disabled={loading} className="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"><RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />Refresh from Head Office</button>
       </header>
@@ -115,7 +115,7 @@ function BranchSecurityPanel({ email }: { email: string }) {
         </div>
 
         <div className="rounded-lg bg-slate-50 p-3 text-[11px] leading-5 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-          <strong>Decision authority:</strong> JA Group Services Ltd Head Office. Planyx displays and enforces the branch instruction but cannot create, clear or override a central marker. {payload.cached ? 'This view is cached because the live connection was unavailable.' : 'This view was checked live.'}
+          <strong>Decision authority:</strong> JA Group Services Ltd Head Office. Sousa Murray Planeia displays and enforces the branch instruction but cannot create, clear or override a central marker. {payload.cached ? 'This view is cached because the live connection was unavailable.' : 'This view was checked live.'}
           <span className="block">Last checked: {payload.fetchedAt ? new Date(payload.fetchedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'Not available'}.</span>
         </div>
       </div>

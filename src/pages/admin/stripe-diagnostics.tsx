@@ -210,7 +210,7 @@ export default function AdminStripeDiagnostics() {
   const [keysError,      setKeysError]      = useState('');
   const [showLiveWarning, setShowLiveWarning] = useState(false);
 
-  // Prices form — the four live Planyx subscriptions
+  // Prices form — the four live Sousa Murray Planeia subscriptions
   const [pricePersonal,        setPricePersonal]        = useState('');
   const [priceStandard,        setPriceStandard]        = useState('');
   const [priceProfessional,    setPriceProfessional]    = useState('');
@@ -985,7 +985,7 @@ export default function AdminStripeDiagnostics() {
                   <p className="text-xs text-slate-400">Register this URL in your Stripe Dashboard under <strong className="text-white">Developers → Webhooks</strong>:</p>
                   <div className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3">
                     <p className="text-sm font-mono text-blue-300 break-all">
-                      https://planyx.jagroupservices.co.uk/api/stripe/webhook
+                      https://sousamurrayplaneia.jagroupservices.co.uk/api/stripe/webhook
                     </p>
                   </div>
                   <p className="text-xs text-slate-400">Required events to subscribe to:</p>

@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setUser(serverUser);
       } catch (error) {
-        console.error('Planyx customer session initialisation failed.', error);
+        console.error('Sousa Murray Planeia customer session initialisation failed.', error);
         if (active) setUser(null);
       } finally {
         // Never leave protected routes on an unexplained permanent loading page.
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setUser(serverUser);
     }).catch(error => {
-      console.error('Planyx customer session refresh failed.', error);
+      console.error('Sousa Murray Planeia customer session refresh failed.', error);
       setUser(null);
     });
   }, []);

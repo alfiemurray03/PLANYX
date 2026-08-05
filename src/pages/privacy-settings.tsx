@@ -247,7 +247,7 @@ export default function PrivacySettingsPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Planyx-Data-Export-${sar.uuid.slice(0, 8).toUpperCase()}.zip`;
+        a.download = `Sousa Murray Planeia-Data-Export-${sar.uuid.slice(0, 8).toUpperCase()}.zip`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

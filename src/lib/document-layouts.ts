@@ -1,9 +1,9 @@
 /**
- * Planyx — Document Layout System
+ * Sousa Murray Planeia — Document Layout System
  * 14 professional layout styles.
  *
  * BRANDING POLICY:
- * - No hardcoded platform branding (no "JA Group Services", no "Planyx")
+ * - No hardcoded platform branding (no "JA Group Services", no "Sousa Murray Planeia")
  * - All header fields (ref, date, version, status) are optional — only shown when
  *   the caller passes showRef/showDate/showVersion/showStatus = true
  * - Disclaimer is opt-in via showDisclaimer = true

@@ -64,7 +64,7 @@ export async function onRequest(context) {
         .bind(identity.email)
         .first();
       if (isBlockedStatus(profile?.admin_customer_status)) {
-        return json({ success: false, error: "Your account is currently suspended. Please contact Planyx for assistance." }, 403);
+        return json({ success: false, error: "Your account is currently suspended. Please contact Sousa Murray Planeia for assistance." }, 403);
       }
     } catch {
       // A newly authenticated customer may not have been provisioned yet.

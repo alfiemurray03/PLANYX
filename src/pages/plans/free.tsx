@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, X, FileText, Download, Lock, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const INCLUDED = [
-  'Browse every Planyx builder',
+  'Browse every Sousa Murray Planeia builder',
   'Try 1 guided planning builder',
   'Preview your personalised plan',
 ];
@@ -24,8 +24,8 @@ export default function FreePlanPage() {
   return (
     <>
       <Helmet>
-        <title>Free Plan — Planyx</title>
-        <meta name="description" content="Try one Planyx guided planning builder at no cost." />
+        <title>Free Plan — Sousa Murray Planeia</title>
+        <meta name="description" content="Try one Sousa Murray Planeia guided planning builder at no cost." />
       </Helmet>
 
       <div className="max-w-3xl mx-auto px-4 py-12">

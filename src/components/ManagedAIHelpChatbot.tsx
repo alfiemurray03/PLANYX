@@ -50,11 +50,11 @@ const DEFAULT_CONFIG: AssistantConfig = {
   allowAnonymous: true,
   selfHelpEnabled: true,
   escalationEnabled: true,
-  assistantName: 'Planyx Support Assistant',
+  assistantName: 'Sousa Murray Planeia Support Assistant',
   logoUrl: '',
   avatarUrl: '',
   fontFamily: 'inherit',
-  welcomeMessage: 'Hello! I can help you find an answer in the Planyx Help Centre. What do you need help with?',
+  welcomeMessage: 'Hello! I can help you find an answer in the Sousa Murray Planeia Help Centre. What do you need help with?',
   responseTime: 'within 2 working days',
   maxSelfHelpTurns: 3,
   position: 'bottom-right',
@@ -226,14 +226,14 @@ export default function ManagedAIHelpChatbot() {
   function startEnquiry(subject = suggestedSubject, category = suggestedCategory) {
     if (config.maintenanceEnabled) return;
     const lastUserMessage = [...messages].reverse().find(message => message.role === 'user')?.text ?? '';
-    setForm(current => ({ ...current, name: current.name || displayName(user), email: current.email || user?.email || '', subject: current.subject || subject || 'Help with Planyx', message: current.message || lastUserMessage, category: category || 'Technical Support' }));
+    setForm(current => ({ ...current, name: current.name || displayName(user), email: current.email || user?.email || '', subject: current.subject || subject || 'Help with Sousa Murray Planeia', message: current.message || lastUserMessage, category: category || 'Technical Support' }));
     setFieldErrors({}); setSubmitError(''); setMode('enquiry');
   }
 
   async function submitAutomaticEscalation(reply: AssistantReply, conversation: ChatMessage[]) {
     const name = form.name.trim() || displayName(user);
     const email = user?.email?.trim() || form.email.trim() || '';
-    const subject = reply.suggestedSubject || suggestedSubject || 'Help with Planyx';
+    const subject = reply.suggestedSubject || suggestedSubject || 'Help with Sousa Murray Planeia';
     const category = reply.category || suggestedCategory || 'Technical Support';
 
     if (!email || !name) {
@@ -338,7 +338,7 @@ export default function ManagedAIHelpChatbot() {
         setForm(current => ({ ...current, name: value.trim().replace(/\s+/g, ' '), email: user?.email || current.email }));
         if (user?.email) {
           setIntakeStep('telephone');
-          appendAssistant(`Thanks, ${value}. I’ve securely matched this conversation to your signed-in Planyx account. What telephone number should the Support Team use if a call is necessary? You can type “skip”.`);
+          appendAssistant(`Thanks, ${value}. I’ve securely matched this conversation to your signed-in Sousa Murray Planeia account. What telephone number should the Support Team use if a call is necessary? You can type “skip”.`);
         } else {
           setIntakeStep('email');
           appendAssistant(`Thanks, ${value}. What email address should we use to contact you about this conversation?`);
@@ -435,7 +435,7 @@ export default function ManagedAIHelpChatbot() {
   function transcriptText() {
     const lines = messages.map(message => `${message.role === 'assistant' ? config.assistantName : form.name || 'Visitor'}: ${message.text}`);
     return [
-      'Planyx Support Conversation',
+      'Sousa Murray Planeia Support Conversation',
       `Name: ${form.name || 'Not provided'}`,
       `Email: ${form.email || 'Not provided'}`,
       `Telephone: ${form.telephone || 'Not provided'}`,
@@ -450,7 +450,7 @@ export default function ManagedAIHelpChatbot() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `Planyx-${reference || sessionIdRef.current}-transcript.txt`;
+    anchor.download = `Sousa Murray Planeia-${reference || sessionIdRef.current}-transcript.txt`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -464,7 +464,7 @@ export default function ManagedAIHelpChatbot() {
       return;
     }
     const safe = transcriptText().replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character] || character);
-    popup.document.write(`<!doctype html><html lang="en-GB"><head><title>Planyx support transcript</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:32px;color:#0f172a}pre{white-space:pre-wrap;line-height:1.55}h1{font-size:22px}@media print{button{display:none}}</style></head><body><h1>Planyx support transcript</h1><pre>${safe}</pre><button onclick="window.print()">Print transcript</button></body></html>`);
+    popup.document.write(`<!doctype html><html lang="en-GB"><head><title>Sousa Murray Planeia support transcript</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:32px;color:#0f172a}pre{white-space:pre-wrap;line-height:1.55}h1{font-size:22px}@media print{button{display:none}}</style></head><body><h1>Sousa Murray Planeia support transcript</h1><pre>${safe}</pre><button onclick="window.print()">Print transcript</button></body></html>`);
     popup.document.close();
   }
 
@@ -517,13 +517,13 @@ export default function ManagedAIHelpChatbot() {
                 {!!message.suggestions?.length && <div className="mt-2 flex flex-wrap gap-2">{message.suggestions.map(suggestion => <button key={`${message.id}-${suggestion}`} type="button" onClick={() => void sendMessage(suggestion)} className="rounded-full border bg-white px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-slate-50" style={{ borderColor: config.accentColor, color: config.primaryColor }}>{suggestion}</button>)}</div>}
               </div></div>)}
               {thinking && <div className="flex justify-start"><div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" style={{ color: config.primaryColor }} />{thinkingLabel}</div></div>}
-              {pendingEscalation && <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm" role="group" aria-labelledby="support-pin-title"><p id="support-pin-title" className="text-sm font-bold text-slate-950">Verify your identity before human support</p><p className="mt-1 text-xs leading-relaxed text-slate-600">Enter your six-digit Planyx Support PIN. You can see or generate it in <a href="/settings?tab=security" className="font-semibold underline" target="_blank" rel="noreferrer">Settings → Security</a>. It expires after 10 minutes and resets after it is used.</p><label htmlFor="chat-support-pin" className="mt-3 block text-xs font-semibold text-slate-800">Support PIN</label><div className="mt-1 flex gap-2"><Input id="chat-support-pin" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={supportPin} onChange={event => setSupportPin(event.target.value.replace(/\D/g, '').slice(0, 6))} className="h-10 bg-white font-mono text-lg tracking-[0.3em] text-slate-950" aria-describedby={pinError ? 'support-pin-error' : undefined} /><Button type="button" onClick={() => void verifySupportPin()} disabled={pinVerifying || supportPin.length !== 6} style={{ backgroundColor: config.primaryColor }} className="text-white">{pinVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}</Button></div>{pinError && <p id="support-pin-error" role="alert" className="mt-2 text-xs text-red-700">{pinError}</p>}<p className="mt-2 text-[11px] text-slate-500">Never give us your Microsoft sign-in code, password, card number or CVV. This prompt accepts only the Planyx Support PIN.</p></div>}
+              {pendingEscalation && <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm" role="group" aria-labelledby="support-pin-title"><p id="support-pin-title" className="text-sm font-bold text-slate-950">Verify your identity before human support</p><p className="mt-1 text-xs leading-relaxed text-slate-600">Enter your six-digit Sousa Murray Planeia Support PIN. You can see or generate it in <a href="/settings?tab=security" className="font-semibold underline" target="_blank" rel="noreferrer">Settings → Security</a>. It expires after 10 minutes and resets after it is used.</p><label htmlFor="chat-support-pin" className="mt-3 block text-xs font-semibold text-slate-800">Support PIN</label><div className="mt-1 flex gap-2"><Input id="chat-support-pin" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={supportPin} onChange={event => setSupportPin(event.target.value.replace(/\D/g, '').slice(0, 6))} className="h-10 bg-white font-mono text-lg tracking-[0.3em] text-slate-950" aria-describedby={pinError ? 'support-pin-error' : undefined} /><Button type="button" onClick={() => void verifySupportPin()} disabled={pinVerifying || supportPin.length !== 6} style={{ backgroundColor: config.primaryColor }} className="text-white">{pinVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}</Button></div>{pinError && <p id="support-pin-error" role="alert" className="mt-2 text-xs text-red-700">{pinError}</p>}<p className="mt-2 text-[11px] text-slate-500">Never give us your Microsoft sign-in code, password, card number or CVV. This prompt accepts only the Sousa Murray Planeia Support PIN.</p></div>}
               <div ref={bottomRef} />
             </div>
-            {!config.maintenanceEnabled && <footer className="shrink-0 border-t border-slate-200 bg-white p-3">{chatError && <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{chatError}</p>}<div className="flex items-end gap-2"><Input ref={inputRef} value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void sendMessage(); } }} placeholder={config.inputPlaceholder} className="h-10 flex-1 border-slate-300 bg-white text-sm text-slate-900" /><Button type="button" onClick={() => void sendMessage()} disabled={thinking || !input.trim()} style={{ backgroundColor: config.primaryColor }} className="h-10 w-10 shrink-0 p-0 text-white"><Send className="h-4 w-4" /></Button></div><div className="mt-2 flex items-center justify-between text-[10px] text-slate-500"><span>{config.showPoweredBy ? 'Powered by Planyx Help Centre' : 'AI answers may be checked before acting.'}</span>{config.escalationEnabled && <button type="button" onClick={() => startEnquiry()} className="font-semibold hover:underline" style={{ color: config.primaryColor }}>Contact the team</button>}</div></footer>}
+            {!config.maintenanceEnabled && <footer className="shrink-0 border-t border-slate-200 bg-white p-3">{chatError && <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{chatError}</p>}<div className="flex items-end gap-2"><Input ref={inputRef} value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void sendMessage(); } }} placeholder={config.inputPlaceholder} className="h-10 flex-1 border-slate-300 bg-white text-sm text-slate-900" /><Button type="button" onClick={() => void sendMessage()} disabled={thinking || !input.trim()} style={{ backgroundColor: config.primaryColor }} className="h-10 w-10 shrink-0 p-0 text-white"><Send className="h-4 w-4" /></Button></div><div className="mt-2 flex items-center justify-between text-[10px] text-slate-500"><span>{config.showPoweredBy ? 'Powered by Sousa Murray Planeia Help Centre' : 'AI answers may be checked before acting.'}</span>{config.escalationEnabled && <button type="button" onClick={() => startEnquiry()} className="font-semibold hover:underline" style={{ color: config.primaryColor }}>Contact the team</button>}</div></footer>}
           </>}
 
-          {!config.maintenanceEnabled && mode === 'enquiry' && <div className="flex-1 overflow-y-auto bg-white px-4 py-4"><div className="mb-4 rounded-xl border p-3" style={{ borderColor: config.accentColor, backgroundColor: config.accentColor }}><div className="flex gap-2"><LifeBuoy className="mt-0.5 h-4 w-4 shrink-0" style={{ color: config.primaryColor }} /><div><p className="text-sm font-semibold text-slate-950">Send this to Contact Enquiries</p><p className="mt-1 text-xs text-slate-700">This creates a support case and reference for the Planyx Support Team. Signed-out visitors can submit as well.</p></div></div></div><div className="space-y-3">
+          {!config.maintenanceEnabled && mode === 'enquiry' && <div className="flex-1 overflow-y-auto bg-white px-4 py-4"><div className="mb-4 rounded-xl border p-3" style={{ borderColor: config.accentColor, backgroundColor: config.accentColor }}><div className="flex gap-2"><LifeBuoy className="mt-0.5 h-4 w-4 shrink-0" style={{ color: config.primaryColor }} /><div><p className="text-sm font-semibold text-slate-950">Send this to Contact Enquiries</p><p className="mt-1 text-xs text-slate-700">This creates a support case and reference for the Sousa Murray Planeia Support Team. Signed-out visitors can submit as well.</p></div></div></div><div className="space-y-3">
             {[['name','Name','text'],['email','Email address','email'],['telephone','Telephone','tel'],['subject',`Subject (${form.subject.trim().length}/180)`,'text']].map(([key,label,type]) => <div key={key}><label className="mb-1 block text-xs font-semibold text-slate-800">{label}</label><Input type={type} value={String(form[key as keyof EnquiryForm])} onChange={event => setForm(current => ({ ...current, [key]: event.target.value }))} className="border-slate-300 bg-white text-slate-900" />{fieldErrors[key] && <p className="mt-1 text-xs text-red-600">{fieldErrors[key]}</p>}</div>)}
             <div><label className="mb-1 block text-xs font-semibold text-slate-800">Message ({form.message.trim().length}/6000)</label><Textarea value={form.message} rows={6} maxLength={6000} onChange={event => setForm(current => ({ ...current, message: event.target.value }))} className="min-h-[130px] border-slate-300 bg-white text-slate-900" />{fieldErrors.message && <p className="mt-1 text-xs text-red-600">{fieldErrors.message}</p>}</div>
             <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3"><input type="checkbox" checked={form.consent} onChange={event => setForm(current => ({ ...current, consent: event.target.checked }))} className="mt-0.5 h-4 w-4" /><span className="text-xs text-slate-700">I accept the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold underline">Terms of Service</a> and have read the <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline">Privacy Notice</a>.</span></label>{fieldErrors.consent && <p className="text-xs text-red-600">{fieldErrors.consent}</p>}
@@ -531,7 +531,7 @@ export default function ManagedAIHelpChatbot() {
             <Button type="button" onClick={() => void submitEnquiry()} disabled={submitting} style={{ backgroundColor: config.primaryColor }} className="w-full text-white">{submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}{submitting ? 'Sending enquiry…' : 'Send enquiry'}</Button>
           </div></div>}
 
-          {!config.maintenanceEnabled && mode === 'sent' && <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 text-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-8 w-8 text-green-600" /></span><h2 className="mt-4 text-lg font-bold">Enquiry received</h2><p className="mt-2 text-sm text-slate-600">Your enquiry has been submitted to the Planyx Support Team.</p><div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><p className="text-[10px] font-bold uppercase text-slate-500">Reference</p><p className="mt-1 font-mono text-sm font-bold">{reference}</p></div><p className="mt-3 text-xs text-slate-500">The team normally replies {config.responseTime}.</p><div className="mt-5 flex flex-wrap justify-center gap-2"><Button type="button" size="sm" variant="outline" onClick={downloadTranscript}><Download className="mr-2 h-4 w-4" />Download transcript</Button><Button type="button" size="sm" variant="outline" onClick={printTranscript}><Printer className="mr-2 h-4 w-4" />Print transcript</Button><Button type="button" size="sm" onClick={restart}>Start another conversation</Button></div></div>}
+          {!config.maintenanceEnabled && mode === 'sent' && <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 text-center"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-8 w-8 text-green-600" /></span><h2 className="mt-4 text-lg font-bold">Enquiry received</h2><p className="mt-2 text-sm text-slate-600">Your enquiry has been submitted to the Sousa Murray Planeia Support Team.</p><div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><p className="text-[10px] font-bold uppercase text-slate-500">Reference</p><p className="mt-1 font-mono text-sm font-bold">{reference}</p></div><p className="mt-3 text-xs text-slate-500">The team normally replies {config.responseTime}.</p><div className="mt-5 flex flex-wrap justify-center gap-2"><Button type="button" size="sm" variant="outline" onClick={downloadTranscript}><Download className="mr-2 h-4 w-4" />Download transcript</Button><Button type="button" size="sm" variant="outline" onClick={printTranscript}><Printer className="mr-2 h-4 w-4" />Print transcript</Button><Button type="button" size="sm" onClick={restart}>Start another conversation</Button></div></div>}
         </section>
       )}
     </div>

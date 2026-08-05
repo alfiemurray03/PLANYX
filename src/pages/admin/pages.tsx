@@ -18,7 +18,7 @@ function requestedView(): WebsiteWorkspaceView {
 function WebsiteBuilderSettingsPage() {
   return (
     <AdminLayout title="Website Builder Settings">
-      <Helmet><title>Website Builder Settings | Planyx Admin Centre</title></Helmet>
+      <Helmet><title>Website Builder Settings | Sousa Murray Planeia Admin Centre</title></Helmet>
       <WebsiteBuilderSettingsPanel />
     </AdminLayout>
   );

@@ -112,7 +112,7 @@ function IOSContent() {
         </p>
         <ol className="space-y-3">
           <Step n={1}>
-            Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Safari</strong> on your iPhone or iPad.
+            Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Safari</strong> on your iPhone or iPad.
           </Step>
           <Step n={2}>
             Tap the <strong className="text-foreground">Share button</strong> — the box with an arrow pointing up (
@@ -123,14 +123,14 @@ function IOSContent() {
             Scroll down in the share sheet and tap <strong className="text-foreground">"Add to Home Screen"</strong>.
           </Step>
           <Step n={4}>
-            Edit the name if you like — we suggest <strong className="text-foreground">Planyx</strong>.
+            Edit the name if you like — we suggest <strong className="text-foreground">Sousa Murray Planeia</strong>.
           </Step>
           <Step n={5}>
             Tap <strong className="text-foreground">"Add"</strong> in the top-right corner. Done!
           </Step>
         </ol>
         <Tip>
-          The app icon will appear on your home screen. Tap it to open Planyx in full-screen mode — no browser bar, just the app.
+          The app icon will appear on your home screen. Tap it to open Sousa Murray Planeia in full-screen mode — no browser bar, just the app.
         </Tip>
         <Note>
           iOS 16.4 and later: once installed, you may be asked to allow push notifications the first time you open the app.
@@ -194,8 +194,8 @@ function AndroidContent({
       <div>
         <p className="text-sm font-semibold text-foreground mb-3">Using Chrome (recommended)</p>
         <ol className="space-y-3">
-          <Step n={1}>Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Chrome</strong> on your Android device.</Step>
-          <Step n={2}>A banner may appear at the bottom saying <strong className="text-foreground">"Add Planyx to Home screen"</strong> — tap <strong className="text-foreground">"Add"</strong>.</Step>
+          <Step n={1}>Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Chrome</strong> on your Android device.</Step>
+          <Step n={2}>A banner may appear at the bottom saying <strong className="text-foreground">"Add Sousa Murray Planeia to Home screen"</strong> — tap <strong className="text-foreground">"Add"</strong>.</Step>
           <Step n={3}>If no banner appears, tap the <strong className="text-foreground">three-dot menu</strong> (⋮) in the top-right corner.</Step>
           <Step n={4}>Tap <strong className="text-foreground">"Add to Home screen"</strong> or <strong className="text-foreground">"Install app"</strong>.</Step>
           <Step n={5}>Tap <strong className="text-foreground">"Add"</strong> or <strong className="text-foreground">"Install"</strong> to confirm.</Step>
@@ -205,7 +205,7 @@ function AndroidContent({
       <div className="border-t border-border pt-4">
         <p className="text-sm font-semibold text-foreground mb-3">Using Samsung Internet</p>
         <ol className="space-y-3">
-          <Step n={1}>Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Samsung Internet</strong>.</Step>
+          <Step n={1}>Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Samsung Internet</strong>.</Step>
           <Step n={2}>Tap the <strong className="text-foreground">menu icon</strong> (three horizontal lines) at the bottom of the screen.</Step>
           <Step n={3}>Tap <strong className="text-foreground">"Add page to"</strong> → <strong className="text-foreground">"Home screen"</strong>.</Step>
           <Step n={4}>Tap <strong className="text-foreground">"Add"</strong> to confirm.</Step>
@@ -273,7 +273,7 @@ function DesktopChromeContent({
       <div>
         <p className="text-sm font-semibold text-foreground mb-3">Google Chrome</p>
         <ol className="space-y-3">
-          <Step n={1}>Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Google Chrome</strong>.</Step>
+          <Step n={1}>Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Google Chrome</strong>.</Step>
           <Step n={2}>Look for the <strong className="text-foreground">install icon</strong> — a computer with a down arrow — in the address bar on the right side. Click it.</Step>
           <Step n={3}>Click <strong className="text-foreground">"Install"</strong> in the prompt that appears.</Step>
           <Step n={4}>
@@ -285,7 +285,7 @@ function DesktopChromeContent({
       <div className="border-t border-border pt-4">
         <p className="text-sm font-semibold text-foreground mb-3">Microsoft Edge</p>
         <ol className="space-y-3">
-          <Step n={1}>Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Microsoft Edge</strong>.</Step>
+          <Step n={1}>Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Microsoft Edge</strong>.</Step>
           <Step n={2}>Click the <strong className="text-foreground">three-dot menu</strong> (…) in the top-right corner.</Step>
           <Step n={3}>Click <strong className="text-foreground">"Apps"</strong> → <strong className="text-foreground">"Install this site as an app"</strong>.</Step>
           <Step n={4}>Click <strong className="text-foreground">"Install"</strong> to confirm.</Step>
@@ -293,7 +293,7 @@ function DesktopChromeContent({
       </div>
 
       <Tip>
-        Once installed, Planyx opens in its own window. Find it in your Start Menu (Windows) or Applications folder (Mac) like any other app.
+        Once installed, Sousa Murray Planeia opens in its own window. Find it in your Start Menu (Windows) or Applications folder (Mac) like any other app.
       </Tip>
     </div>
   );
@@ -306,13 +306,13 @@ function DesktopSafariContent() {
         Safari on <strong className="text-foreground">macOS Sonoma (14) or later</strong> supports adding web apps to your Dock.
       </p>
       <ol className="space-y-3">
-        <Step n={1}>Open <strong className="text-foreground">Planyx</strong> in <strong className="text-foreground">Safari</strong> on your Mac.</Step>
+        <Step n={1}>Open <strong className="text-foreground">Sousa Murray Planeia</strong> in <strong className="text-foreground">Safari</strong> on your Mac.</Step>
         <Step n={2}>Click <strong className="text-foreground">"File"</strong> in the menu bar at the top of the screen.</Step>
         <Step n={3}>Click <strong className="text-foreground">"Add to Dock…"</strong></Step>
         <Step n={4}>Edit the name if you like, then click <strong className="text-foreground">"Add"</strong>.</Step>
       </ol>
       <Tip>
-        Planyx will appear in your Dock and can be launched like any other Mac app.
+        Sousa Murray Planeia will appear in your Dock and can be launched like any other Mac app.
       </Tip>
       <Note>
         Requires macOS Sonoma (14) or later. On older macOS versions, use Chrome or Edge instead — see the Chrome / Edge tab above.
@@ -374,7 +374,7 @@ export default function InstallAppModal() {
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Install Planyx"
+      aria-label="Install Sousa Murray Planeia"
     >
       {/* Backdrop */}
       <div
@@ -394,7 +394,7 @@ export default function InstallAppModal() {
             <Smartphone className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold text-foreground leading-snug">Install Planyx</h2>
+            <h2 className="text-base font-bold text-foreground leading-snug">Install Sousa Murray Planeia</h2>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
               Add to your home screen or desktop — no app store needed. Works like a native app.
             </p>
@@ -412,7 +412,7 @@ export default function InstallAppModal() {
         {isStandalone && (
           <div className="mx-5 mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center gap-2 flex-shrink-0">
             <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <p className="text-xs text-green-600 dark:text-green-400 font-medium">You're already running Planyx as an installed app.</p>
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium">You're already running Sousa Murray Planeia as an installed app.</p>
           </div>
         )}
 

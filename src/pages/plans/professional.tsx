@@ -46,8 +46,8 @@ export default function ProfessionalPlanPage() {
   return (
     <>
       <Helmet>
-        <title>Professional Plan — Planyx</title>
-        <meta name="description" content="Every Planyx builder, advanced planning tools and up to 10 active plans for £14.99/month." />
+        <title>Professional Plan — Sousa Murray Planeia</title>
+        <meta name="description" content="Every Sousa Murray Planeia builder, advanced planning tools and up to 10 active plans for £14.99/month." />
       </Helmet>
 
       <div className="max-w-3xl mx-auto px-4 py-12">

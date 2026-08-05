@@ -29,7 +29,7 @@ export default async function handler(req: Request, res: Response) {
   ]);
 
   const owner = ownerRows[0];
-  const siteName = siteNameRow[0]?.value ?? 'Planyx';
+  const siteName = siteNameRow[0]?.value ?? 'Sousa Murray Planeia';
   const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown';
   const now = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'long', timeStyle: 'long' });
 

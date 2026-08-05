@@ -65,7 +65,7 @@ export default function SigningDashboardPage() {
   if (!hasAccess) {
     return (
       <DashboardLayout>
-        <Helmet><title>Document Signing — Planyx</title></Helmet>
+        <Helmet><title>Document Signing — Sousa Murray Planeia</title></Helmet>
         <div className="max-w-2xl mx-auto py-16 px-4 text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <Lock className="w-8 h-8 text-primary" />
@@ -105,7 +105,7 @@ export default function SigningDashboardPage() {
 
   return (
     <DashboardLayout>
-      <Helmet><title>Document Signing — Planyx</title></Helmet>
+      <Helmet><title>Document Signing — Sousa Murray Planeia</title></Helmet>
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 flex-wrap">

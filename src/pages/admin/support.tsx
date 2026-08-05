@@ -6,7 +6,7 @@ export default function AdminSupport() {
   return (
     <AdminLayout title="Customer Support">
       <Helmet>
-        <title>Customer Support | Planyx Admin Centre</title>
+        <title>Customer Support | Sousa Murray Planeia Admin Centre</title>
       </Helmet>
 
       <div className="mx-auto max-w-4xl space-y-6">
@@ -18,7 +18,7 @@ export default function AdminSupport() {
             <div>
               <h1 className="text-2xl font-bold text-slate-950 dark:text-white">Head Office Customer Service</h1>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                Planyx customer conversations, escalations and adviser activity are managed through the JA Group Services Head Office Customer Service Centre.
+                Sousa Murray Planeia customer conversations, escalations and adviser activity are managed through the JA Group Services Head Office Customer Service Centre.
               </p>
             </div>
           </div>

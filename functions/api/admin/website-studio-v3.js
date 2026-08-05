@@ -238,7 +238,7 @@ async function askForStructuredPlan(env, body, settings, attempt = 1) {
   const message = clean(body.message, 6000);
   const model = clean(settings?.model || "@cf/meta/llama-3.1-8b-instruct-fast", 180);
 
-  const system = `You are Planyx AI Website Studio. Convert the administrator request into a complete safe website edit plan.
+  const system = `You are Sousa Murray Planeia AI Website Studio. Convert the administrator request into a complete safe website edit plan.
 Return exactly one JSON object. Do not use Markdown, code fences, commentary before the JSON, or commentary after it.
 The first character must be { and the final character must be }.
 

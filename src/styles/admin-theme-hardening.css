@@ -4,7 +4,7 @@
  * Older Admin pages still contain explicit light utility classes and coloured
  * 50/100 tint surfaces. The Admin theme class is applied to #admin-theme-root,
  * so these rules are deliberately scoped to that root and cannot affect the
- * public Planyx website.
+ * public Sousa Murray Planeia website.
  */
 
 #admin-theme-root.dark {

@@ -220,7 +220,7 @@ function AdminResetPinTool() {
 function TicketReplyTool() {
   const [state, set]       = useToolState();
   const [ticketId, setId]  = useState('');
-  const [message, setMsg]  = useState('This is a test reply from the Planyx support team. Please disregard this message.');
+  const [message, setMsg]  = useState('This is a test reply from the Sousa Murray Planeia support team. Please disregard this message.');
 
   async function run() {
     if (!ticketId.trim()) return;
@@ -385,7 +385,7 @@ export default function AdminTestTools() {
   return (
     <AdminLayout>
       <Helmet>
-        <title>Test Tools — Planyx Admin</title>
+        <title>Test Tools — Sousa Murray Planeia Admin</title>
       </Helmet>
 
       <div className="p-6 max-w-5xl mx-auto space-y-6">

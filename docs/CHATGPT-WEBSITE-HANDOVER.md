@@ -1,10 +1,10 @@
-# Planyx Website: Full ChatGPT Handover
+# Sousa Murray Planeia Website: Full ChatGPT Handover
 
 **Handover date:** 15 June 2026  
 **Project owner:** JA Group Services Ltd  
-**Website/service:** Planyx
+**Website/service:** Sousa Murray Planeia
 **Repository folder:** `C:\Users\alfie\Documents\ja-tours-activities`  
-**Production domain:** `https://planyx.jagroupservices.co.uk`
+**Production domain:** `https://sousamurrayplaneia.jagroupservices.co.uk`
 **Cloudflare Pages project:** `ja-experiences-discovery`  
 **GitHub repository:** `https://github.com/alfiemurray03/JA-EXPERIENCES-DISCOVERY`  
 **Production branch:** `main`  
@@ -17,20 +17,20 @@
 
 Use the following as the opening context for any new ChatGPT or Codex session:
 
-> You are continuing development of the Planyx website for JA Group Services Ltd.
+> You are continuing development of the Sousa Murray Planeia website for JA Group Services Ltd.
 >
 > The local repository is `C:\Users\alfie\Documents\ja-tours-activities`. Use British English and maintain a professional UK business tone. Read this handover completely before changing anything.
 >
 > The service must follow the Board-approved report:
-> `Z:\10 IT, Systems and Security\Website\Get Your Guide (tours.jagroupservices.co.uk)\READ ME - Planyx Board Approved v.3.1.2.pdf`
+> `Z:\10 IT, Systems and Security\Website\Get Your Guide (tours.jagroupservices.co.uk)\READ ME - Sousa Murray Planeia Board Approved v.3.1.2.pdf`
 >
-> The current production domain is `https://planyx.jagroupservices.co.uk`. GitHub `main` automatically deploys the static `public` directory to the Cloudflare Pages project `ja-experiences-discovery`.
+> The current production domain is `https://sousamurrayplaneia.jagroupservices.co.uk`. GitHub `main` automatically deploys the static `public` directory to the Cloudflare Pages project `ja-experiences-discovery`.
 >
 > Important restrictions:
 >
 > - Do not remove, alter or bypass the existing `/launch-gateway/` Launch Gateway unless the user expressly authorises the public launch.
 > - Do not change `public/_redirects` unless the user expressly requests it and the consequences are explained.
-> - Do not describe Planyx as a travel agent, tour operator, package holiday provider, transport provider or activity supplier.
+> - Do not describe Sousa Murray Planeia as a travel agent, tour operator, package holiday provider, transport provider or activity supplier.
 > - Do not suggest that JA sells flights, visas, transfers, coaches, ferries, trains, taxis, car hire or any transport.
 > - Do not enable hotel-room sales or customer hotel payments. There are zero approved selected partner hotels.
 > - Do not publish final legal, privacy or cookie claims without approved wording.
@@ -54,9 +54,9 @@ Use the following as the opening context for any new ChatGPT or Codex session:
 
 ## 2. Executive Project Summary
 
-Planyx is a trading division/service line of **JA Group Services Ltd**, not a separate legal entity.
+Sousa Murray Planeia is a trading division/service line of **JA Group Services Ltd**, not a separate legal entity.
 
-The website has been rebuilt from a limited affiliate/tours page into the broader Planyx planning platform. It now contains:
+The website has been rebuilt from a limited affiliate/tours page into the broader Sousa Murray Planeia planning platform. It now contains:
 
 - A full editorial travel homepage.
 - Destination discovery and search.
@@ -84,7 +84,7 @@ The controlling source is the Board-approved report **v3.1.2**, approved on **12
 
 ### 3.1 Core service
 
-Planyx is approved as:
+Sousa Murray Planeia is approved as:
 
 - A destination discovery service.
 - An activity and experience guidance service.
@@ -130,7 +130,7 @@ No Headout API integration may enter production without technical testing, data-
 
 ### 3.3 Travel and transport exclusions
 
-Planyx must not sell, arrange, package, facilitate, advertise or take payment for:
+Sousa Murray Planeia must not sell, arrange, package, facilitate, advertise or take payment for:
 
 - Package holidays.
 - Flights or flight-inclusive arrangements.
@@ -445,7 +445,7 @@ The footer contains:
 
 - Official JA Group Services logo with transparent background.
 - Brand statement.
-- Email: `planyx@jagroupservices.co.uk`
+- Email: `contact@jagroupservices.co.uk`
 - Telephone: `020 3834 2790`
 - Discover links.
 - Planning links.
@@ -455,7 +455,7 @@ The footer contains:
 
 Current company wording:
 
-> Planyx is a trading division/service line of JA Group Services Ltd.
+> Sousa Murray Planeia is a trading division/service line of JA Group Services Ltd.
 
 > JA Group Services Ltd is incorporated in England and Wales, Company Number 16314179.
 
@@ -703,7 +703,7 @@ Required variables/secrets:
 - Main module: `src/worker.js`
 - Static asset directory: `./public`
 - Asset binding: `ASSETS`
-- Recipient: `planyx@jagroupservices.co.uk`
+- Recipient: `contact@jagroupservices.co.uk`
 
 ### 8.3 Critical deployment mismatch
 
@@ -933,7 +933,7 @@ Recently edited CSS/JS may appear stale on the custom domain. Use `Ctrl+F5` or a
 
 `robots.txt` currently allows all crawling and references:
 
-`https://planyx.jagroupservices.co.uk/sitemap.xml`
+`https://sousamurrayplaneia.jagroupservices.co.uk/sitemap.xml`
 
 The sitemap currently contains 284 URLs.
 
@@ -991,7 +991,7 @@ Accessibility information must not be presented as a guarantee. Customers should
 
 The recent implementation sequence includes:
 
-1. Built the main multi-page Planyx site structure.
+1. Built the main multi-page Sousa Murray Planeia site structure.
 2. Added 252 destination route shells and destination rendering.
 3. Added travel imagery and editorial content structures.
 4. Added approved plan pricing and social tariff pricing.
@@ -1016,7 +1016,7 @@ The recent implementation sequence includes:
 
 Relevant recent commits:
 
-- `050373e` – Deploy complete Planyx website
+- `050373e` – Deploy complete Sousa Murray Planeia website
 - `0c71fe5` – Match Launch Gateway page to travel theme
 - `d6605dd` – Add official JA Group Services footer logo
 - `ae90b7f` – Remove footer logo background
@@ -1258,7 +1258,7 @@ Do not treat the site as launch-ready until all required items are complete.
 
 As of 15 June 2026:
 
-- The professional Planyx website is substantially built.
+- The professional Sousa Murray Planeia website is substantially built.
 - The full site is stored in GitHub and deployed to Cloudflare Pages.
 - The custom domain is active.
 - The Launch Gateway page is the current public experience.

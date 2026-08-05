@@ -561,7 +561,7 @@ export async function onRequest(context) {
 
   const profile = await first(env.DB, `SELECT admin_customer_status FROM profiles WHERE lower(email)=lower(?)`, [identity.email]).catch(() => null);
   if (["suspended", "blocked", "closed", "disabled"].includes(String(profile?.admin_customer_status || "").toLowerCase())) {
-    return json({ error: "Your account is currently suspended. Please contact Planyx for assistance." }, 403);
+    return json({ error: "Your account is currently suspended. Please contact Sousa Murray Planeia for assistance." }, 403);
   }
 
   if (request.method === "GET") {

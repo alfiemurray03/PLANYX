@@ -44,7 +44,7 @@ export default function StandardPlanPage() {
   return (
     <>
       <Helmet>
-        <title>Standard Plan — Planyx</title>
+        <title>Standard Plan — Sousa Murray Planeia</title>
         <meta name="description" content="Expanded planning builders and up to 5 active plans for £7.99/month." />
       </Helmet>
 

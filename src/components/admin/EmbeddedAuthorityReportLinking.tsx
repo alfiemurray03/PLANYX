@@ -28,22 +28,22 @@ function stationAddress(station: PoliceStationSelection): string {
 function evidenceBlock(context: AuthorityLinkContext): string {
   if (!context.user) return '';
   const lines = [
-    '--- Planyx linked investigation context ---',
+    '--- Sousa Murray Planeia linked investigation context ---',
     `Linked ${context.user.recordType.toLowerCase()}: ${context.user.name} <${context.user.email}>`,
     `Address source: ${context.user.addressSource}`,
     `Address used for force lookup: ${context.user.address.formatted || 'Not recorded'}`,
   ];
   if (context.sessions.length) {
-    lines.push('Linked Planyx sessions:');
+    lines.push('Linked Sousa Murray Planeia sessions:');
     context.sessions.forEach(session => lines.push(`- ${session.reference} | ${session.status} | last activity ${session.lastSeenAt || session.createdAt || 'not recorded'}`));
-  } else lines.push('Linked Planyx sessions: None selected');
+  } else lines.push('Linked Sousa Murray Planeia sessions: None selected');
   if (context.policeResolution?.force) lines.push(`Responsible police force: ${context.policeResolution.force.name}`);
   if (context.assignedStation) lines.push(`Assigned police station: ${context.assignedStation.stationName}, ${stationAddress(context.assignedStation) || 'address not published'}`);
   return lines.join('\n');
 }
 
 function mergeEvidence(existing: unknown, context: AuthorityLinkContext): string {
-  const base = String(existing || '').replace(/\n*--- Planyx linked investigation context ---[\s\S]*$/m, '').trim();
+  const base = String(existing || '').replace(/\n*--- Sousa Murray Planeia linked investigation context ---[\s\S]*$/m, '').trim();
   return [base, evidenceBlock(context)].filter(Boolean).join('\n\n').slice(0, 6000);
 }
 

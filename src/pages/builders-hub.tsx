@@ -420,7 +420,7 @@ export default function BuildersHubPage() {
     return (
       <>
         <Helmet>
-          <title>Choose your workspace — Planyx</title>
+          <title>Choose your workspace — Sousa Murray Planeia</title>
         </Helmet>
         <DashboardLayout>
           <main className="mx-auto max-w-3xl px-6 py-12">
@@ -442,7 +442,7 @@ export default function BuildersHubPage() {
   return (
     <>
       <Helmet>
-        <title>Experience Builders — Planyx</title>
+        <title>Experience Builders — Sousa Murray Planeia</title>
         <meta
           name="description"
           content="Build practical plans for days out, occasions, activities, trips and accessible experiences."
@@ -476,7 +476,7 @@ export default function BuildersHubPage() {
                     Your access
                   </p>
                   <p className="mt-1 font-semibold text-slate-900">
-                    {data?.token_summary?.plan_name || "Planyx"}
+                    {data?.token_summary?.plan_name || "Sousa Murray Planeia"}
                   </p>
                 </div>
                 <button
@@ -1118,7 +1118,7 @@ function WorkspaceSelector({
           Are you planning as an individual or an organisation?
         </h1>
         <p className="mt-3 text-slate-600">
-          Choose explicitly. Planyx will never classify you as a
+          Choose explicitly. Sousa Murray Planeia will never classify you as a
           business merely because a company name appears in your Microsoft
           profile.
         </p>

@@ -496,7 +496,7 @@ async function syncCustomerProfileFromClaims(context, claims, email) {
     photoUrl
   ).run();
 
-  // A subscription created by staff in Stripe can pre-date the Planyx account.
+  // A subscription created by staff in Stripe can pre-date the Sousa Murray Planeia account.
   // Claim it only after JA Group Services ID has verified the identical email.
   await claimPaidStripeSubscription(context.env.DB, profileEmail);
 }

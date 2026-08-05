@@ -4,7 +4,7 @@ const FLOWS = {
     category: "Technical Support",
     priority: "High",
     questions: [
-      "Which sign-in option are you using for your Planyx account?",
+      "Which sign-in option are you using for your Sousa Murray Planeia account?",
       "What happens when you try to sign in? If you see an error message, please tell me exactly what it says.",
       "What device and browser are you using?",
       "When did this start, and does it happen every time you try?"
@@ -61,7 +61,7 @@ const FLOWS = {
     priority: "Normal",
     questions: [
       "Please tell me what you need help with and what has happened so far.",
-      "Which part of Planyx does this relate to?",
+      "Which part of Sousa Murray Planeia does this relate to?",
       "What have you tried already, and what would you like to happen next?"
     ]
   }

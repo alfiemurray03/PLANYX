@@ -152,7 +152,7 @@ async function userDetail(DB, env, email) {
   const stripeAddress = await stripeBillingAddress(env, subscription);
   const savedAddress = profileAddress(profile);
   const address = stripeAddress || savedAddress;
-  const addressSource = stripeAddress ? "Stripe billing address" : (savedAddress.postcode || savedAddress.line1 ? "Saved Planyx account address" : "No saved address");
+  const addressSource = stripeAddress ? "Stripe billing address" : (savedAddress.postcode || savedAddress.line1 ? "Saved Sousa Murray Planeia account address" : "No saved address");
   const sessions = await safeAll(DB, `SELECT session_id, session_reference, realm, email, linked_user_name, status,
       created_at, last_seen_at, revoked_at, ip_address, country_code, user_agent, legal_hold, legal_hold_reason
     FROM auth_sessions

@@ -1,4 +1,4 @@
-export const SITE_URL = "https://planyx.jagroupservices.co.uk";
+export const SITE_URL = "https://sousamurrayplaneia.jagroupservices.co.uk";
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 
@@ -6,11 +6,11 @@ export const organization = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "@id": ORGANIZATION_ID,
-  name: "Planyx",
+  name: "Sousa Murray Planeia",
   legalName: "JA Group Services Ltd",
   url: `${SITE_URL}/`,
-  description: "Planyx is the experience planning platform operated by JA Group Services Ltd.",
-  email: "planyx@jagroupservices.co.uk",
+  description: "Sousa Murray Planeia is the experience planning platform operated by JA Group Services Ltd.",
+  email: "contact@jagroupservices.co.uk",
   identifier: {
     "@type": "PropertyValue",
     propertyID: "Companies House company number",
@@ -31,8 +31,8 @@ export const website = {
   "@type": "WebSite",
   "@id": WEBSITE_ID,
   url: `${SITE_URL}/`,
-  name: "Planyx",
-  alternateName: "Planyx by JA Group Services Ltd",
+  name: "Sousa Murray Planeia",
+  alternateName: "Sousa Murray Planeia by JA Group Services Ltd",
   description: "A self-service platform for building, saving and managing personalised experience plans.",
   publisher: { "@id": ORGANIZATION_ID }
 };
@@ -70,8 +70,8 @@ export function renderSeoHead({ route, name, description, type = "WebPage", incl
 
   return [
     `<link rel="canonical" href="${url}">`,
-    `<meta name="application-name" content="Planyx">`,
-    `<meta property="og:site_name" content="Planyx">`,
+    `<meta name="application-name" content="Sousa Murray Planeia">`,
+    `<meta property="og:site_name" content="Sousa Murray Planeia">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:title" content="${escapeAttribute(name)}">`,
     `<meta property="og:description" content="${escapeAttribute(description)}">`,

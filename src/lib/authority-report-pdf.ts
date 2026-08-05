@@ -68,7 +68,7 @@ export function downloadAuthorityReportPdf(report: AuthorityReportPdfData): void
     const page = doc.getNumberOfPages();
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Planyx Authority Reporting Centre · ${report.reference}`, margin, pageHeight - 9);
+    doc.text(`Sousa Murray Planeia Authority Reporting Centre · ${report.reference}`, margin, pageHeight - 9);
     doc.text(`Page ${page}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
   }
 
@@ -123,7 +123,7 @@ export function downloadAuthorityReportPdf(report: AuthorityReportPdfData): void
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.text('Planyx', margin, 18);
+  doc.text('Sousa Murray Planeia', margin, 18);
   doc.setFontSize(15);
   doc.text(title, margin, 29);
   doc.setFont('helvetica', 'normal');
@@ -152,7 +152,7 @@ export function downloadAuthorityReportPdf(report: AuthorityReportPdfData): void
   field('Submitted at', displayDate(report.submitted_at));
   field('Submitted by', report.submitted_by);
 
-  heading('Linked Planyx records');
+  heading('Linked Sousa Murray Planeia records');
   field('Session reference', report.linked_session_reference);
   field('Linked person', [report.linked_user_name, report.linked_user_email].filter(Boolean).join(' · '));
   field('Record type', report.linked_user_type);

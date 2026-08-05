@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS = {
   maxHistory: 20,
   maxOperations: 30,
   model: "@cf/meta/llama-3.1-8b-instruct-fast",
-  systemInstructions: "Use accessible, responsive British English website design. Preserve Planyx legal, privacy, age, safeguarding, security and authentication controls.",
+  systemInstructions: "Use accessible, responsive British English website design. Preserve Sousa Murray Planeia legal, privacy, age, safeguarding, security and authentication controls.",
 };
 
 function json(data, status = 200) {
@@ -340,8 +340,8 @@ function fallbackChat(message, targetPath, currentPlan, settings, reason = "") {
       warnings: [`AI service fallback used${reason ? `: ${clean(reason, 180)}` : "."}`],
       operations: [{
         type: "create_page", path, title, status: "published", noindex: false,
-        seoTitle: `${title} — Planyx`, seoDescription: "",
-        html: `<main class="managed-page"><section class="managed-page__hero"><p class="managed-page__eyebrow">Planyx</p><h1>${title.replace(/[<>&]/g, "")}</h1><p>Edit this content in the Website Studio.</p></section></main>`,
+        seoTitle: `${title} — Sousa Murray Planeia`, seoDescription: "",
+        html: `<main class="managed-page"><section class="managed-page__hero"><p class="managed-page__eyebrow">Sousa Murray Planeia</p><h1>${title.replace(/[<>&]/g, "")}</h1><p>Edit this content in the Website Studio.</p></section></main>`,
         css: ".managed-page{max-width:72rem;margin:0 auto;padding:4rem 1.5rem}.managed-page__hero{padding:3rem;border-radius:1.5rem;background:#eff6ff}.managed-page__eyebrow{font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.12em}",
       }],
     }, message, path, settings);
@@ -359,7 +359,7 @@ function fallbackChat(message, targetPath, currentPlan, settings, reason = "") {
 
 async function generateChat(env, message, targetPath, currentPlan, history, snapshot, settings) {
   if (!env.AI?.run) return fallbackChat(message, targetPath, currentPlan, settings, "Workers AI binding unavailable");
-  const system = `You are the conversational Planyx AI Website Builder operated by JA Group Services Ltd. Talk naturally to the administrator in concise British English while editing a website draft.
+  const system = `You are the conversational Sousa Murray Planeia AI Website Builder operated by JA Group Services Ltd. Talk naturally to the administrator in concise British English while editing a website draft.
 
 Return JSON only with this schema:
 {"reply":"Friendly acknowledgement and concise explanation","summary":"Complete revised draft summary","warnings":["..."],"operations":[...]}
@@ -419,7 +419,7 @@ async function persistConversation(DB, { conversationId, message, targetPath, pl
       ).run();
     await DB.prepare(`INSERT INTO website_builder_messages
       (id,conversation_id,role,content,actor_email) VALUES (?,?,?,?,?)`).bind(
-        crypto.randomUUID(), conversationId, "assistant", reply, "Planyx AI Website Builder"
+        crypto.randomUUID(), conversationId, "assistant", reply, "Sousa Murray Planeia AI Website Builder"
       ).run();
     return true;
   } catch (error) {

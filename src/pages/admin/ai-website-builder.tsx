@@ -257,7 +257,7 @@ export default function AdminAIWebsiteBuilderPage() {
 
   async function publishDraft() {
     if (!conversationId || !activePlan) return;
-    if (settings.publishConfirmation && !window.confirm('Publish this approved draft to the live Planyx production website now?')) return;
+    if (settings.publishConfirmation && !window.confirm('Publish this approved draft to the live Sousa Murray Planeia production website now?')) return;
     setBusy('publish'); setError('');
     try {
       await api({ action: 'publish_plan', id: conversationId });
@@ -299,7 +299,7 @@ export default function AdminAIWebsiteBuilderPage() {
     const page: ManagedPage = {
       id: crypto.randomUUID(), path: `/new-page-${Date.now()}`, title: 'New page', status: 'draft',
       html: '<main class="managed-page"><section><h1>New page</h1><p>Start editing this page.</p></section></main>',
-      css: '.managed-page{max-width:72rem;margin:0 auto;padding:4rem 1.5rem}', seo_title: 'New page — Planyx', seo_description: '', noindex: 1,
+      css: '.managed-page{max-width:72rem;margin:0 auto;padding:4rem 1.5rem}', seo_title: 'New page — Sousa Murray Planeia', seo_description: '', noindex: 1,
     };
     setInventory(current => current ? { ...current, pages: [page, ...current.pages] } : current);
     setSelectedFile({ type: 'page-html', pageId: page.id, path: `website/pages/${fileSafePath(page.path)}/page.html` });
@@ -367,12 +367,12 @@ export default function AdminAIWebsiteBuilderPage() {
 
   return (
     <AdminLayout title={title}>
-      <Helmet><title>{title} | Planyx Admin Centre</title></Helmet>
+      <Helmet><title>{title} | Sousa Murray Planeia Admin Centre</title></Helmet>
       <div className="space-y-4">
         <header className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="h-1 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500" />
           <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white"><WandSparkles className="h-5 w-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold text-slate-950 dark:text-white">Planyx AI Website Studio</h1><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${builderUnavailable ? 'bg-red-100 text-red-700' : settings.readOnly ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{!settings.enabled ? 'Offline' : settings.maintenanceEnabled ? 'Maintenance' : settings.readOnly ? 'Read-only' : 'Live'}</span>{activePlan && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase text-violet-700">Unpublished draft</span>}</div><p className="truncate text-xs text-slate-500">Chat, files, code and live website preview in one workspace.</p></div></div>
+            <div className="flex min-w-0 items-center gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white"><WandSparkles className="h-5 w-5" /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold text-slate-950 dark:text-white">Sousa Murray Planeia AI Website Studio</h1><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${builderUnavailable ? 'bg-red-100 text-red-700' : settings.readOnly ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{!settings.enabled ? 'Offline' : settings.maintenanceEnabled ? 'Maintenance' : settings.readOnly ? 'Read-only' : 'Live'}</span>{activePlan && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase text-violet-700">Unpublished draft</span>}</div><p className="truncate text-xs text-slate-500">Chat, files, code and live website preview in one workspace.</p></div></div>
             <div className="flex flex-wrap items-center gap-2"><Input aria-label="Target website path" value={targetPath} onChange={event => setTargetPath(event.target.value)} className="h-9 w-48 font-mono text-xs" /><Button variant="outline" size="sm" onClick={toggleSound} title={soundEnabled ? 'Acknowledgement sound on' : 'Acknowledgement sound off'}>{soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</Button><Button variant="outline" size="sm" onClick={() => void load()} disabled={busy !== null}><RefreshCw className={`h-4 w-4 ${busy === 'load' ? 'animate-spin' : ''}`} /></Button>{activePlan && <><Button variant="outline" size="sm" onClick={() => void discardDraft()} disabled={busy !== null}><Trash2 className="mr-1.5 h-4 w-4" />Discard</Button><Button size="sm" onClick={() => void publishDraft()} disabled={busy !== null || settings.readOnly}>{busy === 'publish' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Rocket className="mr-1.5 h-4 w-4" />}Publish</Button></>}</div>
           </div>
           <nav className="flex overflow-x-auto border-t border-slate-200 px-2 dark:border-slate-800" aria-label="Website Studio workspace">

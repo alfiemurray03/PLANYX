@@ -281,7 +281,7 @@ async function providerSettings(DB, env) {
     provider,
     apiKey,
     endpoint: stored.email_api_endpoint || env.EMAIL_API_ENDPOINT || "",
-    fromName: stored.smtp_from_name || "Planyx",
+    fromName: stored.smtp_from_name || "Sousa Murray Planeia",
     fromEmail: stored.smtp_from_email || env.ENQUIRY_FROM_EMAIL || "noreply@jagroupservices.co.uk",
     to: stored.admin_notification_email || env.ADMIN_NOTIFICATION_EMAIL || env.ENQUIRY_TO_EMAIL || ""
   };
@@ -362,9 +362,9 @@ async function notifyCustomerSignup(DB, env, identity, profile) {
 
   try {
     const sent = await sendProviderEmail(DB, env, {
-      subject: "New Planyx customer signup",
+      subject: "New Sousa Murray Planeia customer signup",
       text: [
-        "A new customer account has been created or first detected by Planyx.",
+        "A new customer account has been created or first detected by Sousa Murray Planeia.",
         "",
         `Customer name: ${customerName || "Not provided"}`,
         `Customer email: ${identity.email}`,
@@ -556,7 +556,7 @@ async function sendConfirmationEmail(env, email, label, reference, type) {
       from: env.ENQUIRY_FROM_EMAIL,
       to: [email],
       subject: `${reference}: ${label} received`,
-      html: `<p>Thank you. Planyx has received your ${label.toLowerCase()}.</p><p><strong>Reference:</strong> ${reference}<br><strong>Type:</strong> ${escapeHtml(type)}</p><p>We will review your submission and respond where appropriate.</p>`
+      html: `<p>Thank you. Sousa Murray Planeia has received your ${label.toLowerCase()}.</p><p><strong>Reference:</strong> ${reference}<br><strong>Type:</strong> ${escapeHtml(type)}</p><p>We will review your submission and respond where appropriate.</p>`
     })
   });
 }

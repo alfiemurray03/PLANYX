@@ -30,7 +30,7 @@ const DEFAULT_CONFIG: ContactStatusConfig = {
   contactPageStatus: 'online',
   contactMaintenanceTitle: 'Contact support is temporarily unavailable',
   contactMaintenanceReason: 'Contact service maintenance',
-  contactMaintenanceMessage: 'We are carrying out essential work on the Planyx contact service. Please check back shortly.',
+  contactMaintenanceMessage: 'We are carrying out essential work on the Sousa Murray Planeia contact service. Please check back shortly.',
   contactMaintenanceStart: '',
   contactMaintenanceExpectedReturn: '',
   contactOfflineMessage: 'The Contact Us page is currently offline. Please use the published contact details if your enquiry cannot wait.',
@@ -152,7 +152,7 @@ export default function ContactStatusGate({ children }: { children: ReactNode })
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Button asChild className="gap-2">
-              <a href={`mailto:${config.contactSupportEmail || PLANYX_EMAIL}`}><Mail className="h-4 w-4" />Email Planyx support</a>
+              <a href={`mailto:${config.contactSupportEmail || PLANYX_EMAIL}`}><Mail className="h-4 w-4" />Email Sousa Murray Planeia support</a>
             </Button>
             <Button asChild variant="outline" className="gap-2">
               <a href={config.contactPhoneHref || GROUP_PHONE_HREF}><Phone className="h-4 w-4" />Call {config.contactPhoneDisplay || GROUP_PHONE_DISPLAY}</a>

@@ -71,7 +71,7 @@ export default async function handler(req: Request, res: Response) {
       .where(eq(ja_site_settings.settingKey, 'site_name'));
     const siteSettingsMap: Record<string, string> = {};
     for (const row of siteSettingsRows) siteSettingsMap[row.key] = row.value;
-    const siteName = siteSettingsMap['site_name'] ?? 'Planyx';
+    const siteName = siteSettingsMap['site_name'] ?? 'Sousa Murray Planeia';
 
     // Also fetch company_name and support_email for the data controller block
     const controllerRows = await db.select({ key: ja_site_settings.settingKey, value: ja_site_settings.value })

@@ -157,7 +157,7 @@ async function processEvent(DB, event, env) {
   if (event.type.startsWith("customer.subscription.")) return saveSubscription(DB, object, event.type, env);
   if (event.type.startsWith("invoice.")) return saveInvoice(DB, object, event.type);
   // Refund and dispute events are retained in CustomerOps. They do not need a
-  // second local Planyx table because Stripe remains the payment processor.
+  // second local Sousa Murray Planeia table because Stripe remains the payment processor.
   return undefined;
 }
 

@@ -43,9 +43,9 @@ export default async function handler(req: Request, res: Response) {
 
     await sendEmail({
       to: reseller.email,
-      subject: 'Reseller Application Approved — Planyx',
+      subject: 'Reseller Application Approved — Sousa Murray Planeia',
       html: `<h2>Congratulations, ${reseller.fullName}!</h2>
-        <p>Your reseller application for Planyx has been <strong>approved</strong>.</p>
+        <p>Your reseller application for Sousa Murray Planeia has been <strong>approved</strong>.</p>
         <p><strong>Reseller portal:</strong> <a href="${appUrl}/reseller">${appUrl}/reseller</a></p>
         <p><strong>Login email:</strong> ${reseller.email}</p>
         <p><strong>Temporary password:</strong> <code>${tempPassword}</code></p>
@@ -64,7 +64,7 @@ export default async function handler(req: Request, res: Response) {
 
     await sendEmail({
       to: reseller.email,
-      subject: 'Reseller Application Update — Planyx',
+      subject: 'Reseller Application Update — Sousa Murray Planeia',
       html: `<h2>Application Update</h2><p>Dear ${reseller.fullName},</p><p>After reviewing your application, we are unable to approve it at this time.</p>${rejectionReason ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ''}<p>Kind regards,<br/>JA Group Services</p>`,
       text: `Your reseller application was not approved.`,
     }).catch(() => {});

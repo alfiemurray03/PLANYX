@@ -18,11 +18,11 @@
       enabled: true,
       eyebrow: headout ? 'Primary affiliate partner' : 'Secondary affiliate partner',
       pageTitle: `Explore activities with ${headout ? 'Headout' : 'GetYourGuide'}`,
-      intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Planyx.',
+      intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Sousa Murray Planeia.',
       galleryLabel: 'Destination gallery', galleryHeading: 'Where would you like to explore?', searchPlaceholder: 'Search city or country',
       allDestinationsLabel: 'All destinations', cardButtonLabel: 'Open live gallery', liveGalleryLabel: `Live ${headout ? 'Headout' : 'GetYourGuide'} gallery for`,
       currency: 'GBP', language: 'en', locale: 'en-GB', resultCount: 5, maxCount: 100, showMore: true,
-      partnerId: headout ? '' : 'ZSEVDSG', affiliateCode: headout ? 'JL2D9u' : '', affiliateWebsite: headout ? 'https://tours.jagroupservices.co.uk' : 'https://planyx.jagroupservices.co.uk', campaign: 'planyx-discovery',
+      partnerId: headout ? '' : 'ZSEVDSG', affiliateCode: headout ? 'JL2D9u' : '', affiliateWebsite: headout ? 'https://tours.jagroupservices.co.uk' : 'https://sousamurrayplaneia.jagroupservices.co.uk', campaign: 'planyx-discovery',
       destinations: (items || []).map((item, index) => ({ ...item, sortOrder: index })),
     };
   }
@@ -93,7 +93,7 @@
 
   function render() {
     if (!state.config) return;
-    app.innerHTML = `<div class="pg-shell"><section class="pg-hero"><div class="pg-hero__row"><div><h1>Partner Gallery Manager</h1><p>Control the Planyx destination galleries, images, order, visibility and provider widget identifiers. Headout and GetYourGuide continue to control their live products, prices and availability.</p></div><div class="pg-actions"><a class="pg-button pg-button--secondary" href="/admin/dashboard">Admin Dashboard</a><button class="pg-button" data-action="save">${state.busy === 'save' ? 'Saving…' : 'Save and publish'}</button></div></div></section>
+    app.innerHTML = `<div class="pg-shell"><section class="pg-hero"><div class="pg-hero__row"><div><h1>Partner Gallery Manager</h1><p>Control the Sousa Murray Planeia destination galleries, images, order, visibility and provider widget identifiers. Headout and GetYourGuide continue to control their live products, prices and availability.</p></div><div class="pg-actions"><a class="pg-button pg-button--secondary" href="/admin/dashboard">Admin Dashboard</a><button class="pg-button" data-action="save">${state.busy === 'save' ? 'Saving…' : 'Save and publish'}</button></div></div></section>
       <div class="pg-note"><strong>What you control:</strong> destination cards, gallery copy, images, ordering, provider IDs and page visibility. <strong>What the provider controls:</strong> live activities, prices, booking terms, availability and checkout.</div>
       ${state.message ? `<div class="pg-message pg-message--success">${escapeHtml(state.message)}</div>` : ''}${state.error ? `<div class="pg-message pg-message--error">${escapeHtml(state.error)}</div>` : ''}
       <nav class="pg-tabs"><button class="pg-tab ${state.provider === 'headout' ? 'is-active' : ''}" data-provider="headout">Headout</button><button class="pg-tab ${state.provider === 'getyourguide' ? 'is-active' : ''}" data-provider="getyourguide">GetYourGuide</button></nav>

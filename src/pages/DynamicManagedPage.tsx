@@ -56,7 +56,7 @@ export default function DynamicManagedPage() {
   return (
     <Website>
       <Helmet>
-        <title>{page.seo_title || `${page.title} — Planyx`}</title>
+        <title>{page.seo_title || `${page.title} — Sousa Murray Planeia`}</title>
         {page.seo_description && <meta name="description" content={page.seo_description} />}
         {page.noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow" />}
         {page.css && <style>{page.css}</style>}

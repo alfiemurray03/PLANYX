@@ -30,7 +30,7 @@ function escapeHtml(value: string) {
 }
 
 function buildManagedDocument(operation: WebsiteBuilderOperation, globalCss: string) {
-  const title = escapeHtml(operation.title || 'Planyx page preview');
+  const title = escapeHtml(operation.title || 'Sousa Murray Planeia page preview');
   return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f8fafc;color:#0f172a}
 a{color:inherit}${globalCss || ''}\n${operation.css || ''}
@@ -195,7 +195,7 @@ export default function AIWebsiteBuilderPreview({ path, operations = [], refresh
       <div className="relative flex min-h-0 flex-1 justify-center overflow-auto bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] p-3 dark:bg-slate-950">
         {!ready && <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 text-sm font-medium text-slate-500 backdrop-blur-sm dark:bg-slate-950/80 dark:text-slate-300"><RefreshCw className="mr-2 h-4 w-4 animate-spin" />Building preview…</div>}
         <div className={`h-full w-full overflow-hidden rounded-lg bg-white shadow-xl transition-[max-width] duration-300 ${widthClass}`}>
-          <iframe key={`${path}-${refreshKey}-${reload}-${viewport}`} ref={frameRef} src={src} srcDoc={srcDoc} title="Planyx AI website builder preview" className="h-full w-full border-0 bg-white" onLoad={prepare} sandbox="allow-same-origin allow-scripts" />
+          <iframe key={`${path}-${refreshKey}-${reload}-${viewport}`} ref={frameRef} src={src} srcDoc={srcDoc} title="Sousa Murray Planeia AI website builder preview" className="h-full w-full border-0 bg-white" onLoad={prepare} sandbox="allow-same-origin allow-scripts" />
         </div>
       </div>
       <p className="border-t border-slate-200 bg-white px-3 py-2 text-center text-[10px] text-slate-500 dark:border-slate-800 dark:bg-slate-900">Preview mode blocks links, forms and submissions. Draft changes are not live until approved.</p>

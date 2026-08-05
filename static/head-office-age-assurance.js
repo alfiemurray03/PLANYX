@@ -47,7 +47,7 @@
       const data = await request('GET');
       if (data.allowed === true) {
         stopPolling();
-        setStatus('Age assurance confirmed', 'Head Office has released the Planyx age requirement. You can now sign in again.', 'success');
+        setStatus('Age assurance confirmed', 'Head Office has released the Sousa Murray Planeia age requirement. You can now sign in again.', 'success');
         if (startButton) startButton.hidden = true;
         if (consent?.closest('.consent-row')) consent.closest('.consent-row').hidden = true;
         if (openLink) openLink.hidden = true;
@@ -87,7 +87,7 @@
       return;
     }
     if (startButton) startButton.disabled = true;
-    setStatus('Creating your secure check', 'Planyx is asking Head Office to create a Didit age-assurance session.', 'pending');
+    setStatus('Creating your secure check', 'Sousa Murray Planeia is asking Head Office to create a Didit age-assurance session.', 'pending');
 
     const providerWindow = window.open('', 'planyx_didit_age_assurance', 'popup,width=560,height=760');
     if (providerWindow) {

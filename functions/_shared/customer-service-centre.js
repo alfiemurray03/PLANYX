@@ -71,7 +71,7 @@ export function centralCustomerServiceEnabled(env) {
 
 export async function centralSupportRequest(env, path, options = {}) {
   if (!centralCustomerServiceEnabled(env)) {
-    throw Object.assign(new Error("The Head Office Customer Service Centre is not enabled for Planyx."), { code: "CENTRAL_SUPPORT_DISABLED", status: 503 });
+    throw Object.assign(new Error("The Head Office Customer Service Centre is not enabled for Sousa Murray Planeia."), { code: "CENTRAL_SUPPORT_DISABLED", status: 503 });
   }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.max(1000, Math.min(20_000, Number(options.timeoutMs || 8000))));
@@ -80,7 +80,7 @@ export async function centralSupportRequest(env, path, options = {}) {
     const headers = {
       Authorization: `Bearer ${apiKey(env)}`,
       Accept: "application/json",
-      "User-Agent": "Planyx-Head-Office-Customer-Service/2026-08-02-connection-recovery-1"
+      "User-Agent": "Sousa Murray Planeia-Head-Office-Customer-Service/2026-08-02-connection-recovery-1"
     };
     const request = { method, headers, signal: controller.signal };
     if (!["GET", "HEAD"].includes(method)) {
@@ -198,7 +198,7 @@ export async function centralAiMessage(env, sessionId, input = {}) {
     body: {
       externalMessageId: clean(input.externalMessageId, 180) || undefined,
       senderType: "ai",
-      senderName: clean(input.senderName || "Planyx Support Assistant", 120),
+      senderName: clean(input.senderName || "Sousa Murray Planeia Support Assistant", 120),
       body: clean(input.body, 8000),
       metadata
     }
@@ -230,7 +230,7 @@ export async function centralEscalateConversation(env, sessionId, input = {}) {
     body: {
       category: normaliseCategory(input.category),
       priority: clean(input.priority || "normal", 20).toLowerCase(),
-      title: clean(input.title || "Planyx customer support escalation", 160),
+      title: clean(input.title || "Sousa Murray Planeia customer support escalation", 160),
       summary: clean(input.summary || "The customer requires Head Office assistance.", 4000)
     },
     timeoutMs: 12_000
@@ -268,7 +268,7 @@ export async function mirrorCentralAssistantExchange(env, DB, identity, input = 
   if (result.reply) {
     await centralAiMessage(env, sessionId, {
       externalMessageId: `assistant-${customerMessageId}`,
-      senderName: clean(result.assistantName || "Planyx Support Assistant", 120),
+      senderName: clean(result.assistantName || "Sousa Murray Planeia Support Assistant", 120),
       body: result.reply,
       metadata: { category, priority, source: clean(result.source, 100), articleId: clean(result.article?.id, 100) }
     });

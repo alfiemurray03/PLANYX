@@ -178,7 +178,7 @@ export async function onRequest(context) {
       eligible: Number(profile.registration_eligible || 0) === 1,
       status: "Legacy result",
       method: profile.age_assurance_method,
-      providerName: "Planyx",
+      providerName: "Sousa Murray Planeia",
       providerReference: profile.age_verification_id || "",
       policyVersion: profile.age_policy_version,
       verifiedAt: profile.age_verified_at,

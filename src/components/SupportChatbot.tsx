@@ -246,7 +246,7 @@ export default function SupportChatbot() {
     setAnonMessages([{
       id: 'intro',
       role: 'bot',
-      text: "Hi! I'm the Planyx support assistant. I'll send your enquiry directly to our team. What's your name?",
+      text: "Hi! I'm the Sousa Murray Planeia support assistant. I'll send your enquiry directly to our team. What's your name?",
     }]);
     setAnonInput('');
     setAnonName('');
@@ -394,7 +394,7 @@ export default function SupportChatbot() {
       {open && (
         <section
           role="dialog"
-          aria-label="Planyx support assistant"
+          aria-label="Sousa Murray Planeia support assistant"
           className="fixed inset-x-3 bottom-20 z-[70] flex h-[calc(100dvh-6rem)] max-h-[620px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-2xl [color-scheme:light] sm:inset-x-auto sm:bottom-24 sm:right-5 sm:h-[600px] sm:w-[410px] sm:max-w-[calc(100vw-2.5rem)]"
         >
           <header className="flex shrink-0 items-center justify-between bg-blue-600 px-4 py-3 text-white">
@@ -438,7 +438,7 @@ export default function SupportChatbot() {
                       <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
                         <MessageCircle className="mb-3 h-10 w-10 text-slate-300" />
                         <p className="text-sm font-semibold text-slate-900">No previous support conversations</p>
-                        <p className="mt-1 text-xs leading-5 text-slate-600">Send an enquiry directly to the Planyx Support Team.</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-600">Send an enquiry directly to the Sousa Murray Planeia Support Team.</p>
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-200">
@@ -619,7 +619,7 @@ export default function SupportChatbot() {
                     </Button>
                   </div>
                 )}
-                <p className="mt-2 text-center text-[10px] text-slate-500">Messages are sent securely to the Planyx Support Team</p>
+                <p className="mt-2 text-center text-[10px] text-slate-500">Messages are sent securely to the Sousa Murray Planeia Support Team</p>
               </div>
             </>
           )}

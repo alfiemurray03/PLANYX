@@ -34,7 +34,7 @@ function currentReportType(): string {
 
 function authorityEvidence(authority: AuthoritySelection, context: { postcode: string; postcodeSource: string; guidance: string }): string {
   return [
-    '--- Planyx authority selection context ---',
+    '--- Sousa Murray Planeia authority selection context ---',
     `Authority: ${authority.name}`,
     `Category: ${authority.category}`,
     `Official route: ${authority.channel}`,
@@ -48,7 +48,7 @@ function authorityEvidence(authority: AuthoritySelection, context: { postcode: s
 }
 
 function mergeEvidence(existing: string, block: string): string {
-  const base = existing.replace(/\n*--- Planyx authority selection context ---[\s\S]*$/m, '').trim();
+  const base = existing.replace(/\n*--- Sousa Murray Planeia authority selection context ---[\s\S]*$/m, '').trim();
   return [base, block].filter(Boolean).join('\n\n').slice(0, 6000);
 }
 

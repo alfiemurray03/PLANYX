@@ -37,7 +37,7 @@ export function getAdminOidcRedirectUri(req?: { headers: Record<string, string |
       ?? 'https';
     return `${proto}://${host}/auth/admin/oidc/callback`;
   }
-  return `https://planyx.jagroupservices.co.uk/auth/admin/oidc/callback`;
+  return `https://sousamurrayplaneia.jagroupservices.co.uk/auth/admin/oidc/callback`;
 }
 
 let _client: Client | null = null;

@@ -31,7 +31,7 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-foreground">Under Maintenance</h1>
           <p className="text-muted-foreground text-base leading-relaxed">
-            Planyx is currently undergoing scheduled maintenance.
+            Sousa Murray Planeia is currently undergoing scheduled maintenance.
             We'll be back online shortly.
           </p>
         </div>
@@ -41,8 +41,8 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
         </div>
         <p className="text-xs text-muted-foreground">
           Need urgent help?{' '}
-          <a href="mailto:planyx@jagroupservices.co.uk" className="text-primary hover:underline">
-            planyx@jagroupservices.co.uk
+          <a href="mailto:contact@jagroupservices.co.uk" className="text-primary hover:underline">
+            contact@jagroupservices.co.uk
           </a>
         </p>
       </div>

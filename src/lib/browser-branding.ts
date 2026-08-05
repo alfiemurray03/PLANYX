@@ -4,10 +4,12 @@ export interface BrowserBrandingSettings {
   faviconUrl: string;
 }
 
+const BLANK_FAVICON = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E';
+
 const DEFAULTS: BrowserBrandingSettings = {
-  browserTabName: 'Planyx',
-  adminTabName: 'Planyx Admin Portal',
-  faviconUrl: '/favicon.svg?v=20260718-4',
+  browserTabName: 'Sousa Murray Planeia',
+  adminTabName: 'Sousa Murray Planeia Admin Portal',
+  faviconUrl: BLANK_FAVICON,
 };
 
 const CACHE_KEY = 'planyx_browser_branding_v2';
@@ -20,13 +22,8 @@ function cleanName(value: unknown, fallback: string): string {
   return text ? text.slice(0, 90) : fallback;
 }
 
-function cleanFavicon(value: unknown): string {
-  const text = String(value ?? '').trim();
-  if (!text) return DEFAULTS.faviconUrl;
-  if (text.startsWith('/') || /^https:\/\//i.test(text) || /^data:image\/(png|x-icon|vnd\.microsoft\.icon|svg\+xml|webp);/i.test(text)) {
-    return text.slice(0, 400_000);
-  }
-  return DEFAULTS.faviconUrl;
+function cleanFavicon(_value: unknown): string {
+  return BLANK_FAVICON;
 }
 
 export function normaliseBrowserBranding(value: Partial<BrowserBrandingSettings> = {}): BrowserBrandingSettings {

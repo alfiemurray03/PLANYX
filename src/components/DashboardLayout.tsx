@@ -288,14 +288,14 @@ function SidebarContent({ sections, pathname, onNavigate, user, onLogout }: Side
         <Link
           to="/dashboard"
           className="flex items-center gap-2.5"
-          aria-label="Planyx — dashboard"
+          aria-label="Sousa Murray Planeia — dashboard"
           onClick={onNavigate}
         >
           <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20" aria-hidden="true">
             <FileText className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <div className="font-bold text-sm text-foreground leading-tight">Planyx</div>
+            <div className="font-bold text-sm text-foreground leading-tight">Sousa Murray Planeia</div>
             <div className="text-[10px] text-muted-foreground leading-tight">Guided Planning</div>
           </div>
         </Link>
@@ -498,7 +498,7 @@ export default function DashboardLayout({ children, noPadding: _noPadding }: Das
             <Menu className="w-5 h-5" aria-hidden="true" />
           </button>
 
-          <div className="flex-1 font-bold text-foreground text-sm">Planyx</div>
+          <div className="flex-1 font-bold text-foreground text-sm">Sousa Murray Planeia</div>
 
           <NotificationBell />
 

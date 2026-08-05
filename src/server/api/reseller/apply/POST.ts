@@ -65,9 +65,9 @@ export default async function handler(req: Request, res: Response) {
   // Confirm to applicant
   await sendEmail({
     to: email,
-    subject: 'Reseller Application Received — Planyx',
-    html: `<h2>Thank you, ${fullName}!</h2><p>We've received your reseller application for Planyx. Our team will review it and get back to you within 3–5 business days.</p><p>Kind regards,<br/>JA Group Services</p>`,
-    text: `Thank you for applying to become a Planyx reseller. We'll be in touch within 3–5 business days.`,
+    subject: 'Reseller Application Received — Sousa Murray Planeia',
+    html: `<h2>Thank you, ${fullName}!</h2><p>We've received your reseller application for Sousa Murray Planeia. Our team will review it and get back to you within 3–5 business days.</p><p>Kind regards,<br/>JA Group Services</p>`,
+    text: `Thank you for applying to become a Sousa Murray Planeia reseller. We'll be in touch within 3–5 business days.`,
   }).catch(() => {});
 
   return res.status(201).json({ success: true, message: 'Application submitted successfully.' });

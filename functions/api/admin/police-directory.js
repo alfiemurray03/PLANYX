@@ -147,7 +147,7 @@ async function fetchJson(url, attempts = 2, sourceName = "Official data service"
       const response = await fetch(url, {
         headers: {
           Accept: "application/json",
-          "User-Agent": "Planyx-Authority-Reporting/1.1",
+          "User-Agent": "Sousa Murray Planeia-Authority-Reporting/1.1",
         },
         cf: { cacheTtl: CACHE_SECONDS, cacheEverything: true },
         signal: AbortSignal.timeout(12_000),
@@ -359,9 +359,9 @@ async function loadForce(forceId) {
   const source = usedPoliceUk && usedGovUk
     ? "Police.uk neighbourhood records and the official Home Office/GOV.UK designated-station directory"
     : usedPoliceUk
-      ? "Police.uk API via the protected Planyx server"
+      ? "Police.uk API via the protected Sousa Murray Planeia server"
       : usedGovUk
-        ? "Official Home Office/GOV.UK designated-station directory via the protected Planyx server"
+        ? "Official Home Office/GOV.UK designated-station directory via the protected Sousa Murray Planeia server"
         : "Official force website";
 
   return {
@@ -369,7 +369,7 @@ async function loadForce(forceId) {
     stations: ordered,
     guidance: ordered.length
       ? usedGovUk
-        ? "Police.uk did not publish a complete station list for this force, so Planyx also loaded official station addresses from the Home Office/GOV.UK directory. Verify current opening hours, public-counter access and the correct reporting route on the force website."
+        ? "Police.uk did not publish a complete station list for this force, so Sousa Murray Planeia also loaded official station addresses from the Home Office/GOV.UK directory. Verify current opening hours, public-counter access and the correct reporting route on the force website."
         : "Station and contact-point records were retrieved through the official Police.uk neighbourhood service. Verify public access and the reporting route on the force website."
       : "No machine-readable station locations were available from Police.uk or the official Home Office/GOV.UK directory. Use the official force station finder and enter the verified address manually.",
     source,

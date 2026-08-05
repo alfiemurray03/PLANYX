@@ -101,7 +101,7 @@ export default function ManagedLegalPage({
                 <div>
                   <h2 className="font-semibold">This policy is not currently published</h2>
                   <p className="mt-1 text-sm opacity-80">
-                    No published version is available from the Admin Centre. Please try again or contact Planyx.
+                    No published version is available from the Admin Centre. Please try again or contact Sousa Murray Planeia.
                   </p>
                   <button type="button" onClick={() => void load()} className="mt-4 text-sm font-semibold text-blue-700 underline underline-offset-4 dark:text-blue-300">
                     Try again

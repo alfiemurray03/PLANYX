@@ -21,7 +21,7 @@ async function sha256(value) {
 }
 
 export async function ensureCustomerAgeChallengeSchema(DB) {
-  if (!DB) throw new Error("The Planyx customer database is unavailable.");
+  if (!DB) throw new Error("The Sousa Murray Planeia customer database is unavailable.");
   if (schemaReady.has(DB)) return schemaReady.get(DB);
   const promise = (async () => {
     await DB.prepare(`CREATE TABLE IF NOT EXISTS customerops_age_assurance_challenges (

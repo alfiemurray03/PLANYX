@@ -149,7 +149,7 @@ export default function DocumentAuditPage() {
   return (
     <>
       <Helmet>
-        <title>Audit & History — Planyx</title>
+        <title>Audit & History — Sousa Murray Planeia</title>
         <meta name="description" content="Full activity log for your documents and signing requests." />
       </Helmet>
       <DashboardLayout>

@@ -51,7 +51,7 @@
     return `<div class="gate-panel"><div class="gate-panel__head"><div><h2>Launch Gate content and design</h2><p>Every field and visibility switch below controls the actual public coming-soon page.</p></div><a class="gate-button gate-button--secondary" href="/coming-soon/" target="_blank">Open live page</a></div><div class="gate-panel__body">
       <div class="gate-note"><strong>Add or remove sections:</strong> switch any built-in section off to remove it from the public page. Feature cards and footer links can be added, edited or deleted individually.</div>
       <div class="gate-fields">
-        ${toggle('launch.logoEnabled','Show logo','Remove the top Planyx logo and header when disabled.',c.logoEnabled)}
+        ${toggle('launch.logoEnabled','Show word mark','Remove the top Sousa Murray Planeia word mark and header when disabled.',c.logoEnabled)}
         ${toggle('launch.signalEnabled','Show route symbol','Display the circular route symbol above the heading.',c.signalEnabled)}
         ${toggle('launch.statusEnabled','Show status label','Display the small launch-status line above the headline.',c.statusEnabled)}
         ${toggle('launch.headlineEnabled','Show main headline','Display the main headline and highlighted words.',c.headlineEnabled)}
@@ -63,7 +63,7 @@
         ${input('launch.logoUrl','Logo URL',c.logoUrl,{hint:'Use a hosted URL or /assets/... path.'})}
         ${input('launch.statusLabel','Status label',c.statusLabel,{hint:'Small line above the headline.'})}
         ${input('launch.headline','Headline',c.headline,{wide:true})}
-        ${input('launch.highlight','Highlighted headline words',c.highlight,{wide:true,hint:'Displayed with the Planyx gradient. Leave blank to remove highlighted words.'})}
+        ${input('launch.highlight','Highlighted headline words',c.highlight,{wide:true,hint:'Displayed with the Sousa Murray Planeia gradient. Leave blank to remove highlighted words.'})}
         ${input('launch.subtext','Supporting text',c.subtext,{wide:true,rows:3})}
         ${input('launch.description','Description',c.description,{wide:true,rows:4})}
         ${input('launch.seoTitle','Browser and SEO title',c.seoTitle,{wide:true})}
@@ -87,7 +87,7 @@
     return `<div class="gate-panel"><div class="gate-panel__head"><div><h2>Maintenance Gate content and design</h2><p>Saving generates the exact HTML used by the live maintenance middleware.</p></div><a class="gate-button gate-button--secondary" href="/maintenance/" target="_blank">Open live page</a></div><div class="gate-panel__body">
       <div class="gate-note"><strong>Add or remove sections:</strong> use the switches to remove built-in maintenance content without touching code.</div>
       <div class="gate-fields">
-        ${toggle('maintenance.logoEnabled','Show logo','Display the Planyx logo in the maintenance header.',c.logoEnabled)}
+        ${toggle('maintenance.logoEnabled','Show word mark','Display the Sousa Murray Planeia word mark in the maintenance header.',c.logoEnabled)}
         ${toggle('maintenance.statusEnabled','Show status indicator','Display the maintenance-in-progress status.',c.statusEnabled)}
         ${toggle('maintenance.reasonEnabled','Show maintenance reason','Display the small reason label above the heading.',c.reasonEnabled)}
         ${toggle('maintenance.titleEnabled','Show page heading','Display the main maintenance heading.',c.titleEnabled)}
@@ -124,7 +124,7 @@
       <section class="gate-hero"><div class="gate-hero__row"><div><h1>Public Gate Control Centre</h1><p>One source of truth for Launch Gate and Maintenance Gate. Save once and the real public pages update immediately.</p></div><div class="gate-actions"><a class="gate-button gate-button--secondary" href="/admin/site-settings">Back to Site Settings</a><button class="gate-button" type="button" data-action="save">${state.busy === 'save' ? 'Saving…' : 'Save and publish gate settings'}</button></div></div></section>
       ${state.message ? `<div class="gate-message gate-message--success">${escapeHtml(state.message)}</div>` : ''}${state.error ? `<div class="gate-message gate-message--error">${escapeHtml(state.error)}</div>` : ''}
       <section class="gate-status-grid">${[
-        ['normal','Live','The normal Planyx website is publicly available.'],
+        ['normal','Live','The normal Sousa Murray Planeia website is publicly available.'],
         ['coming_soon','Coming Soon','All public routes are redirected to the Launch Gate.'],
         ['maintenance','Maintenance','The public platform is replaced by the Maintenance Gate.'],
       ].map(([value,label,desc]) => `<button type="button" class="gate-status ${c.siteStatus === value ? 'is-active' : ''}" data-status="${value}"><strong>${label}</strong><span>${desc}</span></button>`).join('')}</section>

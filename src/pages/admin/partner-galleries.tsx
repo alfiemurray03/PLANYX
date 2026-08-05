@@ -62,7 +62,7 @@ function seedProvider(provider: Provider): ProviderGalleryConfig {
     enabled: true,
     eyebrow: isHeadout ? 'Primary affiliate partner' : 'Secondary affiliate partner',
     pageTitle: `Explore activities with ${isHeadout ? 'Headout' : 'GetYourGuide'}`,
-    intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Planyx.',
+    intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Sousa Murray Planeia.',
     galleryLabel: 'Destination gallery',
     galleryHeading: 'Where would you like to explore?',
     searchPlaceholder: 'Search city or country',
@@ -77,7 +77,7 @@ function seedProvider(provider: Provider): ProviderGalleryConfig {
     showMore: true,
     partnerId: isHeadout ? '' : 'ZSEVDSG',
     affiliateCode: isHeadout ? 'JL2D9u' : '',
-    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://planyx.jagroupservices.co.uk',
+    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://sousamurrayplaneia.jagroupservices.co.uk',
     campaign: 'planyx-discovery',
     destinations: destinations
       .filter((destination) => isHeadout ? Boolean(destination.headout) : true)
@@ -236,7 +236,7 @@ export default function PartnerGalleryManager() {
   }
 
   return <>
-    <Helmet><title>Partner Gallery Manager — Planyx Admin</title><meta name="robots" content="noindex,nofollow" /></Helmet>
+    <Helmet><title>Partner Gallery Manager — Sousa Murray Planeia Admin</title><meta name="robots" content="noindex,nofollow" /></Helmet>
     <AdminLayout title="Partner Gallery Manager">
       <div className="mx-auto w-full max-w-[1500px] space-y-6 pb-12">
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -245,7 +245,7 @@ export default function PartnerGalleryManager() {
             <div>
               <div className="flex items-center gap-2"><Images className="h-5 w-5 text-blue-600" /><span className="text-xs font-bold uppercase tracking-[0.12em] text-blue-700 dark:text-blue-300">Affiliate content</span></div>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">Headout and GetYourGuide galleries</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">Control Planyx destination cards, images, order, visibility and widget identifiers. Live products, prices and availability remain controlled by the provider.</p>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">Control Sousa Murray Planeia destination cards, images, order, visibility and widget identifiers. Live products, prices and availability remain controlled by the provider.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <a href={provider === 'headout' ? '/headout' : '/getyourguide'} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"><ExternalLink className="h-4 w-4" /> Open live page</a>

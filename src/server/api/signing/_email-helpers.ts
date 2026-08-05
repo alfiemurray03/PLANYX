@@ -7,7 +7,7 @@ import { db } from '../../db/client.js';
 import { ja_signing_audit, ja_site_settings } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
 
-const APP_URL = process.env.APP_URL || 'https://planyx.jagroupservices.co.uk';
+const APP_URL = process.env.APP_URL || 'https://sousamurrayplaneia.jagroupservices.co.uk';
 
 async function getSiteName(): Promise<string> {
   try {
@@ -15,13 +15,13 @@ async function getSiteName(): Promise<string> {
       .from(ja_site_settings)
       .where(eq(ja_site_settings.settingKey, 'site_name'))
       .limit(1);
-    return rows[0]?.value ?? 'Planyx';
+    return rows[0]?.value ?? 'Sousa Murray Planeia';
   } catch {
-    return 'Planyx';
+    return 'Sousa Murray Planeia';
   }
 }
 
-function brandedHtml(title: string, body: string, appName = 'Planyx'): string {
+function brandedHtml(title: string, body: string, appName = 'Sousa Murray Planeia'): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">

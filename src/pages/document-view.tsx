@@ -294,7 +294,7 @@ export default function DocumentViewPage() {
   return (
     <>
       <Helmet>
-        <title>{doc.title} — Planyx</title>
+        <title>{doc.title} — Sousa Murray Planeia</title>
       </Helmet>
       <DashboardLayout noPadding>
         {/* ── Top bar ── */}

@@ -195,7 +195,7 @@ export default function AdminBrandingPage() {
                 <div className="space-y-2">
                   <Label htmlFor="browser-tab-name">Public website tab name</Label>
                   <Input id="browser-tab-name" value={form.browserTabName} maxLength={90} onChange={event => update('browserTabName', event.target.value)} disabled={loading} />
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Used for customer and public Planyx pages.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Used for customer and public Sousa Murray Planeia pages.</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-tab-name">Admin Portal tab name</Label>

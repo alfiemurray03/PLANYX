@@ -97,7 +97,7 @@ export async function onRequestPost(context) {
   if (payload.action === "logout") {
     await recordSessionLogout(context.env.DB, context.request, identity, realm);
     if (realm === "customer") {
-      await closePlanyxSession(context.env, identity, "Customer signed out of Planyx.").catch(error => {
+      await closePlanyxSession(context.env, identity, "Customer signed out of Sousa Murray Planeia.").catch(error => {
         console.error(JSON.stringify({
           event: "planyx_connected_session_close_failed",
           message: error instanceof Error ? error.message : "The central session could not be closed."
@@ -105,7 +105,7 @@ export async function onRequestPost(context) {
       });
       schedule(context, reportCustomerEvent(context.env, context.env.DB, identity, {
         eventType: "session.signed_out",
-        title: "Customer signed out of Planyx",
+        title: "Customer signed out of Sousa Murray Planeia",
         category: "authentication",
         outcome: "signed_out",
         severity: "information",
@@ -144,7 +144,7 @@ export async function onRequestPost(context) {
         await revokeLocalCustomerSession(context.env.DB, identity, reason);
         await reportCustomerEvent(context.env, context.env.DB, identity, {
           eventType: ageStepUp ? "age_assurance.required" : "session.revoked",
-          title: ageStepUp ? "Head Office age assurance required" : "Planyx session revoked by Head Office",
+          title: ageStepUp ? "Head Office age assurance required" : "Sousa Murray Planeia session revoked by Head Office",
           category: "security",
           outcome: "revoked",
           severity: ageStepUp ? "moderate" : "high",
@@ -193,11 +193,11 @@ export async function onRequestPost(context) {
       const central = await registerPlanyxSession(context.env, context.env.DB, context.request, identity);
       const centralStatus = central?.session?.status || "active";
       if (centrallyRevoked(centralStatus)) {
-        const reason = "This Planyx device session was revoked through the JA Group Services central session register.";
+        const reason = "This Sousa Murray Planeia device session was revoked through the JA Group Services central session register.";
         await revokeLocalCustomerSession(context.env.DB, identity, reason);
         await reportCustomerEvent(context.env, context.env.DB, identity, {
           eventType: "session.revoked",
-          title: "Planyx session revoked through the central register",
+          title: "Sousa Murray Planeia session revoked through the central register",
           category: "security",
           outcome: "revoked",
           severity: "high",
@@ -232,7 +232,7 @@ export async function onRequestPost(context) {
   if (realm === "customer") {
     schedule(context, reportCustomerEvent(context.env, context.env.DB, identity, {
       eventType: "session.heartbeat",
-      title: "Active Planyx customer session",
+      title: "Active Sousa Murray Planeia customer session",
       category: "authentication",
       outcome: "active",
       severity: "information",

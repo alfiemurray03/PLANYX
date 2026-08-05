@@ -44,7 +44,7 @@ export function installPwaSupport() {
         void registration.update();
       })
       .catch((error) => {
-        console.warn('Planyx service worker registration failed.', error);
+        console.warn('Sousa Murray Planeia service worker registration failed.', error);
       });
   }, { once: true });
 }

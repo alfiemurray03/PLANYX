@@ -221,7 +221,7 @@ export async function onRequest(context) {
     }
     if (context.request.method === 'POST') {
       if (!centralCustomerServiceEnabled(context.env)) {
-        return json({ success: false, error: 'Head Office Customer Service is not enabled for Planyx.', code: activationError(context.env) || 'CENTRAL_SUPPORT_DISABLED' }, 503);
+        return json({ success: false, error: 'Head Office Customer Service is not enabled for Sousa Murray Planeia.', code: activationError(context.env) || 'CENTRAL_SUPPORT_DISABLED' }, 503);
       }
       if (route.length === 1 && route[0] === 'conversations') return startConversation(context);
       if (route.length === 3 && route[0] === 'conversations' && route[2] === 'messages') return addCustomerMessage(context, route[1]);

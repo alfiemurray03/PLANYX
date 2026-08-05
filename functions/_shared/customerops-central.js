@@ -39,7 +39,7 @@ async function customerOpsFetch(env, path, options = {}) {
     const headers = {
       Authorization: `Bearer ${key}`,
       Accept: "application/json",
-      "User-Agent": "Planyx-Central-CustomerOps/1.1"
+      "User-Agent": "Sousa Murray Planeia-Central-CustomerOps/1.1"
     };
     const request = { method, headers, signal: controller.signal };
     if (method !== "GET" && method !== "HEAD") {
@@ -122,7 +122,7 @@ function enforceHeadOfficeAgeContract(access = {}) {
     decision: "review",
     action: "review",
     revokeSessions: true,
-    reason: "Planyx could not confirm its governed 16+ deployment with Head Office. Customer access has been held safely rather than bypassing age assurance.",
+    reason: "Sousa Murray Planeia could not confirm its governed 16+ deployment with Head Office. Customer access has been held safely rather than bypassing age assurance.",
     ageAssurance: {
       ...(access.ageAssurance || {}),
       expectedContractVersion: HEAD_OFFICE_AGE_CONTRACT,
@@ -280,19 +280,19 @@ export async function reportPlatformHeartbeat(env, DB, extra = {}) {
   ]);
   const commit = clean(env.PLANYX_RELEASE_COMMIT || env.CF_PAGES_COMMIT_SHA, 120);
   return customerOpsRequest(env, "/api/platform/heartbeat", {
-    publicUrl: clean(env.SITE_URL || "https://planyx.jagroupservices.co.uk", 500),
+    publicUrl: clean(env.SITE_URL || "https://sousamurrayplaneia.jagroupservices.co.uk", 500),
     environment: "production",
     hostingProvider: "Cloudflare Pages",
-    releaseVersion: clean(env.PLANYX_RELEASE_VERSION || "Planyx production", 120),
+    releaseVersion: clean(env.PLANYX_RELEASE_VERSION || "Sousa Murray Planeia production", 120),
     releaseCommit: commit || undefined,
     healthStatus: "operational",
-    healthMessage: "Planyx customer authentication, subscriptions and CustomerOps enforcement are operational.",
+    healthMessage: "Sousa Murray Planeia customer authentication, subscriptions and CustomerOps enforcement are operational.",
     capabilities: ["customer_identity", "security_enforcement", "security_marker_display", "sessions", "subscriptions", "orders", "payments", "fraud_events", "head_office_age_assurance"],
     integrations: { customerIdentity: "JA Group Services ID", customerOps: "connected", ageAssurance: "head_office_controlled", securityMarkers: "head_office_controlled", stripe: env.STRIPE_SECRET_KEY ? "connected" : "not_configured" },
     customerCount: Number(customers.results?.[0]?.count || 0),
     activeSessionCount: Number(sessions.results?.[0]?.count || 0),
     openErrorCount: Number(errors.results?.[0]?.count || 0),
-    deployment: commit ? { id: commit, environment: "production", version: clean(env.PLANYX_RELEASE_VERSION || "Planyx production", 120), commit, status: "active", deployedAt: new Date().toISOString() } : undefined,
+    deployment: commit ? { id: commit, environment: "production", version: clean(env.PLANYX_RELEASE_VERSION || "Sousa Murray Planeia production", 120), commit, status: "active", deployedAt: new Date().toISOString() } : undefined,
     occurredAt: new Date().toISOString(),
     metadata: extra
   }, 6_000);
@@ -311,7 +311,7 @@ export async function reportCustomerSnapshot(env, DB, identity, extra = {}) {
     lastSignInAt: new Date().toISOString(),
     lastActivityAt: new Date().toISOString(),
     dataClassification: "customer_confidential",
-    metadata: { source: "Planyx", ...extra.metadata }
+    metadata: { source: "Sousa Murray Planeia", ...extra.metadata }
   }, 6_000);
 }
 

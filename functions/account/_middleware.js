@@ -8,7 +8,7 @@ export async function onRequest(context) {
   if (path === "/account/logout") {
     const identity = await getNativeSession(context.request, context.env, "customer").catch(() => null);
     if (identity) {
-      await closePlanyxSession(context.env, identity, "Customer signed out of Planyx.").catch(error => {
+      await closePlanyxSession(context.env, identity, "Customer signed out of Sousa Murray Planeia.").catch(error => {
         console.error(JSON.stringify({
           event: "planyx_connected_session_close_failed",
           message: error instanceof Error ? error.message : "The central session could not be closed."

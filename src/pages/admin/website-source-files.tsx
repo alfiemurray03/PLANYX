@@ -71,7 +71,7 @@ async function sourceApi<T>(url: string, body?: Record<string, unknown>): Promis
 }
 
 function buildTree(files: SourceFileSummary[]): TreeNode[] {
-  const root: TreeNode = { name: 'PLANYX', path: '', type: 'folder', children: [] };
+  const root: TreeNode = { name: 'SOUSA MURRAY PLANEIA', path: '', type: 'folder', children: [] };
 
   for (const file of files) {
     const parts = file.path.split('/').filter(Boolean);
@@ -124,7 +124,7 @@ export default function WebsiteSourceFilesPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<SourceFileContent | null>(null);
   const [code, setCode] = useState('');
-  const [commitMessage, setCommitMessage] = useState('Update website source from Planyx Website Builder');
+  const [commitMessage, setCommitMessage] = useState('Update website source from Sousa Murray Planeia Website Builder');
   const [busy, setBusy] = useState<Busy>('tree');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -170,7 +170,7 @@ export default function WebsiteSourceFilesPage() {
       setSelected(payload.file);
       setCode(payload.file.content);
       setWritable(payload.writable);
-      setCommitMessage(`Update ${file.path} from Planyx Website Builder`);
+      setCommitMessage(`Update ${file.path} from Sousa Murray Planeia Website Builder`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'That source file could not be opened.');
     } finally {
@@ -186,7 +186,7 @@ export default function WebsiteSourceFilesPage() {
     }
     setSelected({ path, sha: '', size: 0, content: '', htmlUrl: '' });
     setCode('');
-    setCommitMessage(`Create ${path} from Planyx Website Builder`);
+    setCommitMessage(`Create ${path} from Sousa Murray Planeia Website Builder`);
     setNewPath('');
     setError('');
   }
@@ -214,7 +214,7 @@ export default function WebsiteSourceFilesPage() {
     try {
       await sourceApi('/api/admin/website-source', {
         action: 'delete', path: selected.path, sha: selected.sha,
-        commitMessage: `Delete ${selected.path} from Planyx Website Builder`,
+        commitMessage: `Delete ${selected.path} from Sousa Murray Planeia Website Builder`,
       });
       setSelected(null); setCode('');
       flash('Source file deleted and committed to production.');
@@ -228,7 +228,7 @@ export default function WebsiteSourceFilesPage() {
 
   return (
     <AdminLayout title="Website Source Code">
-      <Helmet><title>Website Source Code | Planyx Admin Centre</title></Helmet>
+      <Helmet><title>Website Source Code | Sousa Murray Planeia Admin Centre</title></Helmet>
       <div className="space-y-4">
         <header className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="h-1 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500" />
@@ -236,7 +236,7 @@ export default function WebsiteSourceFilesPage() {
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white dark:bg-blue-600"><Github className="h-5 w-5" /></span>
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold text-slate-950 dark:text-white">Planyx Source Code</h1><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${writable ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{writable ? 'Write access' : 'Read-only'}</span></div>
+                <div className="flex flex-wrap items-center gap-2"><h1 className="text-lg font-bold text-slate-950 dark:text-white">Sousa Murray Planeia Source Code</h1><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${writable ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{writable ? 'Write access' : 'Read-only'}</span></div>
                 <p className="truncate text-xs text-slate-500">Actual GitHub repository files — not database-managed page files.</p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function WebsiteSourceFilesPage() {
               </div>
               {busy === 'file' ? <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-400" /></div> : <textarea value={code} onChange={event => setCode(event.target.value)} readOnly={!writable} spellCheck={false} className="min-h-0 flex-1 resize-none border-0 bg-slate-950 p-4 font-mono text-[12px] leading-6 text-slate-100 outline-none sm:p-5" />}
               <p className="border-t border-slate-800 bg-slate-900 px-4 py-2 text-[10px] text-slate-500">Source changes commit directly to <strong>{branch}</strong> and trigger the normal production build. Repository secrets and binary files are protected.</p>
-            </> : <div className="flex flex-1 flex-col items-center justify-center px-6 text-center"><Github className="h-12 w-12 text-slate-700" /><h2 className="mt-4 text-xl font-bold text-white">Choose a source file</h2><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">The explorer contains the real Planyx repository: React pages, components, Cloudflare Functions, static assets, tests and configuration. Choose an editable text file to open its full source code.</p></div>}
+            </> : <div className="flex flex-1 flex-col items-center justify-center px-6 text-center"><Github className="h-12 w-12 text-slate-700" /><h2 className="mt-4 text-xl font-bold text-white">Choose a source file</h2><p className="mt-2 max-w-md text-sm leading-6 text-slate-400">The explorer contains the real Sousa Murray Planeia repository: React pages, components, Cloudflare Functions, static assets, tests and configuration. Choose an editable text file to open its full source code.</p></div>}
           </section>
         </div>
       </div>

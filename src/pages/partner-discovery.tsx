@@ -75,7 +75,7 @@ function seededConfig(provider: Provider): ProviderGalleryConfig {
     enabled: true,
     eyebrow: isHeadout ? 'Primary affiliate partner' : 'Secondary affiliate partner',
     pageTitle: `Explore activities with ${isHeadout ? 'Headout' : 'GetYourGuide'}`,
-    intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Planyx.',
+    intro: 'Choose a destination and browse live tours, attractions, tickets and experiences without leaving Sousa Murray Planeia.',
     galleryLabel: 'Destination gallery',
     galleryHeading: 'Where would you like to explore?',
     searchPlaceholder: 'Search city or country',
@@ -90,7 +90,7 @@ function seededConfig(provider: Provider): ProviderGalleryConfig {
     showMore: true,
     partnerId: isHeadout ? '' : 'ZSEVDSG',
     affiliateCode: isHeadout ? 'JL2D9u' : '',
-    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://planyx.jagroupservices.co.uk',
+    affiliateWebsite: isHeadout ? 'https://tours.jagroupservices.co.uk' : 'https://sousamurrayplaneia.jagroupservices.co.uk',
     campaign: 'planyx-discovery',
     destinations: providerDestinations,
   };
@@ -186,7 +186,7 @@ export function PartnerDiscoveryPage({ provider }: { provider: Provider }) {
   const current = available.find((item) => item.slug === selected) || config.destinations.find((item) => item.slug === selected && item.enabled);
 
   if (!config.enabled) {
-    return <section className="bg-background py-24"><div className="mx-auto max-w-3xl px-4 text-center"><Compass className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-5 font-heading text-4xl font-bold">{isHeadout ? 'Headout' : 'GetYourGuide'} gallery unavailable</h1><p className="mt-4 text-muted-foreground">This partner gallery is currently switched off by a Planyx administrator.</p></div></section>;
+    return <section className="bg-background py-24"><div className="mx-auto max-w-3xl px-4 text-center"><Compass className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-5 font-heading text-4xl font-bold">{isHeadout ? 'Headout' : 'GetYourGuide'} gallery unavailable</h1><p className="mt-4 text-muted-foreground">This partner gallery is currently switched off by a Sousa Murray Planeia administrator.</p></div></section>;
   }
 
   return <>

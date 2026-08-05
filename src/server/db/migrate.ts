@@ -716,8 +716,8 @@ export async function runMigrations(): Promise<void> {
       slug: 'homepage-hero',
       title: 'Homepage Hero',
       type: 'marketing',
-      bodyHtml: '<h1>Build personalised plans step by step</h1><p>Planyx provides guided builders for destinations, itineraries, experiences, budgets, accessibility and practical travel preparation.</p>',
-      bodyText: 'Build personalised plans step by step with Planyx guided planning tools.',
+      bodyHtml: '<h1>Build personalised plans step by step</h1><p>Sousa Murray Planeia provides guided builders for destinations, itineraries, experiences, budgets, accessibility and practical travel preparation.</p>',
+      bodyText: 'Build personalised plans step by step with Sousa Murray Planeia guided planning tools.',
     },
     {
       slug: 'homepage-features',
@@ -737,7 +737,7 @@ export async function runMigrations(): Promise<void> {
       slug: 'affiliate-hero',
       title: 'Affiliate Programme Hero',
       type: 'marketing',
-      bodyHtml: '<h1>Earn with Planyx</h1><p>Join our affiliate programme and earn commission on every customer you refer. Coming soon.</p>',
+      bodyHtml: '<h1>Earn with Sousa Murray Planeia</h1><p>Join our affiliate programme and earn commission on every customer you refer. Coming soon.</p>',
       bodyText: 'Join our affiliate programme and earn commission on every customer you refer.',
     },
   ];
@@ -761,9 +761,9 @@ export async function runMigrations(): Promise<void> {
 
   // Seed default site settings
   const defaultSettings: Record<string, string> = {
-    site_name: 'Planyx',
+    site_name: 'Sousa Murray Planeia',
     tagline: 'Personalised Plans, Generated in Minutes',
-    support_email: 'planyx@jagroupservices.co.uk',
+    support_email: 'contact@jagroupservices.co.uk',
     company_name: 'JA Group Services Ltd',
     primary_color: '#1B4F8A',
     accent_color: '#8a561b',

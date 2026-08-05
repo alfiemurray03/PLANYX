@@ -44,7 +44,7 @@ function scheduleAllowedTelemetry(context, identity, syncResult) {
   const task = (async () => {
     await reportCustomerEvent(context.env, context.env.DB, identity, {
       eventType: "auth.succeeded",
-      title: "Customer signed in to Planyx",
+      title: "Customer signed in to Sousa Murray Planeia",
       category: "authentication",
       outcome: "allowed",
       severity: "information",
@@ -238,7 +238,7 @@ export async function onRequestGet(context) {
         await revokeLocalCustomerSession(context.env.DB, identity, reason);
         await reportCustomerEvent(context.env, context.env.DB, identity, {
           eventType: "auth.failed",
-          title: "Planyx sign-in held for Head Office identity review",
+          title: "Sousa Murray Planeia sign-in held for Head Office identity review",
           category: "authentication",
           outcome: "blocked",
           severity: "high",
@@ -319,7 +319,7 @@ export async function onRequestGet(context) {
     }));
     await recordAuthenticationFailure(context.env.DB, context.request, "customer", error).catch(() => null);
     return new Response(
-      `Customer sign-in could not be completed. Please try again or contact Planyx support.\n\nReference: ${reference}`,
+      `Customer sign-in could not be completed. Please try again or contact Sousa Murray Planeia support.\n\nReference: ${reference}`,
       {
         status: 401,
         headers: {

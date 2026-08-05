@@ -1,5 +1,5 @@
 /**
- * Shared Builder Framework — Planyx
+ * Shared Builder Framework — Sousa Murray Planeia
  * Central types, helpers, and constants used by all document builders.
  */
 

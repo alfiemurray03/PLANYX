@@ -45,13 +45,13 @@ export default function RouteErrorPage() {
   );
 
   const title = isChunkError
-    ? 'This page needs the latest Planyx files'
+    ? 'This page needs the latest Sousa Murray Planeia files'
     : details.status === '404'
       ? 'We could not find that page'
       : 'Something went wrong';
 
   const explanation = isChunkError
-    ? 'Planyx was updated while this browser tab was open. Refreshing will load the current version safely.'
+    ? 'Sousa Murray Planeia was updated while this browser tab was open. Refreshing will load the current version safely.'
     : 'The page could not be completed. Your account and saved information have not been changed by this error.';
 
   const copyDetails = async () => {
@@ -82,7 +82,7 @@ export default function RouteErrorPage() {
                 JA
               </div>
               <div>
-                <p className="font-bold tracking-tight text-white">Planyx</p>
+                <p className="font-bold tracking-tight text-white">Sousa Murray Planeia</p>
                 <p className="text-sm text-slate-400">Secure application recovery</p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function RouteErrorPage() {
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-slate-100 transition hover:bg-white/10"
               >
                 <Home className="h-4 w-4" />
-                {isAdmin ? 'Admin dashboard' : 'Planyx home'}
+                {isAdmin ? 'Admin dashboard' : 'Sousa Murray Planeia home'}
               </a>
               <button
                 type="button"
@@ -157,8 +157,8 @@ export default function RouteErrorPage() {
 
             <p className="border-t border-white/10 pt-5 text-sm leading-relaxed text-slate-400">
               If the problem continues, contact{' '}
-              <a className="font-semibold text-blue-300 hover:underline" href="mailto:planyx@jagroupservices.co.uk">
-                planyx@jagroupservices.co.uk
+              <a className="font-semibold text-blue-300 hover:underline" href="mailto:contact@jagroupservices.co.uk">
+                contact@jagroupservices.co.uk
               </a>{' '}
               and include the reference shown above.
             </p>

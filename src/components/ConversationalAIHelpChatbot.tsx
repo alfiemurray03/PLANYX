@@ -86,11 +86,11 @@ const DEFAULT_CONFIG: AssistantConfig = {
   maintenanceEnabled: false,
   allowAnonymous: true,
   escalationEnabled: true,
-  assistantName: 'Planyx Support Assistant',
+  assistantName: 'Sousa Murray Planeia Support Assistant',
   logoUrl: '',
   avatarUrl: '',
   fontFamily: 'inherit',
-  welcomeMessage: 'Hello! I can help you find an answer in the Planyx Help Centre. What do you need help with?',
+  welcomeMessage: 'Hello! I can help you find an answer in the Sousa Murray Planeia Help Centre. What do you need help with?',
   responseTime: 'within 2 working days',
   position: 'bottom-right',
   primaryColor: '#2563eb',
@@ -294,7 +294,7 @@ export default function ConversationalAIHelpChatbot() {
       ...current,
       name: current.name || displayName(user),
       email: current.email || user?.email || '',
-      subject: current.subject || subject || 'Help with Planyx',
+      subject: current.subject || subject || 'Help with Sousa Murray Planeia',
       message: current.message || lastUserMessage,
       category: category || 'Technical Support',
     }));
@@ -306,7 +306,7 @@ export default function ConversationalAIHelpChatbot() {
   async function submitAutomaticEscalation(reply: AssistantReply, conversation: ChatMessage[]) {
     const name = form.name.trim() || displayName(user);
     const email = user?.email?.trim() || form.email.trim();
-    const subject = reply.suggestedSubject || suggestedSubject || 'Help with Planyx';
+    const subject = reply.suggestedSubject || suggestedSubject || 'Help with Sousa Murray Planeia';
     const category = reply.category || suggestedCategory || 'Technical Support';
 
     if (!name || !email) {
@@ -546,7 +546,7 @@ export default function ConversationalAIHelpChatbot() {
   const transcriptText = useMemo(() => {
     const lines = messages.map(message => `${message.role === 'assistant' ? config.assistantName : form.name || 'Visitor'}: ${message.text}`);
     return [
-      'Planyx Support Conversation',
+      'Sousa Murray Planeia Support Conversation',
       `Name: ${form.name || 'Not provided'}`,
       `Email: ${user?.email || form.email || 'Not provided'}`,
       `Telephone: ${form.telephone || 'Not provided'}`,
@@ -561,7 +561,7 @@ export default function ConversationalAIHelpChatbot() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `Planyx-${reference || sessionIdRef.current}-transcript.txt`;
+    anchor.download = `Sousa Murray Planeia-${reference || sessionIdRef.current}-transcript.txt`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -575,7 +575,7 @@ export default function ConversationalAIHelpChatbot() {
       return;
     }
     const safe = transcriptText.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character] || character);
-    popup.document.write(`<!doctype html><html lang="en-GB"><head><title>Planyx support transcript</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:32px;color:#0f172a}pre{white-space:pre-wrap;line-height:1.55}h1{font-size:22px}@media print{button{display:none}}</style></head><body><h1>Planyx support transcript</h1><pre>${safe}</pre><button onclick="window.print()">Print transcript</button></body></html>`);
+    popup.document.write(`<!doctype html><html lang="en-GB"><head><title>Sousa Murray Planeia support transcript</title><style>body{font-family:Segoe UI,Arial,sans-serif;margin:32px;color:#0f172a}pre{white-space:pre-wrap;line-height:1.55}h1{font-size:22px}@media print{button{display:none}}</style></head><body><h1>Sousa Murray Planeia support transcript</h1><pre>${safe}</pre><button onclick="window.print()">Print transcript</button></body></html>`);
     popup.document.close();
   }
 
@@ -708,7 +708,7 @@ export default function ConversationalAIHelpChatbot() {
                 {pendingEscalation && (
                   <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm" role="group" aria-labelledby="support-pin-title">
                     <p id="support-pin-title" className="text-sm font-bold text-slate-950">Verify your identity before human support</p>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-600">Enter your six-digit Planyx Support PIN from <a href="/settings?tab=security" className="font-semibold underline" target="_blank" rel="noreferrer">Settings → Security</a>. Your name and email are taken from your signed-in account only at this handover stage.</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600">Enter your six-digit Sousa Murray Planeia Support PIN from <a href="/settings?tab=security" className="font-semibold underline" target="_blank" rel="noreferrer">Settings → Security</a>. Your name and email are taken from your signed-in account only at this handover stage.</p>
                     <label htmlFor="chat-support-pin" className="mt-3 block text-xs font-semibold text-slate-800">Support PIN</label>
                     <div className="mt-1 flex gap-2">
                       <Input id="chat-support-pin" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={supportPin} onChange={event => setSupportPin(event.target.value.replace(/\D/g, '').slice(0, 6))} className="h-10 bg-white font-mono text-lg tracking-[0.3em] text-slate-950" />
@@ -726,7 +726,7 @@ export default function ConversationalAIHelpChatbot() {
                   <Button type="button" onClick={() => void sendMessage()} disabled={thinking || !input.trim()} style={{ backgroundColor: config.primaryColor }} className="h-10 w-10 shrink-0 p-0 text-white"><Send className="h-4 w-4" /></Button>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
-                  <span>{config.showPoweredBy ? 'Powered by Planyx Help Centre' : 'AI answers may be checked before acting.'}</span>
+                  <span>{config.showPoweredBy ? 'Powered by Sousa Murray Planeia Help Centre' : 'AI answers may be checked before acting.'}</span>
                   {config.escalationEnabled && <button type="button" onClick={() => startEnquiry()} className="font-semibold hover:underline" style={{ color: config.primaryColor }}>Contact the team</button>}
                 </div>
               </footer>
@@ -736,7 +736,7 @@ export default function ConversationalAIHelpChatbot() {
           {mode === 'enquiry' && (
             <div className="flex-1 overflow-y-auto bg-white px-4 py-4">
               <div className="mb-4 rounded-xl border p-3" style={{ borderColor: config.accentColor, backgroundColor: config.accentColor }}>
-                <div className="flex gap-2"><LifeBuoy className="mt-0.5 h-4 w-4 shrink-0" style={{ color: config.primaryColor }} /><div><p className="text-sm font-semibold text-slate-950">Now add your contact details</p><p className="mt-1 text-xs text-slate-700">These details are requested only because you have chosen to send the conversation to the Planyx Support Team.</p></div></div>
+                <div className="flex gap-2"><LifeBuoy className="mt-0.5 h-4 w-4 shrink-0" style={{ color: config.primaryColor }} /><div><p className="text-sm font-semibold text-slate-950">Now add your contact details</p><p className="mt-1 text-xs text-slate-700">These details are requested only because you have chosen to send the conversation to the Sousa Murray Planeia Support Team.</p></div></div>
               </div>
               <div className="space-y-3">
                 {([['name', 'Name', 'text'], ['email', 'Email address', 'email'], ['telephone', 'Telephone (optional)', 'tel'], ['subject', `Subject (${form.subject.trim().length}/180)`, 'text']] as const).map(([key, label, type]) => (
@@ -766,7 +766,7 @@ export default function ConversationalAIHelpChatbot() {
             <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-8 w-8 text-green-600" /></span>
               <h2 className="mt-4 text-lg font-bold">Enquiry received</h2>
-              <p className="mt-2 text-sm text-slate-600">Your conversation has been submitted to the Planyx Support Team.</p>
+              <p className="mt-2 text-sm text-slate-600">Your conversation has been submitted to the Sousa Murray Planeia Support Team.</p>
               <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><p className="text-[10px] font-bold uppercase text-slate-500">Reference</p><p className="mt-1 font-mono text-sm font-bold">{reference}</p></div>
               <p className="mt-3 text-xs text-slate-500">The team normally replies {config.responseTime}.</p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">

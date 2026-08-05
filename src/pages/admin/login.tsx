@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
   return (
     <>
       <Helmet>
-        <title>Admin Centre — Planyx</title>
+        <title>Admin Centre — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
@@ -62,12 +62,12 @@ export default function AdminLoginPage() {
         <main className="flex-1">
           <section className="mx-auto grid max-w-6xl gap-7 px-5 py-8 sm:px-7 lg:grid-cols-[1.12fr_.88fr] lg:items-center lg:py-11">
             <div>
-              <img src="/assets/brand/planyx-logo.svg?v=1" alt="Planyx" className="mb-7 h-11 w-auto object-contain" />
+              <div className="mb-7 text-xl font-black tracking-tight text-black dark:text-white">Sousa Murray Planeia</div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1.5 !text-xs !font-medium !text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:!text-blue-200">
                 <MapPinned className="h-3.5 w-3.5" />Planning platform operations
               </div>
               <h1 className="max-w-2xl !text-3xl !font-semibold tracking-[-0.035em] !text-black sm:!text-4xl lg:!text-[44px] lg:!leading-[1.08] dark:!text-white">
-                The control centre for <span className="!text-[#2463eb] dark:!text-blue-400">Planyx.</span>
+                The control centre for <span className="!text-[#2463eb] dark:!text-blue-400">Sousa Murray Planeia.</span>
               </h1>
               <p className="mt-4 max-w-2xl !text-sm !leading-6 !text-slate-700 sm:!text-base dark:!text-slate-300">
                 Manage planning experiences, customers, memberships, support and platform operations from one secure workspace.

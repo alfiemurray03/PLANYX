@@ -81,7 +81,7 @@ export async function ensureAgeVerificationRecordTable(DB) {
     eligible INTEGER NOT NULL DEFAULT 0,
     verification_status TEXT NOT NULL DEFAULT 'Passed',
     verification_method TEXT NOT NULL,
-    provider_name TEXT DEFAULT 'Planyx',
+    provider_name TEXT DEFAULT 'Sousa Murray Planeia',
     provider_reference TEXT DEFAULT '',
     policy_version TEXT DEFAULT '',
     verified_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -107,7 +107,7 @@ export async function createAgeVerificationRecord(DB, env, input = {}) {
   const verifiedAt = clean(input.verifiedAt, 40) || new Date().toISOString();
   const expiresAt = clean(input.expiresAt, 40);
   const method = clean(input.method || "Signed self-declaration", 180);
-  const providerName = clean(input.providerName || "Planyx", 120);
+  const providerName = clean(input.providerName || "Sousa Murray Planeia", 120);
   const providerReference = clean(input.providerReference || id, 180);
   const policyVersion = clean(input.policyVersion, 100);
 

@@ -1,7 +1,7 @@
 # Production authentication and portal audit
 
 Date: 2 July 2026  
-Production: `https://planyx.jagroupservices.co.uk`
+Production: `https://sousamurrayplaneia.jagroupservices.co.uk`
 Authentication: Microsoft Entra ID (administrator) and Microsoft Entra External ID (customer)
 
 ## Verified request flow
@@ -48,7 +48,7 @@ GET /account/profile (Accept: application/json)
   -> dashboard/profile JavaScript renders the returned fields
 ```
 
-The administrator flow is the same shape, using `/admin/login`, `/auth/callback`, `admin_oidc_sessions`, `ja_admin_oidc_tx` and `ja_admin_session`. The legacy `/admin/auth/callback` handler remains available for callback compatibility, but new Microsoft authorisation requests use `https://planyx.jagroupservices.co.uk/auth/callback`.
+The administrator flow is the same shape, using `/admin/login`, `/auth/callback`, `admin_oidc_sessions`, `ja_admin_oidc_tx` and `ja_admin_session`. The legacy `/admin/auth/callback` handler remains available for callback compatibility, but new Microsoft authorisation requests use `https://sousamurrayplaneia.jagroupservices.co.uk/auth/callback`.
 
 ## Proven divergence: intermittent state validation
 

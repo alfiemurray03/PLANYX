@@ -269,7 +269,7 @@ export default function AdminSessionsPage() {
 
   return (
     <>
-      <Helmet><title>Session & Sign-in Centre - Planyx Admin Centre</title><meta name="robots" content="noindex, nofollow" /></Helmet>
+      <Helmet><title>Session & Sign-in Centre - Sousa Murray Planeia Admin Centre</title><meta name="robots" content="noindex, nofollow" /></Helmet>
       <AdminLayout title="Session & Sign-in Centre">
         <div className="mx-auto w-full max-w-7xl space-y-5 pb-20">
           <section className="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-r from-white via-blue-50/70 to-violet-50/60 shadow-lg dark:border-blue-500/30 dark:from-slate-950 dark:via-slate-950 dark:to-violet-950/50">

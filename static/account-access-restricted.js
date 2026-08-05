@@ -12,7 +12,7 @@
   const strong = document.createElement('strong');
   strong.textContent = decision === 'review' ? 'Head Office review required' : 'Access blocked by Head Office';
   const span = document.createElement('span');
-  span.textContent = 'Your Planyx session has been revoked. Try signing in again after Head Office confirms that the restriction has been lifted.';
+  span.textContent = 'Your Sousa Murray Planeia session has been revoked. Try signing in again after Head Office confirms that the restriction has been lifted.';
   target.append(strong, span);
   history.replaceState({}, '', '/account/access-restricted/');
 })();

@@ -46,7 +46,7 @@ export default async function handler(req: Request, res: Response) {
       try {
         await sendEmail({
           to: conv.affiliate_email,
-          subject: 'Commission Payout Update — Planyx',
+          subject: 'Commission Payout Update — Sousa Murray Planeia',
           html: `
             <h2>Commission Payout</h2>
             <p>Dear ${conv.affiliate_name},</p>

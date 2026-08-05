@@ -147,7 +147,7 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   params.append("subscription_data[trial_period_days]", "30");
   params.append("success_url", siteUrl + "/payment-success/?session_id={CHECKOUT_SESSION_ID}");
   params.append("cancel_url", siteUrl + "/pricing/?payment=cancelled");
-  params.append("metadata[service_line]", "Planyx");
+  params.append("metadata[service_line]", "Sousa Murray Planeia");
   params.append("metadata[plan_code]", selectedPlan.id);
   params.append("metadata[plan_name]", selectedPlan.plan_name || selectedPlan.id);
   params.append("metadata[plan_type]", selectedPlan.plan_type || "");
@@ -158,7 +158,7 @@ async function createCheckoutSession(planCode, requestedAccountType, env, identi
   params.append("metadata[age_assurance_authority]", "HEAD_OFFICE");
   params.append("metadata[age_assurance_threshold]", String(threshold));
   params.append("metadata[young_person_safeguards]", Number(profile?.minor_safeguards_enabled || 0) === 1 ? "enabled" : "head_office_policy");
-  params.append("subscription_data[metadata][service_line]", "Planyx");
+  params.append("subscription_data[metadata][service_line]", "Sousa Murray Planeia");
   params.append("subscription_data[metadata][plan_code]", selectedPlan.id);
   params.append("subscription_data[metadata][plan_name]", selectedPlan.plan_name || selectedPlan.id);
   params.append("subscription_data[metadata][account_type]", accountType);
@@ -228,8 +228,8 @@ async function resolveStripePriceId(plan, env, DB, stripeSecret) {
   if (!response.ok) return "";
   const catalogue = await response.json();
   const stripeProductNames = {
-    personal: "Planyx – Explore", standard: "Planyx – Plan", professional: "Planyx – Complete", org_starter: "Planyx – Together",
-    business_personal: "Planyx Business – Explore", business_standard: "Planyx Business – Plan", business_professional: "Planyx Business – Complete", business_org_starter: "Planyx Business – Together"
+    personal: "Sousa Murray Planeia – Explore", standard: "Sousa Murray Planeia – Plan", professional: "Sousa Murray Planeia – Complete", org_starter: "Sousa Murray Planeia – Together",
+    business_personal: "Sousa Murray Planeia Business – Explore", business_standard: "Sousa Murray Planeia Business – Plan", business_professional: "Sousa Murray Planeia Business – Complete", business_org_starter: "Sousa Murray Planeia Business – Together"
   };
   const acceptedNames = new Set([String(plan.plan_name || "").trim().toLowerCase(), String(stripeProductNames[plan.id] || "").trim().toLowerCase()]);
   const match = (catalogue.data || []).find(price => {
@@ -248,7 +248,7 @@ async function safeAlter(DB, sql) {
 }
 
 function getSiteUrl(env) {
-  return String(env?.SITE_URL || "https://planyx.jagroupservices.co.uk").replace(/\/+$/, "");
+  return String(env?.SITE_URL || "https://sousamurrayplaneia.jagroupservices.co.uk").replace(/\/+$/, "");
 }
 
 function redirectTo(url) {

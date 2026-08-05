@@ -1,7 +1,7 @@
 import { readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const baseUrl = "https://planyx.jagroupservices.co.uk";
+const baseUrl = "https://sousamurrayplaneia.jagroupservices.co.uk";
 const publicDir = join(process.cwd(), "public");
 const destinationDir = join(publicDir, "destinations");
 const fixedRoutes = [

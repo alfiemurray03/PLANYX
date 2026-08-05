@@ -26,8 +26,8 @@ interface ManualDefinition {
 
 const ADMIN_MANUAL: ManualDefinition = {
   title: 'Admin Centre Manual',
-  subtitle: 'Secure operation of the Planyx administration platform',
-  audience: 'Authorised Planyx administrators and support staff',
+  subtitle: 'Secure operation of the Sousa Murray Planeia administration platform',
+  audience: 'Authorised Sousa Murray Planeia administrators and support staff',
   filename: 'planyx-admin-centre-manual.pdf',
   contents: [
     'Access, security and administrator responsibilities',
@@ -50,7 +50,7 @@ const ADMIN_MANUAL: ManualDefinition = {
         'Write factual and professional notes because important actions may be retained in the audit trail.',
       ],
       steps: [
-        'Open the Planyx Admin Portal.',
+        'Open the Sousa Murray Planeia Admin Portal.',
         'Complete Microsoft sign-in with an authorised account.',
         'Enter the personal Admin Centre PIN.',
         'Confirm the correct administrator name is displayed.',
@@ -122,7 +122,7 @@ const ADMIN_MANUAL: ManualDefinition = {
           ['Manual Stripe payment', 'Staff charges the customer through Stripe using the customer email.', 'Confirm successful payment and ensure the customer registers with the same email.'],
         ],
       },
-      note: 'Manual subscription claiming depends on the Stripe email matching the verified Planyx account email.',
+      note: 'Manual subscription claiming depends on the Stripe email matching the verified Sousa Murray Planeia account email.',
     },
     {
       title: '6. Builders, usage controls and customer permissions',
@@ -176,7 +176,7 @@ const ADMIN_MANUAL: ManualDefinition = {
 
 const CUSTOMER_MANUAL: ManualDefinition = {
   title: 'Customer Portal Manual',
-  subtitle: 'Using a Planyx account, subscription and planning workspace',
+  subtitle: 'Using a Sousa Murray Planeia account, subscription and planning workspace',
   audience: 'Customers, customer-support staff and authorised administrators',
   filename: 'planyx-customer-portal-manual.pdf',
   contents: [
@@ -192,7 +192,7 @@ const CUSTOMER_MANUAL: ManualDefinition = {
     {
       title: '1. Signing in and account basics',
       bullets: [
-        'Open the Planyx website and select Sign in.',
+        'Open the Sousa Murray Planeia website and select Sign in.',
         'Use the supported Microsoft or customer identity sign-in route.',
         'The verified email address links the account to subscription records.',
         'The customer dashboard shows the workspace, plan and available builders.',
@@ -228,7 +228,7 @@ const CUSTOMER_MANUAL: ManualDefinition = {
         'Save the result to the customer workspace.',
         'Return to edit or regenerate sections where available.',
       ],
-      note: 'Planyx is a planning platform and not a travel agency. Customers must check bookings, opening hours, entry rules and supplier terms.',
+      note: 'Sousa Murray Planeia is a planning platform and not a travel agency. Customers must check bookings, opening hours, entry rules and supplier terms.',
     },
     {
       title: '4. Saving, exporting and sharing',
@@ -278,7 +278,7 @@ const CUSTOMER_MANUAL: ManualDefinition = {
 
 const WEBSITE_MANUAL: ManualDefinition = {
   title: 'Public Website Manual',
-  subtitle: 'Understanding the customer-facing Planyx website and service pages',
+  subtitle: 'Understanding the customer-facing Sousa Murray Planeia website and service pages',
   audience: 'Customers, administrators, content staff and support staff',
   filename: 'planyx-public-website-manual.pdf',
   contents: [
@@ -293,9 +293,9 @@ const WEBSITE_MANUAL: ManualDefinition = {
     {
       title: '1. Website purpose and navigation',
       bullets: [
-        'The public website explains Planyx, its planning tools, subscriptions and customer access.',
+        'The public website explains Sousa Murray Planeia, its planning tools, subscriptions and customer access.',
         'Customers can discover destinations, activities and experiences before signing in.',
-        'The public website and Customer Portal use the same Planyx brand but serve different purposes.',
+        'The public website and Customer Portal use the same Sousa Murray Planeia brand but serve different purposes.',
         'The website is not a travel agency and does not replace supplier confirmations or official travel advice.',
       ],
     },
@@ -334,14 +334,14 @@ const WEBSITE_MANUAL: ManualDefinition = {
         'Partner discovery may link to external providers such as Headout or GetYourGuide.',
         'External purchases are subject to provider terms, availability and payment processes.',
         'Website CMS and Website Pages control approved customer-facing content.',
-        'Branding changes should use the approved Planyx logo, colours and positioning line.',
+        'Branding changes should use the approved Sousa Murray Planeia logo, colours and positioning line.',
       ],
-      note: 'Where Planyx may receive an affiliate benefit, content should remain clear that the booking or purchase is completed with the external provider.',
+      note: 'Where Sousa Murray Planeia may receive an affiliate benefit, content should remain clear that the booking or purchase is completed with the external provider.',
     },
     {
       title: '5. Legal, privacy, cookies and accessibility',
       bullets: [
-        'Terms of Service explain the rules for using Planyx.',
+        'Terms of Service explain the rules for using Sousa Murray Planeia.',
         'Privacy information explains how personal data is used and the available rights.',
         'Cookie controls allow customers to manage non-essential technologies.',
         'Complaints and Refund policies explain the relevant company processes.',
@@ -527,7 +527,7 @@ function drawCover(pdf: jsPDF, manual: ManualDefinition) {
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
   pdf.setFontSize(28);
-  pdf.text('Planyx', PAGE_WIDTH / 2, 55, { align: 'center' });
+  pdf.text('Sousa Murray Planeia', PAGE_WIDTH / 2, 55, { align: 'center' });
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(GREY[0], GREY[1], GREY[2]);
   pdf.setFontSize(10);
@@ -559,7 +559,7 @@ function drawCover(pdf: jsPDF, manual: ManualDefinition) {
   pdf.setTextColor(GREY[0], GREY[1], GREY[2]);
   pdf.text(pdf.splitTextToSize(manual.audience, 105), 72, boxY + 10);
   pdf.text('Version 1.0 - July 2026', 72, boxY + 22);
-  pdf.text('JA Group Services Ltd - Planyx', 72, boxY + 34);
+  pdf.text('JA Group Services Ltd - Sousa Murray Planeia', 72, boxY + 34);
 
   pdf.setFillColor(239, 246, 255);
   pdf.roundedRect(25, 198, 160, 34, 2, 2, 'F');
@@ -572,7 +572,7 @@ function drawCover(pdf: jsPDF, manual: ManualDefinition) {
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8.5);
   pdf.setTextColor(GREY[0], GREY[1], GREY[2]);
-  const useText = 'Use this manual alongside the live Planyx platform. Security, privacy and billing decisions must follow current Admin Centre controls and company policies.';
+  const useText = 'Use this manual alongside the live Sousa Murray Planeia platform. Security, privacy and billing decisions must follow current Admin Centre controls and company policies.';
   pdf.text(pdf.splitTextToSize(useText, 145), 32, 214);
 }
 
@@ -602,7 +602,7 @@ function addHeaderAndFooters(pdf: jsPDF, title: string) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(8.5);
       pdf.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
-      pdf.text('Planyx', MARGIN, 9);
+      pdf.text('Sousa Murray Planeia', MARGIN, 9);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 116, 139);
       pdf.text(` | ${title}`, MARGIN + 12, 9);
@@ -620,8 +620,8 @@ export function createAdminManualPdf(id: AdminManualId) {
   pdf.setProperties({
     title: manual.title,
     subject: manual.subtitle,
-    author: 'JA Group Services Ltd - Planyx',
-    creator: 'Planyx Admin Centre',
+    author: 'JA Group Services Ltd - Sousa Murray Planeia',
+    creator: 'Sousa Murray Planeia Admin Centre',
   });
 
   drawCover(pdf, manual);
@@ -640,7 +640,7 @@ export function createAdminManualPdf(id: AdminManualId) {
   });
 
   renderer.heading('Support contacts');
-  renderer.text('Email: planyx@jagroupservices.co.uk');
+  renderer.text('Email: contact@jagroupservices.co.uk');
   renderer.text('JA Group Services switchboard: 020 3834 2790');
   renderer.text('Business WhatsApp/mobile: +44 7886 158834');
 

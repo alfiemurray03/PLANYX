@@ -1,4 +1,4 @@
-// Document types and template definitions for Planyx
+// Document types and template definitions for Sousa Murray Planeia
 
 export type DocumentStatus = 'draft' | 'complete' | 'completed' | 'archived';
 export type PlanType = 'free' | 'professional' | 'business';

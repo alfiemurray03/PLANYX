@@ -2,7 +2,7 @@ const DEFAULT_PROVIDER = {
   enabled: true,
   eyebrow: "Affiliate activity partner",
   pageTitle: "Explore activities",
-  intro: "Choose a destination and browse live tours, attractions, tickets and experiences without leaving Planyx.",
+  intro: "Choose a destination and browse live tours, attractions, tickets and experiences without leaving Sousa Murray Planeia.",
   galleryLabel: "Destination gallery",
   galleryHeading: "Where would you like to explore?",
   searchPlaceholder: "Search city or country",
@@ -17,7 +17,7 @@ const DEFAULT_PROVIDER = {
   showMore: true,
   partnerId: "",
   affiliateCode: "",
-  affiliateWebsite: "https://planyx.jagroupservices.co.uk",
+  affiliateWebsite: "https://sousamurrayplaneia.jagroupservices.co.uk",
   campaign: "planyx-discovery",
   destinations: [],
 };

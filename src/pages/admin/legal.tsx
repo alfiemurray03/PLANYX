@@ -105,10 +105,10 @@ const LEGAL_DOCS: Array<{
 // ── Default content (fallback if DB is empty) ─────────────────────────────────
 
 const DEFAULT_CONTENT: Record<string, string> = {
-  'privacy-policy': `This Privacy Policy explains how JA Group Services ("we", "us", "our") operates Planyx. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our platform. We are committed to handling your data in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
+  'privacy-policy': `This Privacy Policy explains how JA Group Services ("we", "us", "our") operates Sousa Murray Planeia. This Privacy Policy explains how we collect, use, store, and protect your personal data when you use our platform. We are committed to handling your data in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
 
 1. Data Controller
-JA Group Services is the data controller for personal data collected through Planyx. If you have questions about how we handle your data, contact our Data Protection Officer at dpo@jagroupservices.co.uk.
+JA Group Services is the data controller for personal data collected through Sousa Murray Planeia. If you have questions about how we handle your data, contact our Data Protection Officer at dpo@jagroupservices.co.uk.
 
 2. Data We Collect
 Account data: When you register, we collect your name, email address, and authentication credentials.
@@ -118,7 +118,7 @@ Usage data: We collect information about how you use the platform for service im
 Technical data: We collect standard server logs including IP addresses, browser type, and access times.
 
 3. How We Use Your Data
-- To provide and operate the Planyx service.
+- To provide and operate the Sousa Murray Planeia service.
 - To manage your account and authenticate your sessions.
 - To store and retrieve your documents.
 - To send transactional emails (account confirmations, notifications).
@@ -140,13 +140,13 @@ Under UK GDPR, you have the right to access, rectify, erase, restrict, port, and
 7. Contact
 For any privacy-related queries, contact dpo@jagroupservices.co.uk.`,
 
-  'terms-of-service': `These Terms and Conditions govern your access to and use of Planyx, operated by JA Group Services Ltd (company number 16314179). By registering an account, starting a trial or using the platform, you agree to these terms.
+  'terms-of-service': `These Terms and Conditions govern your access to and use of Sousa Murray Planeia, operated by JA Group Services Ltd (company number 16314179). By registering an account, starting a trial or using the platform, you agree to these terms.
 
 1. The Service
-Planyx provides guided builders, destination discovery and personalised planning outputs. It is not a travel agent, tour operator, package organiser, insurer, booking provider or regulated adviser. Customers must check provider terms, prices, availability, accessibility and suitability.
+Sousa Murray Planeia provides guided builders, destination discovery and personalised planning outputs. It is not a travel agent, tour operator, package organiser, insurer, booking provider or regulated adviser. Customers must check provider terms, prices, availability, accessibility and suitability.
 
 2. Eligibility
-You must be at least 18 years old to use Planyx.
+You must be at least 18 years old to use Sousa Murray Planeia.
 
 3. Accounts
 You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account.
@@ -155,18 +155,18 @@ You are responsible for maintaining the confidentiality of your account credenti
 Explore Plan, Plan Plan, Complete Plan and Together Plan are monthly subscriptions with a 30-day trial for eligible new customers. They renew automatically unless cancelled. Credit allowances and rolling five-hour limits shown at purchase form part of the plan description. Statutory cancellation and refund rights are not affected.
 
 5. Acceptable Use
-You agree not to use Planyx to create fraudulent, misleading, or illegal documents, or to violate any applicable law or regulation.
+You agree not to use Sousa Murray Planeia to create fraudulent, misleading, or illegal documents, or to violate any applicable law or regulation.
 
 6. Your Content
-You retain ownership of all content you create using Planyx.
+You retain ownership of all content you create using Sousa Murray Planeia.
 
 7. Governing Law
 These Terms are governed by the laws of England and Wales.
 
 8. Contact
-If you have questions about these Terms, contact planyx@jagroupservices.co.uk.`,
+If you have questions about these Terms, contact contact@jagroupservices.co.uk.`,
 
-  'complaints-policy': `Planyx is operated by JA Group Services Ltd. Complaints may be submitted through the Support Centre or to planyx@jagroupservices.co.uk.
+  'complaints-policy': `Sousa Murray Planeia is operated by JA Group Services Ltd. Complaints may be submitted through the Support Centre or to contact@jagroupservices.co.uk.
 
 1. Acknowledgement
 We normally acknowledge a complaint within two working days.
@@ -183,7 +183,7 @@ Complaints about a Headout, GetYourGuide or other third-party booking should nor
 5. Rights
 This procedure does not remove statutory consumer or data-protection rights. Privacy complaints may also be raised with the Information Commissioner's Office.`,
 
-  'cookie-policy': `This Cookie Policy explains how Planyx uses cookies and similar tracking technologies on our website.
+  'cookie-policy': `This Cookie Policy explains how Sousa Murray Planeia uses cookies and similar tracking technologies on our website.
 
 1. What Are Cookies
 Cookies are small text files placed on your device when you visit a website.
@@ -199,13 +199,13 @@ You can control cookies through your browser settings. Disabling the session coo
 4. Contact
 For questions about our cookie use, contact dpo@jagroupservices.co.uk.`,
 
-  'acceptable-use': `This Acceptable Use Policy governs what users may and may not do on Planyx.
+  'acceptable-use': `This Acceptable Use Policy governs what users may and may not do on Sousa Murray Planeia.
 
 1. Permitted Use
-You may use Planyx to create legitimate business and personal documents for lawful purposes.
+You may use Sousa Murray Planeia to create legitimate business and personal documents for lawful purposes.
 
 2. Prohibited Use
-You must not use Planyx to:
+You must not use Sousa Murray Planeia to:
 - Create fraudulent, misleading, or illegal documents
 - Infringe any third-party intellectual property rights
 - Attempt to gain unauthorised access to the platform
@@ -216,7 +216,7 @@ You must not use Planyx to:
 We reserve the right to suspend or terminate accounts that violate this policy.
 
 4. Contact
-To report a violation, contact planyx@jagroupservices.co.uk.`,
+To report a violation, contact contact@jagroupservices.co.uk.`,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

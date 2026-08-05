@@ -62,7 +62,7 @@ export default function AuthOidcStartPage() {
   return (
     <>
       <Helmet>
-        <title>Signing In — Planyx</title>
+        <title>Signing In — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
@@ -83,7 +83,7 @@ export default function AuthOidcStartPage() {
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="text-left">
-              <p className="text-white font-bold text-lg leading-tight">Planyx</p>
+              <p className="text-white font-bold text-lg leading-tight">Sousa Murray Planeia</p>
               <p className="text-white/40 text-xs">by JA Group Services</p>
             </div>
           </Link>
@@ -168,7 +168,7 @@ export default function AuthOidcStartPage() {
                 <p className="text-white/30 text-xs">
                   Still having trouble?{' '}
                   <a
-                    href="mailto:planyx@jagroupservices.co.uk"
+                    href="mailto:contact@jagroupservices.co.uk"
                     className="text-[#4A90D9] hover:underline"
                   >
                     Contact support
