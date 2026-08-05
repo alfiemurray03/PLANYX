@@ -6,6 +6,7 @@ import App from './App';
 import { installChunkRecovery } from './lib/chunk-recovery';
 import { installBrowserBranding } from './lib/browser-branding';
 import { installPwaSupport } from './lib/pwa';
+import { installPublicBrandScrubber } from './lib/public-brand-scrubber';
 import './styles/globals.css';
 import './styles/planeia-wordmark.css';
 import './styles/accessibility-controls.css';
@@ -63,3 +64,5 @@ if (rootElement.firstElementChild) {
 } else {
   createRoot(rootElement).render(tree);
 }
+
+installPublicBrandScrubber();
