@@ -1,0 +1,5 @@
+/* Keep the Sousa Murray Planeia public wordmark in the approved brand blue. */
+header a[aria-label="Sousa Murray Planeia — home"] > span,
+footer[role="contentinfo"] a[href="/"] > span {
+  color: hsl(var(--primary)) !important;
+}
