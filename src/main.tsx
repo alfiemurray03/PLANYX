@@ -7,6 +7,7 @@ import { installChunkRecovery } from './lib/chunk-recovery';
 import { installBrowserBranding } from './lib/browser-branding';
 import { installPwaSupport } from './lib/pwa';
 import './styles/globals.css';
+import './styles/planeia-wordmark.css';
 import './styles/accessibility-controls.css';
 import './styles/admin-polish.css';
 import './styles/admin-dark.css';
