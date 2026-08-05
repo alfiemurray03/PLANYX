@@ -1,4 +1,10 @@
+const LEGACY_NAMES = '(?:JA Domain Hub|JA Plan Studio|Planyx|JA Profile Studio|Profile Centre|Aptenvo)';
+
 const LEGACY_REPLACEMENTS: Array<[RegExp, string]> = [
+  [new RegExp(`\\s*\\((?:formerly|previously)(?: known as)?\\s+${LEGACY_NAMES}\\)`, 'gi'), ''],
+  [new RegExp(`\\s*[–—-]\\s*(?:formerly|previously)(?: known as)?\\s+${LEGACY_NAMES}`, 'gi'), ''],
+  [new RegExp(`\\b(?:formerly|previously)(?: known as)?\\s+${LEGACY_NAMES}\\b`, 'gi'), ''],
+
   [/[A-Z0-9._%+-]+@(?:planyx|aptenvo|profilecentre|profilecenter|jadomainhub)\.jagroupservices\.co\.uk/gi, 'contact@jagroupservices.co.uk'],
   [/\b(?:planyx|aptenvo|profilecentre|profilecenter|jadomainhub)@jagroupservices\.co\.uk\b/gi, 'contact@jagroupservices.co.uk'],
 
@@ -20,35 +26,17 @@ const LEGACY_REPLACEMENTS: Array<[RegExp, string]> = [
 ];
 
 const VISIBLE_ATTRIBUTES = new Set([
-  'alt',
-  'aria-description',
-  'aria-label',
-  'content',
-  'href',
-  'placeholder',
-  'poster',
-  'src',
-  'srcset',
-  'style',
-  'title',
-  'value',
-  'action',
-  'data-label',
-  'data-title',
-  'data-description',
-  'data-tooltip',
+  'alt', 'aria-description', 'aria-label', 'content', 'href', 'placeholder',
+  'poster', 'src', 'srcset', 'style', 'title', 'value', 'action',
+  'data-label', 'data-title', 'data-description', 'data-tooltip',
 ]);
 
 function replaceLegacyBranding(value: string) {
-  return LEGACY_REPLACEMENTS.reduce(
-    (current, [pattern, replacement]) => current.replace(pattern, replacement),
-    value,
-  );
+  return LEGACY_REPLACEMENTS.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), value);
 }
 
 function shouldSkipTextNode(node: Node) {
-  const parent = node.parentElement;
-  return Boolean(parent?.closest('script, style, template, noscript'));
+  return Boolean(node.parentElement?.closest('script, style, template, noscript'));
 }
 
 function scrubElement(element: Element) {
@@ -61,7 +49,6 @@ function scrubElement(element: Element) {
 
 function scrubTree(root: Node) {
   if (root instanceof Element) scrubElement(root);
-
   const textWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let textNode = textWalker.nextNode();
   while (textNode) {
@@ -72,7 +59,6 @@ function scrubTree(root: Node) {
     }
     textNode = textWalker.nextNode();
   }
-
   if (root instanceof Element || root instanceof Document || root instanceof DocumentFragment) {
     root.querySelectorAll('*').forEach(scrubElement);
   }
@@ -81,23 +67,16 @@ function scrubTree(root: Node) {
 export function installPublicBrandScrubber() {
   const start = () => {
     scrubTree(document.documentElement);
-
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.target instanceof Element) {
           scrubElement(mutation.target);
           continue;
         }
-
         mutation.addedNodes.forEach(scrubTree);
       }
     });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-    });
+    observer.observe(document.documentElement, { attributes: true, childList: true, subtree: true });
   };
 
   if (document.readyState === 'loading') {
