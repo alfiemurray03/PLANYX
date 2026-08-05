@@ -27,13 +27,13 @@ test('Admin Centre retains the protected legacy age-record workspace', async () 
   assert.match(api, /admin_audit_log/);
 });
 
-test('Planyx cannot use its retired self-declaration controls to bypass Head Office', async () => {
+test('Sousa Murray Planeia cannot use its retired self-declaration controls to bypass Head Office', async () => {
   const agePage = await read('functions/age-check.js');
   const login = await read('functions/account/login.js');
   const callback = await read('functions/account/auth/callback.js');
   const middleware = await read('functions/_shared/age-gate-middleware.js');
 
-  assert.match(agePage, /retired Planyx self-declaration token/);
+  assert.match(agePage, /retired Sousa Murray Planeia self-declaration token/);
   assert.match(agePage, /\/account\/login\?return_to=/);
   assert.doesNotMatch(agePage, /date_of_birth|createAgeAssurance|Safe registration pause/);
   assert.match(login, /beginLogin\(context, "customer"\)/);
