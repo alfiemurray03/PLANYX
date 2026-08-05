@@ -27,7 +27,7 @@ let _client: Client | null = null;
 let _discovering = false;
 let _queue: Array<{ resolve: (c: Client) => void; reject: (e: unknown) => void }> = [];
 
-/** Hard-coded tenant ID for Planyx's Entra External ID tenant. */
+/** Hard-coded tenant ID for Sousa Murray Planeia's Entra External ID tenant. */
 const TENANT_ID = '643abcb7-2f0d-4e72-a193-47ff1a0e63e1';
 
 /**

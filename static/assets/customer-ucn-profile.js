@@ -7,11 +7,11 @@
 
   const STATUS = {
     synced: ['Connected', 'Your customer record is connected to JA Group Services Ltd Head Office.'],
-    pending: ['Pending', 'Planyx is still connecting your customer record.'],
+    pending: ['Pending', 'Sousa Murray Planeia is still connecting your customer record.'],
     not_configured: ['Connection unavailable', 'The Head Office connection has not been activated for this environment.'],
     review_required: ['Head Office review', 'Your customer record needs a manual identity review before it can be connected.'],
     ucn_conflict: ['Head Office review', 'Your existing customer number has been protected while Head Office reviews a mismatch.'],
-    error: ['Temporarily unavailable', 'Planyx could not check your Head Office customer record. Please try again.'],
+    error: ['Temporarily unavailable', 'Sousa Murray Planeia could not check your Head Office customer record. Please try again.'],
   };
 
   function onSettingsPage() {
@@ -42,7 +42,7 @@
         <button type="button" class="planyx-ucn-copy" data-ucn-copy hidden>Copy number</button>
       </div>
       <div class="planyx-ucn-meta">
-        <span data-ucn-description>Planyx is checking your Head Office customer record.</span>
+        <span data-ucn-description>Sousa Murray Planeia is checking your Head Office customer record.</span>
         <span data-ucn-synced></span>
       </div>
       <button type="button" class="planyx-ucn-retry" data-ucn-retry hidden>Retry connection</button>
@@ -144,7 +144,7 @@
       retry.disabled = true;
       retry.textContent = 'Connecting…';
     }
-    setStatus(panel, 'loading', 'Connecting', 'Planyx is reconnecting your Head Office customer record.');
+    setStatus(panel, 'loading', 'Connecting', 'Sousa Murray Planeia is reconnecting your Head Office customer record.');
 
     try {
       const response = await fetch(API_URL, {

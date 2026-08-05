@@ -84,10 +84,10 @@ const DEFAULT_CONFIG: SiteConfig = {
   comingSoonSubtext: 'We are putting the finishing touches on something great.',
   comingSoonLaunchDate: '',
   comingSoonCountdownEnabled: false,
-  siteName:    'Planyx',
+  siteName:    'Sousa Murray Planeia',
   brandName:   'JA Group Services',
   tagline:     'Personalised Plans, Built Step by Step',
-  supportEmail: 'planyx@jagroupservices.co.uk',
+  supportEmail: 'contact@jagroupservices.co.uk',
   supportPhone: '020 3834 2790',
   companyName: 'JA Group Services Ltd',
   companyAddress: 'United Kingdom',
@@ -98,16 +98,16 @@ const DEFAULT_CONFIG: SiteConfig = {
   logoUrl: '',
   faviconUrl: '',
   maintenanceMode: false,
-  maintenanceTitle: 'We are making Planyx even better',
+  maintenanceTitle: 'We are making Sousa Murray Planeia even better',
   maintenanceReason: 'Planned platform maintenance',
-  maintenanceMessage: 'Planyx is temporarily unavailable while our team completes essential improvements.',
+  maintenanceMessage: 'Sousa Murray Planeia is temporarily unavailable while our team completes essential improvements.',
   maintenanceStart: '',
   maintenanceExpectedReturn: '',
-  maintenanceContactText: 'Need help while we are away? Contact planyx@jagroupservices.co.uk or call 020 3834 2790.',
+  maintenanceContactText: 'Need help while we are away? Contact contact@jagroupservices.co.uk or call 020 3834 2790.',
   contactPageStatus: 'online',
   contactMaintenanceTitle: 'Contact support is temporarily unavailable',
   contactMaintenanceReason: 'Contact service maintenance',
-  contactMaintenanceMessage: 'We are carrying out essential work on the Planyx contact service. Please check back shortly.',
+  contactMaintenanceMessage: 'We are carrying out essential work on the Sousa Murray Planeia contact service. Please check back shortly.',
   contactMaintenanceStart: '',
   contactMaintenanceExpectedReturn: '',
   contactOfflineMessage: 'The Contact Us page is currently offline. Please use the contact details shown on this page if your enquiry cannot wait.',
@@ -528,7 +528,7 @@ export default function AdminSiteSettings() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {([
-                    ['normal', 'Live', 'The public Planyx website is available normally.'],
+                    ['normal', 'Live', 'The public Sousa Murray Planeia website is available normally.'],
                     ['coming_soon', 'Coming Soon', 'Show the launch gate while the website is prepared.'],
                     ['maintenance', 'Maintenance', 'Temporarily take the public website offline.'],
                   ] as const).map(([value, label, description]) => {
@@ -576,7 +576,7 @@ export default function AdminSiteSettings() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Dedicated Maintenance Page</h3>
-                      <p className={`mt-1 text-xs ${muted}`}>Explain why Planyx is unavailable and when customers should expect it to return.</p>
+                      <p className={`mt-1 text-xs ${muted}`}>Explain why Sousa Murray Planeia is unavailable and when customers should expect it to return.</p>
                     </div>
                     <a
                       href="/maintenance/"
@@ -610,7 +610,7 @@ export default function AdminSiteSettings() {
                       rows={2} className={`resize-y text-sm ${inputCls}`} />
                   </Field>
                   <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs leading-5 text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
-                    The page uses the approved Planyx logo, permanent dark styling, service-status indicator and legal links. Admin and authentication routes remain available.
+                    The page uses the approved Sousa Murray Planeia logo, permanent dark styling, service-status indicator and legal links. Admin and authentication routes remain available.
                   </div>
               </div>
 
@@ -622,7 +622,7 @@ export default function AdminSiteSettings() {
                 <h3 className={`text-sm font-semibold ${'text-gray-900 dark:text-white'}`}>Platform Identity</h3>
                 <p className={`text-xs ${muted}`}>The product/platform name shown in page titles, dashboards, and the browser tab.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Platform Name (Product)" hint='Shown in page titles and the browser tab — e.g. "Planyx"'>
+                  <Field label="Platform Name (Product)" hint='Shown in page titles and the browser tab — e.g. "Sousa Murray Planeia"'>
                     <Input value={cfg.siteName} onChange={e => update({ siteName: e.target.value })} className={`h-9 ${inputCls}`} />
                   </Field>
                   <Field label="Tagline">

@@ -248,10 +248,10 @@ export default function StableAdminDashboard() {
   return (
     <>
       <Helmet>
-        <title>Admin Dashboard — Planyx</title>
+        <title>Admin Dashboard — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <AdminLayout title="Dashboard" subtitle="Planyx Administration">
+      <AdminLayout title="Dashboard" subtitle="Sousa Murray Planeia Administration">
         <div className="mx-auto w-full max-w-[1600px] space-y-6 pb-12">
           <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-blue-50 to-violet-50 px-5 py-6 shadow-xl dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-indigo-950 sm:px-7 sm:py-8">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
@@ -300,10 +300,10 @@ export default function StableAdminDashboard() {
           <section className="space-y-3">
             <div>
               <h2 className="text-lg font-bold text-slate-950 dark:text-white">Headline operations</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Current totals from the Planyx operational database.</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Current totals from the Sousa Murray Planeia operational database.</p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Customer profiles" value={data.customers} note="Registered Planyx customer records" icon={Users} accent="bg-blue-600" />
+              <MetricCard label="Customer profiles" value={data.customers} note="Registered Sousa Murray Planeia customer records" icon={Users} accent="bg-blue-600" />
               <MetricCard label="Plans and outputs" value={data.outputs} note="Saved builder outputs" icon={FileText} accent="bg-cyan-500" />
               <MetricCard label="Configured plans" value={data.activePlans} note="Active subscription plans" icon={CreditCard} accent="bg-violet-600" />
               <MetricCard label="Items requiring action" value={attentionTotal} note="Privacy, support and platform work" icon={AlertTriangle} accent={attentionTotal > 0 ? 'bg-amber-500' : 'bg-emerald-500'} />

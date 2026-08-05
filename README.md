@@ -1,6 +1,6 @@
-# Planyx Website
+# Sousa Murray Planeia Website
 
-Public website for **Planyx**, a trading division and service line of JA Group Services Ltd.
+Public website for **Sousa Murray Planeia**, a trading division and service line of JA Group Services Ltd.
 
 Production domain: `planyx.jagroupservices.co.uk`
 
@@ -29,7 +29,7 @@ The enquiry system reuses the email provider configured in the Administrator Con
 `ENQUIRY_FROM_EMAIL` should use the verified domain, for example:
 
 ```text
-Planyx <planyx@jagroupservices.co.uk>
+Sousa Murray Planeia <contact@jagroupservices.co.uk>
 ```
 
 The Administrator Control Centre email settings take precedence over environment-variable fallbacks.

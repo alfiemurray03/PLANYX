@@ -30,7 +30,7 @@ function createTicketReference() {
 function emailBody(ticket, enquiry) {
   const received = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'full', timeStyle: 'long' });
   return [
-    `Planyx support ticket: ${ticket}`,
+    `Sousa Murray Planeia support ticket: ${ticket}`,
     '',
     `Received: ${received}`,
     `Customer: ${enquiry.name}`,
@@ -50,7 +50,7 @@ function emailBody(ticket, enquiry) {
 function rawEmail(from, to, ticket, enquiry) {
   const subject = safeHeader(`[${ticket}] [${enquiry.priority.toUpperCase()}] ${enquiry.subject}`);
   return [
-    `From: Planyx Ticketing <${from}>`,
+    `From: Sousa Murray Planeia Ticketing <${from}>`,
     `To: ${to}`,
     `Reply-To: ${safeHeader(enquiry.email)}`,
     `Subject: ${subject}`,
@@ -81,7 +81,7 @@ function teamsPayload(ticket, enquiry) {
         type: 'AdaptiveCard',
         version: '1.4',
         body: [
-          { type: 'TextBlock', text: 'New Planyx support ticket', weight: 'Bolder', size: 'Large', color: 'Accent' },
+          { type: 'TextBlock', text: 'New Sousa Murray Planeia support ticket', weight: 'Bolder', size: 'Large', color: 'Accent' },
           { type: 'TextBlock', text: ticket, weight: 'Bolder', size: 'Medium' },
           { type: 'FactSet', facts },
           { type: 'TextBlock', text: 'Full enquiry', weight: 'Bolder', separator: true },
@@ -156,7 +156,7 @@ async function submitSupport(request, env) {
   }
 
   const ticketReference = createTicketReference();
-  const to = env.ENQUIRY_TO_EMAIL || 'planyx@jagroupservices.co.uk';
+  const to = env.ENQUIRY_TO_EMAIL || 'contact@jagroupservices.co.uk';
   const from = env.ENQUIRY_FROM_EMAIL || 'tickets@jagroupservices.co.uk';
 
   try {

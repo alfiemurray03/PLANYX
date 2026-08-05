@@ -1,8 +1,8 @@
-# Planyx Architecture
+# Sousa Murray Planeia Architecture
 
 ## Overview
 
-Planyx is split into two production-facing applications:
+Sousa Murray Planeia is split into two production-facing applications:
 
 - Customer Portal
 - Administrator Centre

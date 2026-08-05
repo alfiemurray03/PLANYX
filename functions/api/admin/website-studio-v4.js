@@ -231,10 +231,10 @@ function designQuality(plan, message) {
 }
 
 function planyxDesignContract() {
-  return `PLANYX DESIGN CONTRACT:
+  return `SOUSA MURRAY PLANEIA DESIGN CONTRACT:
 - The result must look like a premium modern British SaaS product, not a document pasted into a webpage.
 - Preserve the existing page's visual language and do not redesign unrelated sections.
-- Use a restrained Planyx palette: deep navy #0b172d/#101b35, primary blue #2864e8, cyan #22c7d9, violet #7c3aed, white surfaces, slate text and subtle blue-grey borders.
+- Use a restrained Sousa Murray Planeia palette: deep navy #0b172d/#101b35, primary blue #2864e8, cyan #22c7d9, violet #7c3aed, white surfaces, slate text and subtle blue-grey borders.
 - Use semantic component HTML with clear reusable class names prefixed planyx- or px-.
 - Use a centred max-width container, consistent 8px spacing rhythm, comfortable white space, 16-24px radii, subtle 1px borders and restrained shadows.
 - Create clear hierarchy: eyebrow where appropriate, strong heading, concise supporting copy, then the component content.
@@ -253,7 +253,7 @@ async function requestPolishedPlan(env, body, payload, qualityReasons, attempt =
   const currentPlan = payload.plan && typeof payload.plan === "object" ? payload.plan : (body.currentPlan || { summary: "No draft", operations: [] });
   const snapshot = clean(body.pageSnapshot, 18000) || "No page snapshot supplied.";
   const model = clean(settings.model || "@cf/meta/llama-3.1-8b-instruct-fast", 180);
-  const system = `You are the senior product designer and frontend engineer for Planyx, operated by JA Group Services Ltd.
+  const system = `You are the senior product designer and frontend engineer for Sousa Murray Planeia, operated by JA Group Services Ltd.
 The first generated draft failed visual quality review. Rebuild it as a polished production-quality website edit plan.
 Return exactly one JSON object with no Markdown and no text outside the JSON.
 
@@ -340,7 +340,7 @@ export async function onRequest(context) {
     polished = await requestPolishedPlan(context.env, body, payload, quality.reasons, 1);
     if (polished) quality = designQuality(polished, body.message);
     if (!polished || !quality.acceptable) {
-      const retryReasons = quality.reasons.length ? quality.reasons : ["The redesign did not meet the Planyx component quality standard."];
+      const retryReasons = quality.reasons.length ? quality.reasons : ["The redesign did not meet the Sousa Murray Planeia component quality standard."];
       polished = await requestPolishedPlan(context.env, body, payload, retryReasons, 2);
       if (polished) quality = designQuality(polished, body.message);
     }
@@ -356,7 +356,7 @@ export async function onRequest(context) {
     const preservedPlan = body.currentPlan && typeof body.currentPlan === "object"
       ? body.currentPlan
       : { summary: "Design request needs a higher-quality revision.", warnings: [], operations: [] };
-    const reply = "I understood the design request, but I rejected the generated result because it did not meet the Planyx design-quality standard. Nothing new has been applied to the draft. Please try the request again with the section name or selector you want redesigned.";
+    const reply = "I understood the design request, but I rejected the generated result because it did not meet the Sousa Murray Planeia design-quality standard. Nothing new has been applied to the draft. Please try the request again with the section name or selector you want redesigned.";
     return json({
       ...payload,
       reply,

@@ -33,16 +33,16 @@ const PRIORITIES = [
   { value: 'low', label: 'Low — general question' },
   { value: 'normal', label: 'Normal — standard request' },
   { value: 'high', label: 'High — affecting my work' },
-  { value: 'urgent', label: 'Urgent — I cannot use Planyx' }
+  { value: 'urgent', label: 'Urgent — I cannot use Sousa Murray Planeia' }
 ];
 
 const DEFAULT_CONTACT_SETTINGS = {
   contactPageEnabled: true,
-  contactEyebrow: 'Planyx intelligent support',
+  contactEyebrow: 'Sousa Murray Planeia intelligent support',
   contactTitle: 'How can we help?',
   contactIntroduction: 'Describe what you need and our AI-assisted contact box will organise your enquiry before you send it.',
   contactAiTitle: 'AI-assisted contact',
-  contactAiDescription: 'Tell us what you need in plain English. Planyx will organise the enquiry, suggest what information to include and prepare it for the correct support route.',
+  contactAiDescription: 'Tell us what you need in plain English. Sousa Murray Planeia will organise the enquiry, suggest what information to include and prepare it for the correct support route.',
   contactSupportEmail: PLANYX_EMAIL,
   contactGeneralEmail: GROUP_CONTACT_EMAIL,
   contactDpoEmail: DATA_PROTECTION_EMAIL,
@@ -113,7 +113,7 @@ export default function ContactPage() {
     if (/payment|charged|charge|invoice|refund|subscription|billing|cancel/.test(text)) {
       category = 'billing';
       heading = 'Billing and subscription support';
-      advice = 'Include the date, amount and the email address connected to your Planyx account. Never include full card details.';
+      advice = 'Include the date, amount and the email address connected to your Sousa Murray Planeia account. Never include full card details.';
     } else if (/sign in|login|password|account|access|verification|code/.test(text)) {
       category = 'account';
       heading = 'Account and access support';
@@ -184,10 +184,10 @@ export default function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Help & Contact — Planyx</title>
+        <title>Help & Contact — Sousa Murray Planeia</title>
         <meta
           name="description"
-          content="Get quick answers from Planyx AI or contact the Planyx support team."
+          content="Get quick answers from Sousa Murray Planeia AI or contact the Sousa Murray Planeia support team."
         />
       </Helmet>
 
@@ -293,7 +293,7 @@ export default function ContactPage() {
               <div className="w-11 h-11 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500">
                 <Mail className="w-5 h-5" />
               </div>
-              <h3 className="mt-4 font-bold text-foreground">Email Planyx</h3>
+              <h3 className="mt-4 font-bold text-foreground">Email Sousa Murray Planeia</h3>
               <p className="mt-1 text-sm text-muted-foreground">Accounts, subscriptions, technical help and account deletion.</p>
               <span className="mt-4 block text-sm font-semibold text-primary break-all">{contactSettings.contactSupportEmail}</span>
             </a>}
@@ -320,7 +320,7 @@ export default function ContactPage() {
                   </div>
                   <h2 className="mt-5 text-2xl font-bold text-foreground">Your ticket has been created</h2>
                   <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-                    We have received your enquiry and routed it to the Planyx support team.
+                    We have received your enquiry and routed it to the Sousa Murray Planeia support team.
                   </p>
                   <div className="mt-5 mx-auto max-w-sm rounded-2xl border border-primary/20 bg-primary/5 p-5">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Your ticket number</p>
@@ -477,7 +477,7 @@ export default function ContactPage() {
               <p className="text-sm font-semibold text-primary">Full contact details</p>
               <h2 className="mt-1 text-xl font-bold text-foreground">JA Group Services Ltd</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Planyx is operated by JA Group Services Ltd, registered in England and Wales.
+                Sousa Murray Planeia is operated by JA Group Services Ltd, registered in England and Wales.
               </p>
               <div className="mt-6 space-y-4 text-sm">
                 {contactSettings.contactTelephoneEnabled && <a href={contactSettings.contactPhoneHref} className="flex gap-3 hover:text-primary">
@@ -486,7 +486,7 @@ export default function ContactPage() {
                 </a>}
                 {contactSettings.contactEmailEnabled && <a href={'mailto:' + contactSettings.contactSupportEmail} className="flex gap-3 hover:text-primary">
                   <Mail className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span className="min-w-0"><strong className="block text-foreground">Planyx support</strong><span className="break-all">{contactSettings.contactSupportEmail}</span></span>
+                  <span className="min-w-0"><strong className="block text-foreground">Sousa Murray Planeia support</strong><span className="break-all">{contactSettings.contactSupportEmail}</span></span>
                 </a>}
                 <a href={'mailto:' + contactSettings.contactDpoEmail} className="flex gap-3 hover:text-primary">
                   <ShieldCheck className="w-4 h-4 mt-0.5 text-primary shrink-0" />

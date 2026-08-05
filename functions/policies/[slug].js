@@ -150,7 +150,7 @@ function page(policy) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${escapeHtml(title)} | Planyx</title>
+  <title>${escapeHtml(title)} | Sousa Murray Planeia</title>
   <meta name="robots" content="index,follow">
   <style>
     :root {
@@ -286,7 +286,7 @@ function page(policy) {
     <div class="topbar-inner">
       <a class="brand" href="/">
         <span class="logo">JA</span>
-        <span>Planyx</span>
+        <span>Sousa Murray Planeia</span>
       </a>
       <a class="back" href="/">Back to website</a>
     </div>
@@ -302,7 +302,7 @@ function page(policy) {
     </article>
   </main>
   <footer>
-    Planyx is a service line of JA Group Services Ltd.
+    Sousa Murray Planeia is a service line of JA Group Services Ltd.
   </footer>
 </body>
 </html>`;

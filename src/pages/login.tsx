@@ -13,7 +13,7 @@ const errorMessages: Record<string, string> = {
   account_suspended: 'This account is currently suspended. Please contact support.',
   oidc_unavailable: 'Sign-in is temporarily unavailable. Please try again shortly.',
   age_check_required: 'Head Office requires the customer 16+ check before access can continue.',
-  under_16_not_eligible: 'Planyx accounts are not available to anyone under 16 years of age.',
+  under_16_not_eligible: 'Sousa Murray Planeia accounts are not available to anyone under 16 years of age.',
 };
 
 export default function LoginPage() {
@@ -31,8 +31,8 @@ export default function LoginPage() {
   return (
     <>
       <Helmet>
-        <title>Sign In — Planyx</title>
-        <meta name="description" content="Sign in to your 16+ Planyx account." />
+        <title>Sign In — Sousa Murray Planeia</title>
+        <meta name="description" content="Sign in to your 16+ Sousa Murray Planeia account." />
         <link rel="canonical" href="/sign-in" />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
@@ -41,8 +41,8 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(37,99,235,.12),transparent_34%),radial-gradient(circle_at_82%_76%,rgba(6,182,212,.09),transparent_30%)]" />
         <div className="relative mx-auto grid w-full max-w-5xl items-center gap-10 lg:grid-cols-[1fr_390px]">
           <section className="hidden lg:block">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[.16em] text-blue-600 dark:text-blue-300">JA Group Services ID · Planyx 16+</p>
-            <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-.04em] text-foreground">One secure sign-in for every <span className="text-blue-600 dark:text-blue-400">Planyx experience.</span></h1>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[.16em] text-blue-600 dark:text-blue-300">JA Group Services ID · Sousa Murray Planeia 16+</p>
+            <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-.04em] text-foreground">One secure sign-in for every <span className="text-blue-600 dark:text-blue-400">Sousa Murray Planeia experience.</span></h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">Continue planning, save your itineraries and keep your experience details together without creating another password.</p>
             <div className="mt-7 grid max-w-lg gap-3 sm:grid-cols-3">
               {['Microsoft secured', 'Strictly age 16+', 'Head Office controlled'].map(item => <div key={item} className="rounded-xl border border-border bg-card/80 px-3 py-3 text-xs font-medium text-foreground">{item}</div>)}
@@ -54,7 +54,7 @@ export default function LoginPage() {
               <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-blue-200 bg-blue-100 lg:mx-0 dark:border-blue-700 dark:bg-blue-900/40">
                 <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Sign in to Planyx</h2>
+              <h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Sign in to Sousa Murray Planeia</h2>
               <p className="text-xs text-muted-foreground">Protected by JA Group Services ID · Customer account holders must be aged 16 or over</p>
             </div>
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
             <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div className="flex gap-2.5 rounded-xl border border-violet-200 bg-violet-50 p-3.5 dark:border-violet-800 dark:bg-violet-950/30">
                 <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-300" />
-                <p className="text-xs leading-relaxed text-violet-800 dark:text-violet-200"><strong>Planyx is strictly 16+.</strong> Sign in with Microsoft first. Head Office then checks the customer account and opens the approved Didit age check only when the central Planyx deployment requires it. Staff sign-in is separate and unaffected.</p>
+                <p className="text-xs leading-relaxed text-violet-800 dark:text-violet-200"><strong>Sousa Murray Planeia is strictly 16+.</strong> Sign in with Microsoft first. Head Office then checks the customer account and opens the approved Didit age check only when the central Sousa Murray Planeia deployment requires it. Staff sign-in is separate and unaffected.</p>
               </div>
 
               <Button
@@ -81,7 +81,7 @@ export default function LoginPage() {
 
               <div className="flex gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3.5 dark:border-blue-800 dark:bg-blue-950/30">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-                <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-300">Enterprise-grade authentication. No separate Planyx password to remember.</p>
+                <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-300">Enterprise-grade authentication. No separate Sousa Murray Planeia password to remember.</p>
               </div>
 
               <div className="border-t border-border pt-4">
@@ -97,7 +97,7 @@ export default function LoginPage() {
             </div>
 
             <p className="text-center text-xs text-muted-foreground">
-              Need help or have a safeguarding concern? <Link to="/contact" className="font-medium text-primary hover:underline">Contact Planyx</Link>
+              Need help or have a safeguarding concern? <Link to="/contact" className="font-medium text-primary hover:underline">Contact Sousa Murray Planeia</Link>
             </p>
             <p className="text-center text-[11px] text-muted-foreground">
               <Link to="/terms" className="hover:text-foreground">Terms of Service</Link>

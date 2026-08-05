@@ -139,7 +139,7 @@ export default function AdminPasswordResetsPage() {
   return (
     <AdminLayout title="Password Resets" subtitle="Review and process customer password reset requests">
       <Helmet>
-        <title>Password Resets — Planyx Admin</title>
+        <title>Password Resets — Sousa Murray Planeia Admin</title>
       </Helmet>
 
       <div className="p-6 space-y-6">

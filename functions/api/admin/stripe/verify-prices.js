@@ -1,14 +1,14 @@
 import { assertSameOrigin, getNativeSession, withIdentity } from "../../../_shared/oidc.js";
 
 const APPROVED_PLAN_PRICES = [
-  { key: "personal", configKey: "stripe_price_personal_override", envKeys: ["STRIPE_PRICE_EXPLORE", "STRIPE_PRICE_PERSONAL"], label: "Explore Plan", amount: 599, productId: "prod_UtkvP5dvxrwLNa", productNames: ["Explore Plan", "Planyx – Explore", "Planyx - Explore"], defaultPriceId: "price_1TtxPrDZzb3r6Q3cIViE64O4" },
-  { key: "standard", configKey: "stripe_price_standard_override", envKeys: ["STRIPE_PRICE_PLAN", "STRIPE_PRICE_STANDARD"], label: "Plan Plan", amount: 799, productId: "prod_UtkvpswzvV53y7", productNames: ["Plan Plan", "Planyx – Plan", "Planyx - Plan"], defaultPriceId: "price_1TtxPyDZzb3r6Q3cg9hcgXeA" },
-  { key: "professional", configKey: "stripe_price_professional_override", envKeys: ["STRIPE_PRICE_COMPLETE", "STRIPE_PRICE_PROFESSIONAL"], label: "Complete Plan", amount: 1499, productId: "prod_Utkv85XaRxReja", productNames: ["Complete Plan", "Planyx – Complete", "Planyx - Complete"], defaultPriceId: "price_1TtxQ5DZzb3r6Q3c0XxvHRDY" },
-  { key: "org_starter", configKey: "stripe_price_org_starter_override", envKeys: ["STRIPE_PRICE_TOGETHER", "STRIPE_PRICE_ORG_STARTER"], label: "Together Plan", amount: 3999, productId: "prod_Utkwas33GBC6Yn", productNames: ["Together Plan", "Planyx – Together", "Planyx - Together"], defaultPriceId: "price_1TtxQDDZzb3r6Q3cI8rCEJwJ" },
-  { key: "business_personal", configKey: "", envKeys: [], label: "Business Explore Plan", amount: 599, productId: "prod_Uwgus0xRHwgrlj", productNames: ["Explore Plan", "Planyx Business – Explore", "Planyx Business - Explore"], defaultPriceId: "price_1TwnWFDZzb3r6Q3c0SKHckVo" },
-  { key: "business_standard", configKey: "", envKeys: [], label: "Business Plan Plan", amount: 799, productId: "prod_UwgunfLOeoBA9V", productNames: ["Plan Plan", "Planyx Business – Plan", "Planyx Business - Plan"], defaultPriceId: "price_1TwnWVDZzb3r6Q3caG24V63l" },
-  { key: "business_professional", configKey: "", envKeys: [], label: "Business Complete Plan", amount: 1499, productId: "prod_UwgujYPsJYBj1F", productNames: ["Complete Plan", "Planyx Business – Complete", "Planyx Business - Complete"], defaultPriceId: "price_1TwnWjDZzb3r6Q3crQKwr2bw" },
-  { key: "business_org_starter", configKey: "", envKeys: [], label: "Business Together Plan", amount: 3999, productId: "prod_Uwgu4EVCfy4wKb", productNames: ["Together Plan", "Planyx Business – Together", "Planyx Business - Together"], defaultPriceId: "price_1TwnWxDZzb3r6Q3cxqCPgI3o" }
+  { key: "personal", configKey: "stripe_price_personal_override", envKeys: ["STRIPE_PRICE_EXPLORE", "STRIPE_PRICE_PERSONAL"], label: "Explore Plan", amount: 599, productId: "prod_UtkvP5dvxrwLNa", productNames: ["Explore Plan", "Sousa Murray Planeia – Explore", "Sousa Murray Planeia - Explore"], defaultPriceId: "price_1TtxPrDZzb3r6Q3cIViE64O4" },
+  { key: "standard", configKey: "stripe_price_standard_override", envKeys: ["STRIPE_PRICE_PLAN", "STRIPE_PRICE_STANDARD"], label: "Plan Plan", amount: 799, productId: "prod_UtkvpswzvV53y7", productNames: ["Plan Plan", "Sousa Murray Planeia – Plan", "Sousa Murray Planeia - Plan"], defaultPriceId: "price_1TtxPyDZzb3r6Q3cg9hcgXeA" },
+  { key: "professional", configKey: "stripe_price_professional_override", envKeys: ["STRIPE_PRICE_COMPLETE", "STRIPE_PRICE_PROFESSIONAL"], label: "Complete Plan", amount: 1499, productId: "prod_Utkv85XaRxReja", productNames: ["Complete Plan", "Sousa Murray Planeia – Complete", "Sousa Murray Planeia - Complete"], defaultPriceId: "price_1TtxQ5DZzb3r6Q3c0XxvHRDY" },
+  { key: "org_starter", configKey: "stripe_price_org_starter_override", envKeys: ["STRIPE_PRICE_TOGETHER", "STRIPE_PRICE_ORG_STARTER"], label: "Together Plan", amount: 3999, productId: "prod_Utkwas33GBC6Yn", productNames: ["Together Plan", "Sousa Murray Planeia – Together", "Sousa Murray Planeia - Together"], defaultPriceId: "price_1TtxQDDZzb3r6Q3cI8rCEJwJ" },
+  { key: "business_personal", configKey: "", envKeys: [], label: "Business Explore Plan", amount: 599, productId: "prod_Uwgus0xRHwgrlj", productNames: ["Explore Plan", "Sousa Murray Planeia Business – Explore", "Sousa Murray Planeia Business - Explore"], defaultPriceId: "price_1TwnWFDZzb3r6Q3c0SKHckVo" },
+  { key: "business_standard", configKey: "", envKeys: [], label: "Business Plan Plan", amount: 799, productId: "prod_UwgunfLOeoBA9V", productNames: ["Plan Plan", "Sousa Murray Planeia Business – Plan", "Sousa Murray Planeia Business - Plan"], defaultPriceId: "price_1TwnWVDZzb3r6Q3caG24V63l" },
+  { key: "business_professional", configKey: "", envKeys: [], label: "Business Complete Plan", amount: 1499, productId: "prod_UwgujYPsJYBj1F", productNames: ["Complete Plan", "Sousa Murray Planeia Business – Complete", "Sousa Murray Planeia Business - Complete"], defaultPriceId: "price_1TwnWjDZzb3r6Q3crQKwr2bw" },
+  { key: "business_org_starter", configKey: "", envKeys: [], label: "Business Together Plan", amount: 3999, productId: "prod_Uwgu4EVCfy4wKb", productNames: ["Together Plan", "Sousa Murray Planeia Business – Together", "Sousa Murray Planeia Business - Together"], defaultPriceId: "price_1TwnWxDZzb3r6Q3cxqCPgI3o" }
 ];
 
 function json(data, status = 200) {
@@ -186,7 +186,7 @@ async function writeAudit(env, identity, results) {
       VALUES (?, ?, ?, ?, ?, ?, ?)`)
       .bind(
         crypto.randomUUID(), identity.email, "stripe.verify_prices", "stripe", "subscription_prices",
-        "Verified all Planyx Standard and Business Stripe Price IDs.",
+        "Verified all Sousa Murray Planeia Standard and Business Stripe Price IDs.",
         JSON.stringify({ valid: Object.values(results).filter((item) => item.valid).length, total: Object.keys(results).length })
       ).run();
   } catch {

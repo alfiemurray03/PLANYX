@@ -15,8 +15,8 @@ const pageCopy: Record<string, { title: string; description: string }> = {
   '/experiences': { title: 'Experiences', description: 'Browse ideas for days out, holidays, celebrations, couples and family experiences.' },
   '/headout': { title: 'Explore with Headout', description: 'Browse bookable attractions and experiences through our Headout affiliate partnership.' },
   '/getyourguide': { title: 'Explore with GetYourGuide', description: 'Find tours, tickets and activities through our GetYourGuide affiliate partnership.' },
-  '/booking-partners': { title: 'Booking Partners', description: 'Access selected third-party providers while keeping your plans organised with Planyx.' },
-  '/how-it-works': { title: 'How Planyx Works', description: 'Discover, choose and organise your experience using guided planning tools.' },
+  '/booking-partners': { title: 'Booking Partners', description: 'Access selected third-party providers while keeping your plans organised with Sousa Murray Planeia.' },
+  '/how-it-works': { title: 'How Sousa Murray Planeia Works', description: 'Discover, choose and organise your experience using guided planning tools.' },
   '/plan-your-trip': { title: 'Plan Your Trip', description: 'Bring destinations, activities, accessibility needs, budgets and booking information into one clear plan.' },
   '/planning-services': { title: 'Planning Services', description: 'Guided tools for practical, personalised everyday and travel planning.' },
   '/accommodation': { title: 'Accommodation', description: 'Organise accommodation ideas, requirements, accessibility information and booking details.' },
@@ -28,7 +28,7 @@ const pageCopy: Record<string, { title: string; description: string }> = {
   '/budget-experiences': { title: 'Budget Experiences', description: 'Find ideas that work with your budget and organise expected costs clearly.' },
   '/family-experiences': { title: 'Family Experiences', description: 'Discover age-aware activities and create practical plans for the whole family.' },
   '/couples-experiences': { title: 'Couples Experiences', description: 'Plan date ideas, celebrations, short breaks and memorable shared experiences.' },
-  '/about': { title: 'About Planyx', description: 'A guided planning platform operated by JA Group Services Ltd.' },
+  '/about': { title: 'About Sousa Murray Planeia', description: 'A guided planning platform operated by JA Group Services Ltd.' },
   '/faqs': { title: 'Frequently Asked Questions', description: 'Helpful answers about builders, saved plans, providers, accounts and using the platform.' },
 };
 
@@ -45,7 +45,7 @@ export default function DiscoveryPage() {
     ? { title: titleFromSlug(slug), description: `Explore ideas, activities and practical planning information for ${titleFromSlug(slug)}.` }
     : isDirectory
       ? { title: 'Destinations', description: 'Explore destination ideas and turn your discoveries into a clear personalised plan.' }
-      : pageCopy[pathname.replace(/\/$/, '')] ?? { title: titleFromSlug(pathname), description: 'Explore information and planning tools from Planyx.' };
+      : pageCopy[pathname.replace(/\/$/, '')] ?? { title: titleFromSlug(pathname), description: 'Explore information and planning tools from Sousa Murray Planeia.' };
 
   const providerUrl = pathname.startsWith('/headout') ? 'https://www.headout.com/' : pathname.startsWith('/getyourguide') ? 'https://www.getyourguide.com/' : null;
 
@@ -55,7 +55,7 @@ export default function DiscoveryPage() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-sm">
-              <Compass className="h-4 w-4" /> Planyx Discovery
+              <Compass className="h-4 w-4" /> Sousa Murray Planeia Discovery
             </div>
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">{copy.title}</h1>
             <p className="mt-5 max-w-2xl text-lg text-white/80">{copy.description}</p>

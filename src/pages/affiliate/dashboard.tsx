@@ -58,8 +58,8 @@ export default function AffiliateDashboardPage() {
   return (
     <>
       <Helmet>
-        <title>Affiliate Dashboard — Planyx</title>
-        <meta name="description" content="Track your referrals, clicks, and commission earnings in your Planyx affiliate dashboard." />
+        <title>Affiliate Dashboard — Sousa Murray Planeia</title>
+        <meta name="description" content="Track your referrals, clicks, and commission earnings in your Sousa Murray Planeia affiliate dashboard." />
       </Helmet>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">

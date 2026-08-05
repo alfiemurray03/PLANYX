@@ -98,7 +98,7 @@
       const config = await response.json();
       if (!config || config.success === false) return;
 
-      setText("platform-name", config.platformName === "Planyx" ? "Planyx is nearly ready" : config.platformName);
+      setText("platform-name", config.platformName === "Sousa Murray Planeia" ? "Sousa Murray Planeia is nearly ready" : config.platformName);
       setText("coming-soon-title", config.headline || "Your next experience starts here.");
       setText("coming-soon-subtext", config.subtext || "We are shaping a smarter, calmer way to turn ideas into experiences worth remembering.");
       setText("coming-soon-description", config.description || "Build plans around the people, places and moments that matter—then keep everything together in one beautifully organised space.");
@@ -106,7 +106,7 @@
       startCountdown(config.launchDate, config.countdownEnabled === true);
 
       const title = String(config.headline || "Coming Soon").trim();
-      document.title = `${title} — ${String(config.platformName || "Planyx").trim()}`;
+      document.title = `${title} — ${String(config.platformName || "Sousa Murray Planeia").trim()}`;
     } catch (error) {
       console.warn("Coming Soon configuration could not be loaded.", error instanceof Error ? error.message : error);
     }
@@ -122,7 +122,7 @@
         });
         if (!response.ok) continue;
         const data = await response.json();
-        const tabName = String(data.browser?.tab_name || data.settings?.browser_tab_name || "Planyx").trim();
+        const tabName = String(data.browser?.tab_name || data.settings?.browser_tab_name || "Sousa Murray Planeia").trim();
         const faviconUrl = String(data.browser?.favicon_url || data.settings?.favicon_url || "").trim();
         if (faviconUrl) {
           document.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"]').forEach((link) => {
@@ -130,7 +130,7 @@
           });
         }
         const headline = String(byId("coming-soon-title")?.textContent || "Coming Soon").trim();
-        document.title = `${headline} — ${tabName || "Planyx"}`;
+        document.title = `${headline} — ${tabName || "Sousa Murray Planeia"}`;
         return;
       } catch {
         // Try the next public settings endpoint.

@@ -56,7 +56,7 @@ function makeButton(label: string, primary = false) {
 
 function renderEmergencyPage(message: string) {
   const reference = `JAPS-${Date.now().toString(36).toUpperCase()}`;
-  document.title = 'Planyx — Page update required';
+  document.title = 'Sousa Murray Planeia — Page update required';
   document.body.replaceChildren();
   document.body.style.margin = '0';
   document.body.style.background = '#020617';
@@ -76,7 +76,7 @@ function renderEmergencyPage(message: string) {
 
   const brand = document.createElement('div');
   const brandTitle = document.createElement('strong');
-  brandTitle.textContent = 'Planyx';
+  brandTitle.textContent = 'Sousa Murray Planeia';
   brandTitle.style.cssText = 'display:block;color:#fff;font-size:16px';
   const brandSub = document.createElement('span');
   brandSub.textContent = 'Secure application recovery';
@@ -92,11 +92,11 @@ function renderEmergencyPage(message: string) {
   eyebrow.style.cssText = 'margin:0;color:#93c5fd;font-size:12px;font-weight:800;letter-spacing:.16em';
 
   const title = document.createElement('h1');
-  title.textContent = 'This page needs the latest Planyx files';
+  title.textContent = 'This page needs the latest Sousa Murray Planeia files';
   title.style.cssText = 'margin:10px 0 0;color:#fff;font-size:clamp(26px,5vw,36px);line-height:1.14;letter-spacing:-.025em';
 
   const explanation = document.createElement('p');
-  explanation.textContent = 'Planyx was updated while this tab was open. The page could not safely load the previous file, so a controlled refresh is required.';
+  explanation.textContent = 'Sousa Murray Planeia was updated while this tab was open. The page could not safely load the previous file, so a controlled refresh is required.';
   explanation.style.cssText = 'margin:16px 0 0;color:#cbd5e1;font-size:16px;line-height:1.65';
 
   const errorBox = document.createElement('div');
@@ -115,13 +115,13 @@ function renderEmergencyPage(message: string) {
 
   const actions = document.createElement('div');
   actions.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;margin-top:25px';
-  const refresh = makeButton('Refresh Planyx', true);
+  const refresh = makeButton('Refresh Sousa Murray Planeia', true);
   refresh.addEventListener('click', () => {
     const url = new URL(window.location.href);
     url.searchParams.set(REFRESH_MARKER, String(Date.now()));
     window.location.replace(url.toString());
   });
-  const home = makeButton(window.location.pathname.startsWith('/admin') ? 'Admin dashboard' : 'Planyx home');
+  const home = makeButton(window.location.pathname.startsWith('/admin') ? 'Admin dashboard' : 'Sousa Murray Planeia home');
   home.addEventListener('click', () => {
     window.location.assign(window.location.pathname.startsWith('/admin') ? '/admin/dashboard' : '/');
   });
@@ -129,7 +129,7 @@ function renderEmergencyPage(message: string) {
 
   const support = document.createElement('p');
   support.style.cssText = 'margin:25px 0 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);color:#94a3b8;font-size:13px;line-height:1.6';
-  support.textContent = 'If this continues, contact planyx@jagroupservices.co.uk and include the reference above.';
+  support.textContent = 'If this continues, contact contact@jagroupservices.co.uk and include the reference above.';
 
   content.append(eyebrow, title, explanation, errorBox, meta, actions, support);
   card.append(header, content);

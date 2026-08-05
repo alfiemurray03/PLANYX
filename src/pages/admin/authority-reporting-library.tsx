@@ -198,7 +198,7 @@ export default function AuthorityReportingLibraryPage() {
 
   return (
     <>
-      <Helmet><title>Report Template Library - Planyx Admin Centre</title><meta name="robots" content="noindex, nofollow" /></Helmet>
+      <Helmet><title>Report Template Library - Sousa Murray Planeia Admin Centre</title><meta name="robots" content="noindex, nofollow" /></Helmet>
       <AdminLayout title="Authority Reporting Centre">
         <div className="mx-auto w-full max-w-7xl space-y-5 pb-16">
           <section className="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-r from-white via-blue-50/70 to-violet-50/70 shadow-lg dark:border-blue-500/30 dark:from-slate-950 dark:via-blue-950/20 dark:to-violet-950/20">
@@ -223,7 +223,7 @@ export default function AuthorityReportingLibraryPage() {
           <section className="grid gap-3 lg:grid-cols-3">
             <a href="tel:999" className="rounded-2xl border border-red-300 bg-red-600 p-4 text-white shadow-sm transition hover:bg-red-700">
               <div className="flex items-center gap-3"><PhoneCall className="h-5 w-5" /><div><p className="text-[10px] font-black uppercase tracking-wide text-red-100">Immediate danger</p><p className="text-xl font-black">Call 999 first</p></div></div>
-              <p className="mt-2 text-xs leading-5 text-red-50">Do not delay emergency action to complete a Planyx report.</p>
+              <p className="mt-2 text-xs leading-5 text-red-50">Do not delay emergency action to complete a Sousa Murray Planeia report.</p>
             </a>
             <a href="tel:101" className="rounded-2xl border border-blue-300 bg-blue-600 p-4 text-white shadow-sm transition hover:bg-blue-700">
               <div className="flex items-center gap-3"><ShieldAlert className="h-5 w-5" /><div><p className="text-[10px] font-black uppercase tracking-wide text-blue-100">Non-emergency police matter</p><p className="text-xl font-black">Call 101 or report online</p></div></div>
@@ -285,7 +285,7 @@ export default function AuthorityReportingLibraryPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-200 bg-blue-50/60 dark:border-blue-500/30 dark:bg-blue-500/10"><CardContent className="p-4"><div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-blue-700 dark:text-blue-200" /><div><p className="font-black text-blue-950 dark:text-blue-100">The library does not submit reports</p><p className="mt-1 text-xs leading-5 text-blue-900 dark:text-blue-200">Planyx prepares and preserves the internal record and PDF pack. Staff must use the authority’s official route and record the external reference in the workspace.</p></div></div></CardContent></Card>
+              <Card className="border-blue-200 bg-blue-50/60 dark:border-blue-500/30 dark:bg-blue-500/10"><CardContent className="p-4"><div className="flex items-start gap-3"><Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-blue-700 dark:text-blue-200" /><div><p className="font-black text-blue-950 dark:text-blue-100">The library does not submit reports</p><p className="mt-1 text-xs leading-5 text-blue-900 dark:text-blue-200">Sousa Murray Planeia prepares and preserves the internal record and PDF pack. Staff must use the authority’s official route and record the external reference in the workspace.</p></div></div></CardContent></Card>
             </aside>
           </div>
         </div>

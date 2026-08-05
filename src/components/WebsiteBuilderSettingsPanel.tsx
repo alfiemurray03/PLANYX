@@ -64,7 +64,7 @@ const FALLBACK: WebsiteBuilderSettings = {
   maxHistory: 20,
   maxOperations: 30,
   model: '@cf/meta/llama-3.1-8b-instruct-fast',
-  systemInstructions: 'Use accessible, responsive British English website design. Preserve Planyx legal, privacy, age, safeguarding, security and authentication controls.',
+  systemInstructions: 'Use accessible, responsive British English website design. Preserve Sousa Murray Planeia legal, privacy, age, safeguarding, security and authentication controls.',
 };
 
 async function api(body?: Record<string, unknown>) {

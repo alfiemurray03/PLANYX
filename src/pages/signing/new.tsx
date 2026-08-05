@@ -183,7 +183,7 @@ export default function NewSigningRequestPage() {
 
   return (
     <DashboardLayout>
-      <Helmet><title>New Signing Request — Planyx</title></Helmet>
+      <Helmet><title>New Signing Request — Sousa Murray Planeia</title></Helmet>
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">

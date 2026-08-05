@@ -74,7 +74,7 @@ function securityIntent(message) {
 function safeguardingReply(message) {
   if (immediateDangerIntent(message)) {
     return {
-      reply: "If anyone is in immediate danger or a serious offence is happening, stop using this chat and call 999 now. Planyx support is not an emergency service. If it is safe to do so, move away from danger and follow the emergency operator’s instructions.",
+      reply: "If anyone is in immediate danger or a serious offence is happening, stop using this chat and call 999 now. Sousa Murray Planeia support is not an emergency service. If it is safe to do so, move away from danger and follow the emergency operator’s instructions.",
       suggestions: [],
       escalate: true,
       resolved: false,
@@ -91,7 +91,7 @@ function safeguardingReply(message) {
     };
   }
   return {
-    reply: "Thank you for telling me. I have placed the AI into standby so this can be handled through the restricted safeguarding route. Planyx support cannot replace emergency services or investigate abuse. Call 999 where there is immediate danger. A genuine concern about a child or young person can also be reported to the relevant local authority children’s social care team or police without waiting for proof.",
+    reply: "Thank you for telling me. I have placed the AI into standby so this can be handled through the restricted safeguarding route. Sousa Murray Planeia support cannot replace emergency services or investigate abuse. Call 999 where there is immediate danger. A genuine concern about a child or young person can also be reported to the relevant local authority children’s social care team or police without waiting for proof.",
     suggestions: [],
     escalate: true,
     resolved: false,
@@ -110,7 +110,7 @@ function safeguardingReply(message) {
 
 function underSixteenReply() {
   return {
-    reply: "Planyx customer accounts are strictly for people aged 16 or over. Nobody under 16 is permitted to register or use a customer account. Please do not enter a false date of birth. You can still view public information and the safety page without registering.",
+    reply: "Sousa Murray Planeia customer accounts are strictly for people aged 16 or over. Nobody under 16 is permitted to register or use a customer account. Please do not enter a false date of birth. You can still view public information and the safety page without registering.",
     suggestions: [],
     escalate: false,
     resolved: true,
@@ -120,7 +120,7 @@ function underSixteenReply() {
       id: "planyx-16-plus-safety",
       title: "16+ safety and safeguarding",
       category: "Safeguarding",
-      summary: "Planyx account eligibility and young-person safeguards.",
+      summary: "Sousa Murray Planeia account eligibility and young-person safeguards.",
       href: "/safety"
     },
     source: "minimum_age_guard"
@@ -250,7 +250,7 @@ async function centralRecordAnswer(context, identity, body, result, preflight) {
   if (result.reply) {
     await centralAiMessage(context.env, body.sessionId, {
       externalMessageId: `assistant-${preflight.externalMessageId}`,
-      senderName: result.assistantName || "Planyx Support Assistant",
+      senderName: result.assistantName || "Sousa Murray Planeia Support Assistant",
       body: result.reply,
       metadata: {
         category,
@@ -394,7 +394,7 @@ export async function onRequest(context) {
   if (event === "verify_support_pin") {
     if (!contact.available) return json({ success: false, contactUnavailable: true, contactPageStatus: contact.status, error: contact.message }, 503);
     if (!identityEmail) return json({ success: false, error: "Please sign in before verifying your identity." }, 401);
-    if (!/^\d{6}$/.test(String(body.pin || "").trim())) return json({ success: false, error: "Enter the six-digit Planyx Support PIN." }, 400);
+    if (!/^\d{6}$/.test(String(body.pin || "").trim())) return json({ success: false, error: "Enter the six-digit Sousa Murray Planeia Support PIN." }, 400);
     const result = await verifySupportPinRecord(env.DB, env, identityEmail, String(body.pin).trim(), "support-assistant");
     if (!result.ok) return json({ success: false, error: result.error || "The Support PIN could not be verified." }, 400);
     const expiresAt = await createCustomerVerificationSession(env.DB, { email: "support-assistant" }, identityEmail, "Support PIN · chatbot human handover");

@@ -360,7 +360,7 @@ export default function GenericBuilder({
   return (
     <>
       <Helmet>
-        <title>{title} — Planyx</title>
+        <title>{title} — Sousa Murray Planeia</title>
         <meta name="description" content={metaDescription} />
       </Helmet>
       <DashboardLayout noPadding>

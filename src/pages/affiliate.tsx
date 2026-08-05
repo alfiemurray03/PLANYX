@@ -33,7 +33,7 @@ const BENEFITS = [
 const PROHIBITED = [
   'Self-referrals or referring your own accounts',
   'Spam, unsolicited emails, or misleading advertising',
-  'Bidding on Planyx branded keywords in paid search',
+  'Bidding on Sousa Murray Planeia branded keywords in paid search',
   'Making false claims about our products or services',
   'Creating fake reviews or testimonials',
   'Any activity that violates applicable law',
@@ -105,8 +105,8 @@ export default function AffiliatePage() {
   return (
     <>
       <Helmet>
-        <title>Affiliate Programme — Planyx</title>
-        <meta name="description" content="Join the Planyx affiliate programme. Earn commission by referring customers to our professional document builder platform." />
+        <title>Affiliate Programme — Sousa Murray Planeia</title>
+        <meta name="description" content="Join the Sousa Murray Planeia affiliate programme. Earn commission by referring customers to our professional document builder platform." />
       </Helmet>
 
       {/* ── Coming Soon Banner ── */}
@@ -125,7 +125,7 @@ export default function AffiliatePage() {
           </Badge>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">Earn by referring customers</h1>
           <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Partner with Planyx and earn commission for every customer you refer to our professional document builder platform.
+            Partner with Sousa Murray Planeia and earn commission for every customer you refer to our professional document builder platform.
           </p>
           {comingSoon ? (
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -217,7 +217,7 @@ export default function AffiliatePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-bold text-foreground mb-4 text-center">Who can join?</h2>
           <p className="text-center text-muted-foreground mb-8">
-            The programme is open to individuals and businesses who can genuinely promote Planyx to a relevant UK audience.
+            The programme is open to individuals and businesses who can genuinely promote Sousa Murray Planeia to a relevant UK audience.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
@@ -401,7 +401,7 @@ export default function AffiliatePage() {
 
                   <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground space-y-2">
                     <p className="font-semibold text-foreground">Affiliate Terms Summary</p>
-                    <p>By joining the programme you agree to promote Planyx honestly and in accordance with our full affiliate terms. You must not engage in spam, self-referrals, misleading advertising, or any prohibited activity listed above. Payment details will be collected securely after approval. We reserve the right to suspend or terminate affiliate accounts for violations.</p>
+                    <p>By joining the programme you agree to promote Sousa Murray Planeia honestly and in accordance with our full affiliate terms. You must not engage in spam, self-referrals, misleading advertising, or any prohibited activity listed above. Payment details will be collected securely after approval. We reserve the right to suspend or terminate affiliate accounts for violations.</p>
                     <p>Full terms available on request from <a href="mailto:hello@jagroupservices.co.uk" className="underline">hello@jagroupservices.co.uk</a>.</p>
                   </div>
 

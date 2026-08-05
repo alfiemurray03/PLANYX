@@ -1,5 +1,5 @@
 /**
- * Planyx Admin Centre command dashboard.
+ * Sousa Murray Planeia Admin Centre command dashboard.
  *
  * Dashboard data comes from the production Cloudflare Admin API. The page uses
  * one bounded request so a slow or unavailable service cannot leave the whole
@@ -423,11 +423,11 @@ export default function AdminDashboard() {
   return (
     <>
       <Helmet>
-        <title>Admin Dashboard — Planyx</title>
+        <title>Admin Dashboard — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <AdminLayout title="Dashboard" subtitle="Planyx Administration">
+      <AdminLayout title="Dashboard" subtitle="Sousa Murray Planeia Administration">
         <div className="mx-auto w-full max-w-[1600px] space-y-6 pb-12">
           <section className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white px-5 py-6 text-slate-950 shadow-xl dark:border-slate-800 dark:bg-slate-950 dark:text-white sm:px-7 sm:py-8">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(37,99,235,0.14),transparent_30%),radial-gradient(circle_at_88%_8%,rgba(34,211,238,0.12),transparent_28%),radial-gradient(circle_at_75%_90%,rgba(124,58,237,0.12),transparent_28%)] dark:bg-[radial-gradient(circle_at_15%_20%,rgba(37,99,235,0.35),transparent_30%),radial-gradient(circle_at_88%_8%,rgba(34,211,238,0.2),transparent_28%),radial-gradient(circle_at_75%_90%,rgba(124,58,237,0.22),transparent_28%)]" />
@@ -501,7 +501,7 @@ export default function AdminDashboard() {
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Live totals across customers, subscriptions and operational workload.</p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Customer profiles" value={data.customers} note="All registered Planyx customer records" icon={Users} accent="bg-blue-600" loading={initialLoading} />
+              <MetricCard label="Customer profiles" value={data.customers} note="All registered Sousa Murray Planeia customer records" icon={Users} accent="bg-blue-600" loading={initialLoading} />
               <MetricCard label="Active service plans" value={data.activePlans} note={`${data.plans.toLocaleString('en-GB')} service plans configured`} icon={CreditCard} accent="bg-cyan-500" loading={initialLoading} />
               <MetricCard label="Lifetime members" value={data.lifetimeUsers} note="Customers with lifetime platform access" icon={ShieldCheck} accent="bg-violet-600" loading={initialLoading} />
               <MetricCard label="Items requiring action" value={attentionTotal} note="Privacy, support and system work" icon={AlertTriangle} accent={attentionTotal > 0 ? 'bg-amber-500' : 'bg-emerald-500'} loading={initialLoading} />

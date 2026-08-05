@@ -698,7 +698,7 @@ export default function EmailTemplatesPage() {
   return (
     <>
       <Helmet>
-        <title>Email Template Centre — Planyx</title>
+        <title>Email Template Centre — Sousa Murray Planeia</title>
         <meta name="description" content="Create, edit, and manage professional UK email templates with placeholder support and mailto link generation." />
       </Helmet>
       <DashboardLayout>

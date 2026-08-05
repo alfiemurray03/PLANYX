@@ -40,7 +40,7 @@ const MANUALS: Manual[] = [
   {
     id: 'admin-centre',
     title: 'Admin Centre Manual',
-    description: 'Secure operation of the Planyx Admin Centre, customer records, subscriptions, builders, website controls and incident checks.',
+    description: 'Secure operation of the Sousa Murray Planeia Admin Centre, customer records, subscriptions, builders, website controls and incident checks.',
     audience: 'Authorised administrators and support staff',
     pages: 'Multi-page',
     icon: ShieldCheck,
@@ -60,7 +60,7 @@ const MANUALS: Manual[] = [
   {
     id: 'public-website',
     title: 'Public Website Manual',
-    description: 'Reference for the customer-facing Planyx website, pricing, Help Centre, Contact Us states, partner discovery and legal pages.',
+    description: 'Reference for the customer-facing Sousa Murray Planeia website, pricing, Help Centre, Contact Us states, partner discovery and legal pages.',
     audience: 'Administrators, content staff, support staff and customers',
     pages: 'Multi-page',
     icon: Globe2,
@@ -118,7 +118,7 @@ export default function AdminManualsPage() {
   return (
     <>
       <Helmet>
-        <title>Admin Support & Manuals - Planyx Admin Centre</title>
+        <title>Admin Support & Manuals - Sousa Murray Planeia Admin Centre</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
@@ -137,7 +137,7 @@ export default function AdminManualsPage() {
                   <LifeBuoy className="h-5 w-5" />
                   <span className="text-xs font-bold uppercase tracking-[0.16em]">Administrator support</span>
                 </div>
-                <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">Support guidance for operating Planyx safely</h1>
+                <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">Support guidance for operating Sousa Murray Planeia safely</h1>
                 <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
                   Open or download the current manuals for the Admin Centre, Customer Portal and public website. Each document is generated as a proper multi-page PDF from the production Admin Centre.
                 </p>
@@ -272,8 +272,8 @@ export default function AdminManualsPage() {
                   <li><strong>4.</strong> Do not include passwords or payment-card details.</li>
                 </ol>
                 <Button asChild className="mt-5 w-full gap-2 bg-amber-700 text-white hover:bg-amber-800">
-                  <a href="mailto:planyx@jagroupservices.co.uk?subject=Planyx%20Admin%20Support%20Request">
-                    <Mail className="h-4 w-4" /> Email Planyx support
+                  <a href="mailto:contact@jagroupservices.co.uk?subject=Sousa Murray Planeia%20Admin%20Support%20Request">
+                    <Mail className="h-4 w-4" /> Email Sousa Murray Planeia support
                   </a>
                 </Button>
               </CardContent>

@@ -14,7 +14,7 @@ const AUTHORITIES = [
   { id: "childline", name: "Childline", category: "Child safeguarding", reportTypes: ["child-safeguarding"], channel: "Children and young people can contact Childline free on 0800 1111 or through its official online services.", officialUrl: "https://www.childline.org.uk/get-support/", priority: 70 },
   { id: "cqc-safeguarding", name: "Care Quality Commission", category: "Adult safeguarding and health", reportTypes: ["adult-safeguarding", "other-authority"], channel: "Give feedback about regulated health or social care. Continue to notify the local authority safeguarding team and police where required.", officialUrl: "https://www.cqc.org.uk/give-feedback-on-care", priority: 65 },
 
-  { id: "ico-breach", name: "Information Commissioner's Office — personal data breach", category: "Data protection and cyber", reportTypes: ["data-breach-ico"], channel: "Use the ICO personal data breach assessment and reporting service. Record when Planyx became aware of the breach and the notification decision.", officialUrl: "https://ico.org.uk/for-organisations/report-a-breach/personal-data-breach/", priority: 100 },
+  { id: "ico-breach", name: "Information Commissioner's Office — personal data breach", category: "Data protection and cyber", reportTypes: ["data-breach-ico"], channel: "Use the ICO personal data breach assessment and reporting service. Record when Sousa Murray Planeia became aware of the breach and the notification decision.", officialUrl: "https://ico.org.uk/for-organisations/report-a-breach/personal-data-breach/", priority: 100 },
   { id: "ico-complaint", name: "Information Commissioner's Office — data protection complaint", category: "Data protection and cyber", reportTypes: ["data-breach-ico", "other-authority"], channel: "Use the ICO complaint route after the individual has raised the matter with the organisation and the applicable complaint requirements are met.", officialUrl: "https://ico.org.uk/make-a-complaint/data-protection-complaints/", priority: 85 },
   { id: "ncsc", name: "National Cyber Security Centre — report a cyber incident", category: "Data protection and cyber", reportTypes: ["data-breach-ico", "other-authority"], channel: "Use the NCSC incident reporting service for significant cyber incidents and follow its instructions. Also assess ICO and police reporting separately.", officialUrl: "https://report.ncsc.gov.uk/", priority: 90 },
   { id: "ofcom-online-safety", name: "Ofcom — online safety", category: "Communications and online safety", reportTypes: ["child-safeguarding", "data-breach-ico", "other-authority"], channel: "Use Ofcom's published online-safety or complaint routes for regulated online-service matters. Ofcom does not replace emergency or individual police reporting.", officialUrl: "https://www.ofcom.org.uk/online-safety/", priority: 60 },
@@ -110,7 +110,7 @@ async function authorised(context) {
 
 async function fetchJson(url, timeout = 12_000) {
   const response = await fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "Planyx-Authority-Reporting/1.0" },
+    headers: { Accept: "application/json", "User-Agent": "Sousa Murray Planeia-Authority-Reporting/1.0" },
     redirect: "follow",
     cf: { cacheTtl: 3600, cacheEverything: true },
     signal: AbortSignal.timeout(timeout),

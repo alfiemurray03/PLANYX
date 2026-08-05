@@ -1,7 +1,7 @@
 /**
  * POST /api/org/members
  * Invite a user to the organisation by email.
- * The invited user must already have a Planyx account.
+ * The invited user must already have a Sousa Murray Planeia account.
  */
 import type { Request, Response } from 'express';
 import { db } from '../../../db/client.js';

@@ -109,13 +109,13 @@ export default function Footer() {
           <div className="max-w-sm">
             <Link to="/" className="inline-block mb-4">
               {branding.platform_logo_url ? (
-                <img src={branding.platform_logo_url} alt={branding.platform_name || 'Planyx'} className="h-9 w-auto object-contain" />
+                <img src={branding.platform_logo_url} alt={branding.platform_name || 'Sousa Murray Planeia'} className="h-9 w-auto object-contain" />
               ) : (
-                <span className="font-extrabold text-lg text-foreground">Planyx</span>
+                <span className="font-extrabold text-lg text-foreground">Sousa Murray Planeia</span>
               )}
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              {branding.platform_description || 'Build destination, itinerary, experience, accessibility and practical travel plans with Planyx.'}
+              {branding.platform_description || 'Build destination, itinerary, experience, accessibility and practical travel plans with Sousa Murray Planeia.'}
             </p>
             <Link to="/safety" className="mb-3 inline-flex rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-black text-violet-700 hover:bg-violet-100 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">Strictly 16+ · Young-person safeguards</Link>
             {branding.support_email && (
@@ -140,9 +140,9 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border mt-10 pt-6 space-y-2">
-          <p className="text-sm text-muted-foreground">© {year} {branding.platform_name || 'Planyx'}. All rights reserved.{branding.footer_tagline ? ` ${branding.footer_tagline}.` : ''}</p>
-          <p className="text-xs font-semibold text-muted-foreground">Planyx customer accounts are available only to people aged 16 or over. Young people aged 16–17 receive enhanced privacy and safeguarding defaults.</p>
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">Planyx is a service brand operated by JA Group Services Ltd, a company registered in England and Wales. The service provides guided discovery, experience and practical planning tools and support.</p>
+          <p className="text-sm text-muted-foreground">© {year} {branding.platform_name || 'Sousa Murray Planeia'}. All rights reserved.{branding.footer_tagline ? ` ${branding.footer_tagline}.` : ''}</p>
+          <p className="text-xs font-semibold text-muted-foreground">Sousa Murray Planeia customer accounts are available only to people aged 16 or over. Young people aged 16–17 receive enhanced privacy and safeguarding defaults.</p>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">Sousa Murray Planeia is a service brand operated by JA Group Services Ltd, a company registered in England and Wales. The service provides guided discovery, experience and practical planning tools and support.</p>
           <p className="text-xs text-muted-foreground">Third-party bookings, availability, prices, refunds and provider terms remain the responsibility of the relevant provider.</p>
         </div>
       </div>

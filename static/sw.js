@@ -1,6 +1,6 @@
 const CACHE_NAME = 'planyx-shell-v9';
 const PUBLIC_LAUNCH = '/?source=pwa&launch=public-v8';
-const SHELL = ['/', PUBLIC_LAUNCH, '/manifest.webmanifest?v=8', '/pwa-icon.svg', '/favicon.svg'];
+const SHELL = ['/', PUBLIC_LAUNCH, '/manifest.webmanifest?v=8'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

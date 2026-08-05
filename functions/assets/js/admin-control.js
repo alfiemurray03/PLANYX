@@ -4,7 +4,7 @@
  * Older Cloudflare deployments served a standalone administration document at
  * /admin/dashboard/. Browsers that still have that document retained request
  * this script. Move those sessions onto a cache-busted URL so Cloudflare serves
- * the current Planyx React administration portal instead.
+ * the current Sousa Murray Planeia React administration portal instead.
  */
 export async function onRequest() {
   const source = `(() => {

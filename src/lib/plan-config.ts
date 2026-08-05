@@ -1,5 +1,5 @@
 /**
- * Central plan configuration for Planyx.
+ * Central plan configuration for Sousa Murray Planeia.
  * All plan limits, features, and metadata live here.
  * Admin can override limits via system config (DB), but these are the defaults.
  */

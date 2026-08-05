@@ -240,7 +240,7 @@ export default function OrgMembersPage() {
   return (
     <>
       <Helmet>
-        <title>Organisation Members — Planyx</title>
+        <title>Organisation Members — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <DashboardLayout>
@@ -383,7 +383,7 @@ export default function OrgMembersPage() {
                             aria-describedby="invite-email-hint"
                           />
                           <p id="invite-email-hint" className="text-xs text-muted-foreground">
-                            They must already have a Planyx account.
+                            They must already have a Sousa Murray Planeia account.
                           </p>
                         </div>
                         <div className="space-y-1.5">

@@ -70,7 +70,7 @@ async function sendTeamsSupportCard(webhookValue, request, reference, enquiry, p
           {
             type: "FactSet",
             facts: [
-              { title: "Source", value: "Planyx Support Assistant" },
+              { title: "Source", value: "Sousa Murray Planeia Support Assistant" },
               { title: "Submitted", value: `${submittedAt} (UK time)` },
               { title: "Priority", value: priority },
               { title: "Category", value: clean(enquiry.category, 80) || "General Enquiry" },
@@ -82,7 +82,7 @@ async function sendTeamsSupportCard(webhookValue, request, reference, enquiry, p
           },
           { type: "TextBlock", text: "Complete conversation transcript", weight: "Bolder", wrap: true, spacing: "Medium", separator: true },
           { type: "TextBlock", text: clean(enquiry.message, 20000), wrap: true, fontType: "Monospace", size: "Small" },
-          { type: "TextBlock", text: "To email the customer from Teams, open this message's More actions menu, choose Workflows, then select Planyx – Reply to Customer.", wrap: true, spacing: "Medium", separator: true, isSubtle: true }
+          { type: "TextBlock", text: "To email the customer from Teams, open this message's More actions menu, choose Workflows, then select Sousa Murray Planeia – Reply to Customer.", wrap: true, spacing: "Medium", separator: true, isSubtle: true }
         ]
       }
     }]
@@ -143,7 +143,7 @@ async function sendManualSupportCard(webhookValue, request, reference, enquiry, 
           { type: "TextBlock", text: "This enquiry was submitted manually. The AI chatbot has not spoken with the customer.", wrap: true, spacing: "Medium" },
           { type: "TextBlock", text: "Complete customer message", weight: "Bolder", wrap: true, spacing: "Medium", separator: true },
           { type: "TextBlock", text: clean(enquiry.message, 20000), wrap: true, size: "Small" },
-          { type: "TextBlock", text: "To email the customer from Teams, open this message's More actions menu, choose Workflows, then select Planyx – Reply to Customer.", wrap: true, spacing: "Medium", separator: true, isSubtle: true }
+          { type: "TextBlock", text: "To email the customer from Teams, open this message's More actions menu, choose Workflows, then select Sousa Murray Planeia – Reply to Customer.", wrap: true, spacing: "Medium", separator: true, isSubtle: true }
         ]
       }
     }]
@@ -215,7 +215,7 @@ async function submitManualEnquiry(context, identity) {
     category,
     source: "Manual support enquiry",
     adminPath: `/admin/enquiries?reference=${encodeURIComponent(result.reference)}`,
-    message: result.duplicate ? "This enquiry has already been received." : "Your manual support enquiry has been sent to the Planyx team."
+    message: result.duplicate ? "This enquiry has already been received." : "Your manual support enquiry has been sent to the Sousa Murray Planeia team."
   }, result.duplicate ? 200 : 201);
 }
 
@@ -337,7 +337,7 @@ async function submitChatEnquiry(context, identity, assistantConfig) {
     category,
     source: "AI Help Centre escalation",
     adminPath: `/admin/enquiries?reference=${encodeURIComponent(result.reference)}`,
-    message: result.duplicate ? "This enquiry has already been received." : "Your enquiry has been sent to the Planyx team."
+    message: result.duplicate ? "This enquiry has already been received." : "Your enquiry has been sent to the Sousa Murray Planeia team."
   }, result.duplicate ? 200 : 201);
 }
 

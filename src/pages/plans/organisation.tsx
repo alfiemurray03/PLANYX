@@ -101,8 +101,8 @@ export default function OrganisationPlanPage() {
   return (
     <>
       <Helmet>
-        <title>Organisation Plan — Planyx</title>
-        <meta name="description" content="Planyx Organisation plan — £39.99/month. Multiple users, role permissions, admin dashboard, audit logs, and usage reporting for teams." />
+        <title>Organisation Plan — Sousa Murray Planeia</title>
+        <meta name="description" content="Sousa Murray Planeia Organisation plan — £39.99/month. Multiple users, role permissions, admin dashboard, audit logs, and usage reporting for teams." />
       </Helmet>
 
       <div className="min-h-screen bg-background">

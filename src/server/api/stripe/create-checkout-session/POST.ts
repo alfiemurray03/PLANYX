@@ -1,6 +1,6 @@
 /**
  * POST /api/stripe/create-checkout-session
- * Creates a Stripe Checkout Session for a live Planyx subscription.
+ * Creates a Stripe Checkout Session for a live Sousa Murray Planeia subscription.
  */
 import type { Request, Response } from 'express';
 import Stripe from 'stripe';
@@ -22,10 +22,10 @@ const PRICE_CONFIG_KEY: Partial<Record<PlanId, string>> = {
 };
 
 const EXPECTED_PRICE: Partial<Record<PlanId, { amount: number; productNames: string[] }>> = {
-  personal: { amount: 599, productNames: ['Explore Plan', 'Planyx – Explore', 'Planyx - Explore'] },
-  standard: { amount: 799, productNames: ['Plan Plan', 'Planyx – Plan', 'Planyx - Plan'] },
-  professional: { amount: 1499, productNames: ['Complete Plan', 'Planyx – Complete', 'Planyx - Complete'] },
-  org_starter: { amount: 3999, productNames: ['Together Plan', 'Planyx – Together', 'Planyx - Together'] },
+  personal: { amount: 599, productNames: ['Explore Plan', 'Sousa Murray Planeia – Explore', 'Sousa Murray Planeia - Explore'] },
+  standard: { amount: 799, productNames: ['Plan Plan', 'Sousa Murray Planeia – Plan', 'Sousa Murray Planeia - Plan'] },
+  professional: { amount: 1499, productNames: ['Complete Plan', 'Sousa Murray Planeia – Complete', 'Sousa Murray Planeia - Complete'] },
+  org_starter: { amount: 3999, productNames: ['Together Plan', 'Sousa Murray Planeia – Together', 'Sousa Murray Planeia - Together'] },
 };
 
 async function configValue(key: string): Promise<string> {
@@ -89,7 +89,7 @@ export default async function handler(req: Request, res: Response) {
     if (!(await paymentsAreEnabled())) {
       return res.status(503).json({
         success: false,
-        error: 'Payments are coming soon. Checkout is currently switched off by Planyx.',
+        error: 'Payments are coming soon. Checkout is currently switched off by Sousa Murray Planeia.',
       });
     }
   } catch (error) {
@@ -105,13 +105,13 @@ export default async function handler(req: Request, res: Response) {
   };
 
   if (!PAID_PLANS.includes(plan as PlanId)) {
-    return res.status(400).json({ success: false, error: 'Please select one of the available Planyx subscriptions.' });
+    return res.status(400).json({ success: false, error: 'Please select one of the available Sousa Murray Planeia subscriptions.' });
   }
 
   const planId = plan as PlanId;
   const secretKey = String(getSecret('STRIPE_SECRET_KEY') ?? '').trim();
   if (!secretKey) {
-    return res.status(503).json({ success: false, error: 'Checkout is temporarily unavailable. Please contact Planyx.' });
+    return res.status(503).json({ success: false, error: 'Checkout is temporarily unavailable. Please contact Sousa Murray Planeia.' });
   }
 
   const stripe = new Stripe(secretKey, { apiVersion: '2026-05-27.dahlia' });

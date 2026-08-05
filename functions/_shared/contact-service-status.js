@@ -15,7 +15,7 @@ export function contactServiceStatusFromSettings(settings = {}) {
   const status = enabled ? configuredStatus : "offline";
   const maintenanceMessage = clean(
     settings.contact_maintenance_message ||
-      "We are carrying out essential work on the Planyx contact service. Please check back shortly.",
+      "We are carrying out essential work on the Sousa Murray Planeia contact service. Please check back shortly.",
     800
   );
   const offlineMessage = clean(
@@ -33,7 +33,7 @@ export function contactServiceStatusFromSettings(settings = {}) {
     offlineMessage,
     emailEnabled: bool(settings.contact_email_enabled, true),
     telephoneEnabled: bool(settings.contact_telephone_enabled, true),
-    supportEmail: clean(settings.contact_support_email || "planyx@jagroupservices.co.uk", 254),
+    supportEmail: clean(settings.contact_support_email || "contact@jagroupservices.co.uk", 254),
     phoneDisplay: clean(settings.contact_phone_display || "020 3834 2790", 80),
     phoneHref: clean(settings.contact_phone_href || "tel:+442038342790", 100)
   };

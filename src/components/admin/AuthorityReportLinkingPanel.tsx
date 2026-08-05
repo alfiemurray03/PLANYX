@@ -174,7 +174,7 @@ export default function AuthorityReportLinkingPanel({
       if (!response.ok || !data.success) throw new Error(data.error || 'User search failed.');
       setResults(data.users || []);
       if (!(data.users || []).length) {
-        setMessage('No Planyx customer, administrator or tracked sign-in identity matched that name or email address.');
+        setMessage('No Sousa Murray Planeia customer, administrator or tracked sign-in identity matched that name or email address.');
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'User search failed.');
@@ -265,7 +265,7 @@ export default function AuthorityReportLinkingPanel({
         <div>
           <div className="flex items-center gap-2">
             <CircleUserRound className="h-5 w-5 text-violet-700 dark:text-violet-300" />
-            <h3 className="font-black text-slate-950 dark:text-white">Search and link a Planyx user</h3>
+            <h3 className="font-black text-slate-950 dark:text-white">Search and link a Sousa Murray Planeia user</h3>
           </div>
           <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
             Search customers and administrators by full name, partial name, email address or organisation. Select the correct identity, attach relevant sessions and apply it directly to this report.

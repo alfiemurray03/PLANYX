@@ -47,7 +47,7 @@ export default function OrgGrowthPage() {
   return (
     <>
       <Helmet>
-        <title>Organisation Growth Plan — Planyx</title>
+        <title>Organisation Growth Plan — Sousa Murray Planeia</title>
         <meta name="description" content="Organisation Growth: 5 user seats, shared workspace, audit history, all templates, 10 shared drafts. £59.99/month." />
       </Helmet>
 

@@ -156,7 +156,7 @@ const EMPTY_SETTINGS: Settings = {
   allowExistingVerifiedAccess: true,
   designVariant: 'standard',
   publicHeading: 'Confirm you are aged 16 or over',
-  publicDescription: 'Planyx is a 16+ planning service. Complete the age check before creating or using an account.',
+  publicDescription: 'Sousa Murray Planeia is a 16+ planning service. Complete the age check before creating or using an account.',
   buttonLabel: 'Confirm age and continue',
   maintenanceHeading: 'Age verification is temporarily unavailable',
   maintenanceMessage: 'New registrations are paused while the age-verification service is maintained.',
@@ -325,7 +325,7 @@ function PublicPreview({ settings }: { settings: Settings }) {
         <div className="h-1.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-violet-600" />
         <div className={compact ? 'p-5' : 'p-7 sm:p-8'}>
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">16+</div>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">Planyx age and safeguarding check</p>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">Sousa Murray Planeia age and safeguarding check</p>
           <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{settings.publicHeading || 'Confirm you are aged 16 or over'}</h3>
           <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{settings.publicDescription || 'Complete the age check before creating or using an account.'}</p>
           <div className="mt-5">
@@ -496,7 +496,7 @@ export default function AdminAgeVerificationPage() {
 
   return (
     <AdminLayout title="Age Verification">
-      <Helmet><title>Age Verification | Planyx Admin Centre</title></Helmet>
+      <Helmet><title>Age Verification | Sousa Murray Planeia Admin Centre</title></Helmet>
       <div className="space-y-5">
         <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-violet-600" />
@@ -620,7 +620,7 @@ export default function AdminAgeVerificationPage() {
                     <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Keep the customer journey clear, calm and age-appropriate. The preview updates as you edit.</p>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div><Label htmlFor="age-design">Design style</Label><select id="age-design" value={settings.designVariant} onChange={event => setSettings(current => ({ ...current, designVariant: event.target.value as DesignVariant }))} className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="standard">Standard Planyx card</option><option value="compact">Compact</option><option value="assurance">Trust and assurance</option></select></div>
+                    <div><Label htmlFor="age-design">Design style</Label><select id="age-design" value={settings.designVariant} onChange={event => setSettings(current => ({ ...current, designVariant: event.target.value as DesignVariant }))} className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="standard">Standard Sousa Murray Planeia card</option><option value="compact">Compact</option><option value="assurance">Trust and assurance</option></select></div>
                     <div><Label htmlFor="age-button">Continue button</Label><Input id="age-button" value={settings.buttonLabel} onChange={event => setSettings(current => ({ ...current, buttonLabel: event.target.value }))} className="mt-1" /></div>
                   </div>
                   <div><Label htmlFor="age-heading">Page heading</Label><Input id="age-heading" value={settings.publicHeading} onChange={event => setSettings(current => ({ ...current, publicHeading: event.target.value }))} className="mt-1" /></div>
@@ -648,8 +648,8 @@ export default function AdminAgeVerificationPage() {
                   <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Verification method</h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Independent provider mode cannot go live until its adapter and Cloudflare secrets are configured and pass diagnostics.</p>
                   <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                    <button type="button" onClick={() => setSettings(current => ({ ...current, verificationMethod: 'self_declaration' }))} className={`rounded-2xl border p-5 text-left transition ${settings.verificationMethod === 'self_declaration' ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/15 dark:bg-blue-500/10' : 'border-slate-200 bg-white hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900'}`}><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-950 dark:text-white">Signed self-declaration</p><p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Customer supplies a DOB. Planyx calculates the age band and applies safeguards. This is not independent proof.</p></div>{settings.verificationMethod === 'self_declaration' && <CheckCircle2 className="h-5 w-5 text-blue-600" />}</div></button>
-                    <button type="button" onClick={() => setSettings(current => ({ ...current, verificationMethod: 'independent_provider' }))} className={`rounded-2xl border p-5 text-left transition ${settings.verificationMethod === 'independent_provider' ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-500/15 dark:bg-violet-500/10' : 'border-slate-200 bg-white hover:border-violet-300 dark:border-slate-800 dark:bg-slate-900'}`}><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-950 dark:text-white">Independent age-assurance provider</p><p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Planyx should receive only an over-16 result, age band, reference and expiry—not identity documents.</p></div>{settings.verificationMethod === 'independent_provider' && <CheckCircle2 className="h-5 w-5 text-violet-600" />}</div></button>
+                    <button type="button" onClick={() => setSettings(current => ({ ...current, verificationMethod: 'self_declaration' }))} className={`rounded-2xl border p-5 text-left transition ${settings.verificationMethod === 'self_declaration' ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/15 dark:bg-blue-500/10' : 'border-slate-200 bg-white hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900'}`}><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-950 dark:text-white">Signed self-declaration</p><p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Customer supplies a DOB. Sousa Murray Planeia calculates the age band and applies safeguards. This is not independent proof.</p></div>{settings.verificationMethod === 'self_declaration' && <CheckCircle2 className="h-5 w-5 text-blue-600" />}</div></button>
+                    <button type="button" onClick={() => setSettings(current => ({ ...current, verificationMethod: 'independent_provider' }))} className={`rounded-2xl border p-5 text-left transition ${settings.verificationMethod === 'independent_provider' ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-500/15 dark:bg-violet-500/10' : 'border-slate-200 bg-white hover:border-violet-300 dark:border-slate-800 dark:bg-slate-900'}`}><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-950 dark:text-white">Independent age-assurance provider</p><p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Sousa Murray Planeia should receive only an over-16 result, age band, reference and expiry—not identity documents.</p></div>{settings.verificationMethod === 'independent_provider' && <CheckCircle2 className="h-5 w-5 text-violet-600" />}</div></button>
                   </div>
                 </section>
 
@@ -682,7 +682,7 @@ export default function AdminAgeVerificationPage() {
                   </div>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <div><Label htmlFor="policy-version">Policy version</Label><Input id="policy-version" value={settings.policyVersion} onChange={event => setSettings(current => ({ ...current, policyVersion: event.target.value }))} className="mt-1" /></div>
-                    <div><Label htmlFor="dpia-reference">DPIA / Children’s Code assessment reference</Label><Input id="dpia-reference" value={settings.dpiaReference} onChange={event => setSettings(current => ({ ...current, dpiaReference: event.target.value }))} placeholder="For example: DPIA-PLANYX-AGE-001" className="mt-1" /></div>
+                    <div><Label htmlFor="dpia-reference">DPIA / Children’s Code assessment reference</Label><Input id="dpia-reference" value={settings.dpiaReference} onChange={event => setSettings(current => ({ ...current, dpiaReference: event.target.value }))} placeholder="For example: DPIA-PLANEIA-AGE-001" className="mt-1" /></div>
                     <div><Label htmlFor="last-review">Last legal/compliance review</Label><Input id="last-review" type="date" value={settings.lastLegalReviewAt} onChange={event => setSettings(current => ({ ...current, lastLegalReviewAt: event.target.value }))} className="mt-1" /></div>
                     <div><Label htmlFor="next-review">Next review due</Label><Input id="next-review" type="date" value={settings.nextLegalReviewAt} onChange={event => setSettings(current => ({ ...current, nextLegalReviewAt: event.target.value }))} className="mt-1" /></div>
                     <div className="md:col-span-2"><Label htmlFor="lawful-basis">Purpose, lawful-basis and necessity note</Label><textarea id="lawful-basis" rows={5} value={settings.lawfulBasisNote} onChange={event => setSettings(current => ({ ...current, lawfulBasisNote: event.target.value }))} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" /></div>
@@ -708,7 +708,7 @@ export default function AdminAgeVerificationPage() {
                   <div className="flex items-center gap-2"><TestTube2 className="h-5 w-5 text-violet-600" /><h3 className="text-lg font-semibold text-slate-950 dark:text-white">Test age-band calculation</h3></div>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">The test date is calculated in memory and is not stored in the profile or event record.</p>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Input type="date" value={testDob} onChange={event => setTestDob(event.target.value)} className="sm:max-w-xs" /><Button type="button" variant="outline" onClick={() => void testAge()} disabled={!testDob || busy !== null}>{busy === 'test' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Test age result</Button></div>
-                  {testResult && <div className={`mt-4 rounded-2xl border p-4 ${testResult.eligible ? 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100' : 'border-red-200 bg-red-50 text-red-950 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100'}`}><p className="font-semibold">{testResult.eligible ? 'Eligible for Planyx' : 'Registration blocked'}</p><p className="mt-1 text-sm">Age {testResult.age} · band {testResult.ageBand}{testResult.youngPersonSafeguards ? ' · young-person safeguards applied' : ''}</p></div>}
+                  {testResult && <div className={`mt-4 rounded-2xl border p-4 ${testResult.eligible ? 'border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100' : 'border-red-200 bg-red-50 text-red-950 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100'}`}><p className="font-semibold">{testResult.eligible ? 'Eligible for Sousa Murray Planeia' : 'Registration blocked'}</p><p className="mt-1 text-sm">Age {testResult.age} · band {testResult.ageBand}{testResult.youngPersonSafeguards ? ' · young-person safeguards applied' : ''}</p></div>}
                 </section>
               </TabsContent>
 

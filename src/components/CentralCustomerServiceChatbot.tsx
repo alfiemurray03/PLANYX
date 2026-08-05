@@ -132,7 +132,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
     const recognised = Boolean(user?.email);
     const name = firstName(user?.name || user?.displayName);
     const welcome = recognised
-      ? `Hello${name ? ` ${name}` : ''}. I have securely recognised your signed-in Planyx account, so I will not ask you to enter your name or email again. ${config.welcomeMessage || 'How can I help?'}`
+      ? `Hello${name ? ` ${name}` : ''}. I have securely recognised your signed-in Sousa Murray Planeia account, so I will not ask you to enter your name or email again. ${config.welcomeMessage || 'How can I help?'}`
       : `${config.welcomeMessage || 'Hello. How can I help?'} You can ask general questions without signing in. Account-specific support may require secure verification.`;
     setMessages([{ id: 'welcome', role: 'assistant', text: welcome, createdAt: new Date().toISOString(), senderName: config.assistantName }]);
   }, [config.assistantName, config.welcomeMessage, user?.email, user?.name, user?.displayName]);
@@ -278,7 +278,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
         }),
       });
       const data = await response.json().catch(() => ({})) as AssistantReply;
-      if (!response.ok || !data.success || !data.reply) throw new Error(data.error || 'The Planyx Support Assistant could not answer that question.');
+      if (!response.ok || !data.success || !data.reply) throw new Error(data.error || 'The Sousa Murray Planeia Support Assistant could not answer that question.');
       setMessages(current => [...current, {
         id: messageId('assistant'),
         role: data.humanHandling ? 'system' : 'assistant',
@@ -344,7 +344,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
         <button
           type="button"
           onClick={() => setOpen(current => !current)}
-          aria-label={open ? 'Close Planyx support' : 'Open Planyx support'}
+          aria-label={open ? 'Close Sousa Murray Planeia support' : 'Open Sousa Murray Planeia support'}
           style={{ width: config.launcherSize, height: config.launcherSize, backgroundColor: config.primaryColor }}
           className="flex items-center justify-center rounded-full text-white shadow-2xl transition hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200"
         >
@@ -355,7 +355,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
       {open && (
         <section
           role="dialog"
-          aria-label="Planyx Support Assistant"
+          aria-label="Sousa Murray Planeia Support Assistant"
           style={{
             width: `min(calc(100vw - 1.5rem), ${config.panelWidth}px)`,
             height: `min(calc(100vh - 7rem), ${config.panelHeight || 650}px)`,
@@ -371,7 +371,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
                   <p className="text-sm font-bold">{config.assistantName}</p>
                   <p className="flex items-center gap-1 text-[11px] text-white/80">
                     <LockKeyhole className="h-3 w-3" />
-                    {staffHandling ? 'Human assistance · AI standby' : centralEnabled ? 'Connected to Head Office' : 'Planyx self-service'}
+                    {staffHandling ? 'Human assistance · AI standby' : centralEnabled ? 'Connected to Head Office' : 'Sousa Murray Planeia self-service'}
                   </p>
                 </div>
               </div>
@@ -402,7 +402,7 @@ export default function CentralCustomerServiceChatbot({ config }: Props) {
               {thinking && (
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {staffHandling ? 'Sending your message to the support team…' : 'Checking Planyx support information…'}
+                  {staffHandling ? 'Sending your message to the support team…' : 'Checking Sousa Murray Planeia support information…'}
                 </div>
               )}
               <div ref={bottomRef} />

@@ -159,7 +159,7 @@ export default function AdminCustomerCrm() {
       pdf.setFillColor(...blue); pdf.rect(0, 0, pageWidth, 46, 'F');
       pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(21); pdf.text('Subject Access Request', margin, 20);
       pdf.setFont('helvetica', 'normal'); pdf.setFontSize(11); pdf.text('Customer information report', margin, 29);
-      pdf.setFontSize(8); pdf.text('Planyx | JA Group Services Ltd', margin, 38);
+      pdf.setFontSize(8); pdf.text('Sousa Murray Planeia | JA Group Services Ltd', margin, 38);
       let y = 58;
       pdf.setTextColor(...navy); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(15); pdf.text('Your personal data', margin, y); y += 8;
       pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9.5); pdf.setTextColor(...muted);
@@ -172,7 +172,7 @@ export default function AdminCustomerCrm() {
       if (y > 238) { pdf.addPage(); y = 20; }
       y = heading('How this information is used', y);
       pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.setTextColor(...muted);
-      const useText = 'Planyx uses account and contact information to provide the service, administer membership, respond to support requests, maintain security and meet legal obligations. Payment-card numbers and Microsoft passwords are not included because Planyx does not store them in the customer profile.';
+      const useText = 'Sousa Murray Planeia uses account and contact information to provide the service, administer membership, respond to support requests, maintain security and meet legal obligations. Payment-card numbers and Microsoft passwords are not included because Sousa Murray Planeia does not store them in the customer profile.';
       const useLines = pdf.splitTextToSize(useText, pageWidth - (margin * 2)); pdf.text(useLines, margin, y); y += useLines.length * 4.3 + 7;
       y = listTable('Data protection requests', Array.isArray(sar.dataRequests) ? sar.dataRequests : [], [['reference', 'Reference'], ['request_type', 'Request type'], ['status', 'Status'], ['submitted_at', 'Submitted'], ['due_at', 'Due']], y);
       y = listTable('Customer system reports', Array.isArray(sar.systemReports) ? sar.systemReports : [], [['reference', 'Reference'], ['category', 'Category'], ['subject', 'Subject'], ['status', 'Status'], ['created_at', 'Created']], y);
@@ -197,7 +197,7 @@ export default function AdminCustomerCrm() {
       if (y > 230) { pdf.addPage(); y = 20; }
       y = heading('Questions or corrections', y);
       pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.setTextColor(...muted);
-      const rights = 'If any information in this report is inaccurate, or you have questions about the response, contact the Planyx Data Protection team. You may also request rectification, restriction, erasure or objection where the relevant legal conditions apply.';
+      const rights = 'If any information in this report is inaccurate, or you have questions about the response, contact the Sousa Murray Planeia Data Protection team. You may also request rectification, restriction, erasure or objection where the relevant legal conditions apply.';
       pdf.text(pdf.splitTextToSize(rights, pageWidth - (margin * 2)), margin, y);
 
       const pages = pdf.getNumberOfPages();
@@ -207,7 +207,7 @@ export default function AdminCustomerCrm() {
         pdf.text('Private and confidential - intended for the named customer', margin, 289);
         pdf.text(`Page ${page} of ${pages}`, pageWidth - margin, 289, { align: 'right' });
       }
-      pdf.save(`Planyx-SAR-${email.replace(/[^a-z0-9]+/gi, '-')}.pdf`);
+      pdf.save(`Sousa Murray Planeia-SAR-${email.replace(/[^a-z0-9]+/gi, '-')}.pdf`);
       setMessage('Formatted SAR PDF downloaded and the export has been recorded in the audit log.');
     } catch (reason) { setMessage(reason instanceof Error ? reason.message : 'The SAR PDF could not be prepared.'); }
   }
@@ -251,7 +251,7 @@ export default function AdminCustomerCrm() {
   const audit = asRows(customer.customerAudit);
 
   return <>
-    <Helmet><title>{name} — Customer CRM — Planyx Admin</title><meta name="robots" content="noindex,nofollow" /></Helmet>
+    <Helmet><title>{name} — Customer CRM — Sousa Murray Planeia Admin</title><meta name="robots" content="noindex,nofollow" /></Helmet>
     <AdminLayout title="Customer CRM" subtitle="Account, membership, support and activity in one record">
       <div className="crm-dense space-y-3 text-sm [&_[data-slot=card]]:shadow-none [&_[data-slot=card-header]]:p-3 [&_[data-slot=card-content]]:p-3 [&_[data-slot=card-content]]:pt-0 [&_[data-slot=card-title]]:text-sm [&_[data-slot=card-title]]:font-semibold">
         <Button asChild variant="outline" size="sm"><Link to="/admin/users"><ArrowLeft className="mr-2 h-4 w-4" />All customers</Link></Button>

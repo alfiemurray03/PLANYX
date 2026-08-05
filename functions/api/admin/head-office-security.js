@@ -86,7 +86,7 @@ async function saveCache(DB, email, customerNumber, state, errorMessage = null) 
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  if (!env.DB) return json({ success: false, error: "The Planyx customer database is unavailable." }, 500);
+  if (!env.DB) return json({ success: false, error: "The Sousa Murray Planeia customer database is unavailable." }, 500);
   const identity = await getNativeSession(request, env, "admin").catch(() => null);
   if (!identity?.email) return json({ success: false, code: "SESSION_EXPIRED", error: "Your administrator session has expired. Please sign in again." }, 401);
   const permissions = await permissionSet(env.DB, identity, env);

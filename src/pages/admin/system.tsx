@@ -36,9 +36,9 @@ const DEFAULT_TOGGLES: FeatureToggle[] = [
 ];
 
 const DEFAULT_GENERAL: Record<string, string> = {
-  platform_name:  'Planyx',
+  platform_name:  'Sousa Murray Planeia',
   platform_url:   'https://planyx.com',
-  support_email:  'planyx@jagroupservices.co.uk',
+  support_email:  'contact@jagroupservices.co.uk',
   company_name:   'JA Group Services',
   timezone:       'Europe/London',
   currency:       'GBP (£)',
@@ -48,7 +48,7 @@ const DEFAULT_EMAIL: Record<string, string> = {
   smtp_host:   'smtp.planyx.com',
   smtp_port:   '587',
   smtp_user:   'noreply@planyx.com',
-  from_name:   'Planyx',
+  from_name:   'Sousa Murray Planeia',
   from_email:  'noreply@planyx.com',
 };
 
@@ -61,7 +61,7 @@ const DEFAULT_SECURITY: Record<string, string> = {
 };
 
 const DEFAULT_BRANDING: Record<string, string> = {
-  brand_name:      'Planyx',
+  brand_name:      'Sousa Murray Planeia',
   brand_tagline:   'Professional Document Creation',
   primary_color:   '#1B4F8A',
   secondary_color: '#1e1b8a',

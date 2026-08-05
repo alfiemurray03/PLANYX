@@ -8,7 +8,7 @@ async function read(path) {
   return readFile(new URL(path, root), 'utf8');
 }
 
-test('runtime uses the Head Office controlled Planyx support assistant', async () => {
+test('runtime uses the Head Office controlled Sousa Murray Planeia support assistant', async () => {
   const runtime = await read('src/components/AIHelpChatbotRuntime.tsx');
   const client = await read('src/components/CentralCustomerServiceChatbot.tsx');
   const bridge = await read('functions/api/customer-service/[[path]].js');
@@ -22,7 +22,7 @@ test('runtime uses the Head Office controlled Planyx support assistant', async (
   assert.doesNotMatch(runtime, /AtlassianCustomerServiceWidget/);
   assert.doesNotMatch(runtime, /tawk\.to/i);
 
-  assert.match(client, /Planyx Support Assistant/);
+  assert.match(client, /Sousa Murray Planeia Support Assistant/);
   assert.match(client, /Head Office/);
   assert.match(client, /request_human/);
   assert.doesNotMatch(client, /atlassian/i);

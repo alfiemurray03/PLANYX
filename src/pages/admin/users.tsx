@@ -339,7 +339,7 @@ export default function AdminUsers() {
   return (
     <>
       <Helmet>
-        <title>Users — Admin — Planyx</title>
+        <title>Users — Admin — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <AdminLayout title="Users" subtitle="Microsoft-authenticated customer accounts">
@@ -690,7 +690,7 @@ export default function AdminUsers() {
                   <div>
                     <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Fingerprint className="w-4 h-4 text-muted-foreground" /> Verify Identity</h3>
                     <div className="rounded-lg border bg-muted/20 p-3 space-y-3">
-                      <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-medium">Support identity status</p><p className="text-[11px] text-muted-foreground">Uses the customer’s single-use Planyx Support PIN.</p></div><Badge className={identityVerification?.verified ? 'bg-green-100 text-green-700 border-green-200' : identityVerification?.locked ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200'}>{identityVerification?.verified ? 'Verified' : identityVerification?.locked ? 'Locked' : 'Verification required'}</Badge></div>
+                      <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-medium">Support identity status</p><p className="text-[11px] text-muted-foreground">Uses the customer’s single-use Sousa Murray Planeia Support PIN.</p></div><Badge className={identityVerification?.verified ? 'bg-green-100 text-green-700 border-green-200' : identityVerification?.locked ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200'}>{identityVerification?.verified ? 'Verified' : identityVerification?.locked ? 'Locked' : 'Verification required'}</Badge></div>
                       {identityVerification?.verified ? <div className="rounded-md bg-green-50 p-2 text-xs text-green-800"><p className="font-semibold">Verified via {identityVerification.method || 'Support PIN'}</p>{identityVerification.expires_at && <p className="mt-0.5">CRM verification expires {formatDateTime(identityVerification.expires_at)}.</p>}</div> : <><label htmlFor="crm-support-pin" className="block text-xs font-semibold">Customer’s Support PIN</label><div className="flex gap-2"><Input id="crm-support-pin" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={identityPin} onChange={event => setIdentityPin(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6 digits" className="font-mono tracking-[0.25em]" /><Button type="button" size="sm" onClick={() => void verifyCustomerIdentity()} disabled={actionLoading || identityPin.length !== 6}>Verify Identity</Button></div></>}
                       {identityMessage && <p role="status" className="text-xs text-muted-foreground">{identityMessage}</p>}
                     </div>

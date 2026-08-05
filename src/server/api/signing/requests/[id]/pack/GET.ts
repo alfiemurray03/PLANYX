@@ -112,7 +112,7 @@ function buildAuditCertificateHtml(
   owner: { firstName: string; lastName: string; email: string } | undefined,
   signers: Array<{ name: string; email: string; role: string | null; status: string; signedAt: Date | null; ipAddress: string | null }>,
   audit: Array<{ createdAt: Date; event: string; signerEmail: string | null; userId: number | null; adminId: number | null; ipAddress: string | null; detail: string | null }>,
-  siteName = 'Planyx',
+  siteName = 'Sousa Murray Planeia',
 ): string {
   const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown';
   const now = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'long', timeStyle: 'long' });
@@ -193,7 +193,7 @@ export default async function handler(req: Request, res: Response) {
     db.select({ value: ja_site_settings.value }).from(ja_site_settings).where(eq(ja_site_settings.settingKey, 'site_name')).limit(1),
   ]);
 
-  const siteName = siteNameRow[0]?.value ?? 'Planyx';
+  const siteName = siteNameRow[0]?.value ?? 'Sousa Murray Planeia';
 
   const owner = ownerRows[0];
   const packFiles: Array<{ name: string; data: Buffer }> = [];

@@ -131,7 +131,7 @@ export default function AdminBuildersPage() {
   const activeCount = builders.filter(builder => builder.status === 'Active').length;
 
   return (
-    <AdminLayout title="Experience Builders" subtitle="Manage the guided planners available in Planyx.">
+    <AdminLayout title="Experience Builders" subtitle="Manage the guided planners available in Sousa Murray Planeia.">
       <div className="mx-auto w-full max-w-[1500px] space-y-6">
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">

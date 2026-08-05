@@ -46,7 +46,7 @@ export default function PersonalPlanPage() {
   return (
     <>
       <Helmet>
-        <title>Personal Plan — £5.99/month | Planyx</title>
+        <title>Personal Plan — £5.99/month | Sousa Murray Planeia</title>
         <meta name="description" content="Core planning builders and up to 3 active plans for £5.99/month." />
       </Helmet>
 

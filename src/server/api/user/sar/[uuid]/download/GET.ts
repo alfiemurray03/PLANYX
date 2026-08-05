@@ -91,7 +91,7 @@ export default async function handler(req: Request, res: Response) {
     console.info('sar.download', { sarId: sar.id, uuid, userId, ip, downloadCount: (sar.downloadCount ?? 0) + 1 });
 
     // Stream the file
-    const filename = `Planyx-Data-Export-${sar.uuid.slice(0, 8).toUpperCase()}.zip`;
+    const filename = `Sousa Murray Planeia-Data-Export-${sar.uuid.slice(0, 8).toUpperCase()}.zip`;
     const stat = fs.statSync(filePath);
 
     res.setHeader('Content-Type', 'application/zip');

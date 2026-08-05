@@ -99,7 +99,7 @@ function isTextPath(path) {
 function githubHeaders(token, write = false) {
   return {
     Accept: write ? "application/vnd.github+json" : "application/vnd.github+json",
-    "User-Agent": "Planyx-AI-Website-Builder",
+    "User-Agent": "Sousa Murray Planeia-AI-Website-Builder",
     "X-GitHub-Api-Version": "2022-11-28",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
@@ -199,7 +199,7 @@ async function saveFile(settings, path, content, sha, commitMessage) {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      message: clean(commitMessage || `Update ${path} from Planyx Website Builder`, 180),
+      message: clean(commitMessage || `Update ${path} from Sousa Murray Planeia Website Builder`, 180),
       content: encoded,
       branch: settings.branch,
       ...(sha ? { sha: clean(sha, 120) } : {}),
@@ -216,7 +216,7 @@ async function deleteFile(settings, path, sha, commitMessage) {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      message: clean(commitMessage || `Delete ${path} from Planyx Website Builder`, 180),
+      message: clean(commitMessage || `Delete ${path} from Sousa Murray Planeia Website Builder`, 180),
       sha: clean(sha, 120),
       branch: settings.branch,
     }),

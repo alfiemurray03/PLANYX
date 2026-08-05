@@ -26,7 +26,7 @@ async function requestCustomerOps(env, path, init = {}, options = {}) {
       headers: {
         Authorization: `Bearer ${apiKey(env)}`,
         Accept: 'application/json',
-        'User-Agent': 'Planyx-Connected-Sessions/1.0',
+        'User-Agent': 'Sousa Murray Planeia-Connected-Sessions/1.0',
         ...(init.body ? { 'Content-Type': 'application/json' } : {}),
         ...(init.headers || {}),
       },
@@ -136,7 +136,7 @@ export async function registerPlanyxSession(env, DB, request, identity) {
         lastSeenAt: new Date().toISOString(),
         ...clientDetails(request),
         metadata: {
-          service: 'Planyx',
+          service: 'Sousa Murray Planeia',
           source: 'planyx_customer_security_heartbeat',
         },
       },
@@ -144,7 +144,7 @@ export async function registerPlanyxSession(env, DB, request, identity) {
   });
 }
 
-export async function closePlanyxSession(env, identity, reason = 'Customer signed out of Planyx.') {
+export async function closePlanyxSession(env, identity, reason = 'Customer signed out of Sousa Murray Planeia.') {
   const reference = externalSessionReference(identity);
   if (!reference) return null;
   return requestCustomerOps(env, `/api/platform/sessions/${encodeURIComponent(reference)}`, {

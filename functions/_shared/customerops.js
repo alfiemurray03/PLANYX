@@ -31,7 +31,7 @@ async function profileColumns(DB) {
 }
 
 export async function ensureCustomerOpsProfileSchema(DB) {
-  if (!DB) throw new Error("The Planyx customer database is unavailable.");
+  if (!DB) throw new Error("The Sousa Murray Planeia customer database is unavailable.");
   if (schemaPromises.has(DB)) return schemaPromises.get(DB);
 
   const promise = (async () => {
@@ -81,7 +81,7 @@ async function getProfile(DB, email) {
 
 async function ensurePlanyxAccountId(DB, email) {
   let profile = await getProfile(DB, email);
-  if (!profile) throw new Error("The Planyx customer profile does not exist yet.");
+  if (!profile) throw new Error("The Sousa Murray Planeia customer profile does not exist yet.");
   if (profile.planyx_account_id) return { profile, accountId: String(profile.planyx_account_id) };
 
   const proposed = crypto.randomUUID();
@@ -90,7 +90,7 @@ async function ensurePlanyxAccountId(DB, email) {
     WHERE lower(email) = lower(?)`).bind(proposed, email).run();
   profile = await getProfile(DB, email);
   const accountId = clean(profile?.planyx_account_id, 160);
-  if (!accountId) throw new Error("Planyx could not allocate its internal customer account ID.");
+  if (!accountId) throw new Error("Sousa Murray Planeia could not allocate its internal customer account ID.");
   return { profile, accountId };
 }
 
@@ -147,7 +147,7 @@ export async function syncCustomerWithHeadOffice(context, identity) {
   if (!apiKey) {
     await setSyncState(DB, email, {
       status: "not_configured",
-      error: "CUSTOMEROPS_API_KEY is not configured for Planyx."
+      error: "CUSTOMEROPS_API_KEY is not configured for Sousa Murray Planeia."
     });
     return { ok: false, status: "not_configured", accountId };
   }
@@ -165,7 +165,7 @@ export async function syncCustomerWithHeadOffice(context, identity) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         Accept: "application/json",
-        "User-Agent": "Planyx-CustomerOps-Connector/1.0"
+        "User-Agent": "Sousa Murray Planeia-CustomerOps-Connector/1.0"
       },
       body: JSON.stringify({
         entraTenantId: tenantId,
@@ -217,7 +217,7 @@ export async function syncCustomerWithHeadOffice(context, identity) {
 
   const existingUcn = clean(profile.universal_customer_number, 20);
   if (existingUcn && existingUcn !== ucn) {
-    const message = `Planyx already stores UCN ${existingUcn}; CustomerOps returned a different number. Head Office review is required.`;
+    const message = `Sousa Murray Planeia already stores UCN ${existingUcn}; CustomerOps returned a different number. Head Office review is required.`;
     await setSyncState(DB, email, {
       status: "ucn_conflict",
       error: message,

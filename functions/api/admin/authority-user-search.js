@@ -199,7 +199,7 @@ async function loadIdentity(DB, env, email) {
   const stripeAddress = profile ? await stripeBillingAddress(env, subscription) : null;
   const savedAddress = profileAddress(profile || {});
   const address = stripeAddress || savedAddress;
-  const addressSource = stripeAddress ? "Stripe billing address" : (savedAddress.postcode || savedAddress.line1 ? "Saved Planyx account address" : "No saved address");
+  const addressSource = stripeAddress ? "Stripe billing address" : (savedAddress.postcode || savedAddress.line1 ? "Saved Sousa Murray Planeia account address" : "No saved address");
   const sessions = await safeAll(DB, `SELECT session_id, session_reference, realm, email, linked_user_name, status,
       created_at, last_seen_at, revoked_at, ip_address, country_code, user_agent, legal_hold, legal_hold_reason
     FROM auth_sessions WHERE lower(email)=lower(?) OR lower(linked_user_id)=lower(?)
@@ -238,7 +238,7 @@ export async function onRequestGet(context) {
   if (query) return json({ success: true, users: await searchDirectory(context.env.DB, query) });
   if (email) {
     const user = await loadIdentity(context.env.DB, context.env, email);
-    return user ? json({ success: true, user }) : json({ success: false, error: "No Planyx user or administrator matched that email address." }, 404);
+    return user ? json({ success: true, user }) : json({ success: false, error: "No Sousa Murray Planeia user or administrator matched that email address." }, 404);
   }
   return json({ success: true, users: [] });
 }

@@ -64,8 +64,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return (
       <Website>
         <Helmet>
-          <title>Planyx — Guided Planning Builders</title>
-          <meta name="description" content="Build personalised destination, itinerary, experience, accessibility and practical travel plans with guided Planyx tools." />
+          <title>Sousa Murray Planeia — Guided Planning Builders</title>
+          <meta name="description" content="Build personalised destination, itinerary, experience, accessibility and practical travel plans with guided Sousa Murray Planeia tools." />
         </Helmet>
         <ScrollRestoration />
         <a href="#main-content" className="skip-nav">
@@ -84,8 +84,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <Website>
       <Helmet>
-        <title>Planyx — Guided Planning Builders</title>
-        <meta name="description" content="Build personalised destination, itinerary, experience, accessibility and practical travel plans with guided Planyx tools." />
+        <title>Sousa Murray Planeia — Guided Planning Builders</title>
+        <meta name="description" content="Build personalised destination, itinerary, experience, accessibility and practical travel plans with guided Sousa Murray Planeia tools." />
       </Helmet>
       <ScrollRestoration />
       <a href="#main-content" className="skip-nav">

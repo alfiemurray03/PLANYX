@@ -123,7 +123,7 @@ test('Authority reports have permanent references, chronology, audit and linked-
 
 test('Authority report PDF is a formal internal pack and does not claim to notify an authority', async () => {
   const pdf = await read('src/lib/authority-report-pdf.ts');
-  assert.match(pdf, /Planyx Authority Reporting Centre/);
+  assert.match(pdf, /Sousa Murray Planeia Authority Reporting Centre/);
   assert.match(pdf, /Emergency Police Incident Record/);
   assert.match(pdf, /Child Safeguarding Referral Record/);
   assert.match(pdf, /Personal Data Breach Assessment & ICO Report Pack/);

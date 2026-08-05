@@ -38,10 +38,10 @@ function eventName(type) {
 
 function title(type) {
   return ({
-    "checkout.session.completed": "Planyx checkout completed",
-    "customer.subscription.created": "Planyx subscription started",
-    "customer.subscription.updated": "Planyx subscription changed",
-    "customer.subscription.deleted": "Planyx subscription cancelled",
+    "checkout.session.completed": "Sousa Murray Planeia checkout completed",
+    "customer.subscription.created": "Sousa Murray Planeia subscription started",
+    "customer.subscription.updated": "Sousa Murray Planeia subscription changed",
+    "customer.subscription.deleted": "Sousa Murray Planeia subscription cancelled",
     "invoice.paid": "Stripe invoice paid",
     "invoice.payment_failed": "Stripe payment failed",
     "invoice.finalized": "Stripe invoice finalised",

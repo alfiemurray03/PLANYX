@@ -20,7 +20,7 @@ export default function BuilderPlaceholder({ builderName }: PlaceholderProps) {
   return (
     <>
       <Helmet>
-        <title>{name} — Planyx</title>
+        <title>{name} — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <DashboardLayout>

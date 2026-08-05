@@ -360,7 +360,7 @@ export default function AdminSubscriptions() {
   return (
     <>
       <Helmet>
-        <title>Membership — Admin — Planyx</title>
+        <title>Membership — Admin — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

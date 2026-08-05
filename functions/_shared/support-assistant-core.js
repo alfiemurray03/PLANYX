@@ -12,17 +12,17 @@ export const DEFAULT_CONFIG = {
   escalationEnabled: true,
   webhookDeliveryEnabled: true,
   debugEnabled: false,
-  assistantName: "Planyx Support Assistant",
+  assistantName: "Sousa Murray Planeia Support Assistant",
   logoUrl: "",
   avatarUrl: "",
   fontFamily: "inherit",
-  welcomeMessage: "Hello! I can help you find an answer in the Planyx Help Centre. What do you need help with?",
+  welcomeMessage: "Hello! I can help you find an answer in the Sousa Murray Planeia Help Centre. What do you need help with?",
   responseTime: "within 2 working days",
   maxSelfHelpTurns: 3,
   provider: "built_in",
   model: "",
   tone: "friendly",
-  escalationPrompt: "I can send this to the Planyx team as a Contact Enquiry.",
+  escalationPrompt: "I can send this to the Sousa Murray Planeia team as a Contact Enquiry.",
   position: "bottom-right",
   primaryColor: "#2563eb",
   accentColor: "#dbeafe",
@@ -35,12 +35,12 @@ export const DEFAULT_CONFIG = {
   showPoweredBy: true,
   autoOpenDelaySeconds: 0,
   contactPageEnabled: true,
-  contactEyebrow: "Planyx intelligent support",
+  contactEyebrow: "Sousa Murray Planeia intelligent support",
   contactTitle: "How can we help?",
   contactIntroduction: "Describe what you need and our AI-assisted contact box will organise your enquiry before you send it.",
   contactAiTitle: "AI-assisted contact",
-  contactAiDescription: "Tell us what you need in plain English. Planyx will organise the enquiry, suggest what information to include and prepare it for the correct support route.",
-  contactSupportEmail: "planyx@jagroupservices.co.uk",
+  contactAiDescription: "Tell us what you need in plain English. Sousa Murray Planeia will organise the enquiry, suggest what information to include and prepare it for the correct support route.",
+  contactSupportEmail: "contact@jagroupservices.co.uk",
   contactGeneralEmail: "hello@jagroupservices.co.uk",
   contactDpoEmail: "dpo@jagroupservices.co.uk",
   contactPhoneDisplay: "020 3834 2790",
@@ -71,7 +71,7 @@ export function clean(value, max = 4000) {
 }
 
 export function replaceRetiredBrand(value, max = 4000) {
-  return clean(value, max).replace(/\bJA[\s_-]*Plan[\s_-]*Studio\b/gi, "Planyx");
+  return clean(value, max).replace(/\bJA[\s_-]*Plan[\s_-]*Studio\b/gi, "Sousa Murray Planeia");
 }
 
 function bool(value, fallback) {

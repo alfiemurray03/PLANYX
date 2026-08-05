@@ -4,11 +4,11 @@ import { renderSeoHead } from "./site-seo.mjs";
 
 const publicDir = path.join(process.cwd(), "public");
 const descriptionFallbacks = {
-  "/accessibility-support/": "Accessibility support and inclusive planning information for people using Planyx.",
-  "/legal/cookies/": "Read the Planyx Cookie Notice and learn how cookies and similar technologies are used.",
-  "/legal/privacy/": "Read the Planyx Privacy Notice for information about how personal data is handled.",
-  "/legal/provider-disclaimer/": "Read important information about independent providers referenced by Planyx.",
-  "/legal/travel-insurance/": "Read important travel insurance information for people using Planyx planning resources."
+  "/accessibility-support/": "Accessibility support and inclusive planning information for people using Sousa Murray Planeia.",
+  "/legal/cookies/": "Read the Sousa Murray Planeia Cookie Notice and learn how cookies and similar technologies are used.",
+  "/legal/privacy/": "Read the Sousa Murray Planeia Privacy Notice for information about how personal data is handled.",
+  "/legal/provider-disclaimer/": "Read important information about independent providers referenced by Sousa Murray Planeia.",
+  "/legal/travel-insurance/": "Read important travel insurance information for people using Sousa Murray Planeia planning resources."
 };
 const routes = [
   "/", "/about/", "/accessibility-support/", "/accommodation/", "/affiliate-disclosure/",
@@ -32,7 +32,7 @@ for (const route of routes) {
   }
 
   const canonicalRoute = route === "/coming-soon/" ? "/" : route;
-  const pageName = title.replace(/\s*[|—-]\s*Planyx\s*$/i, "").trim() || "Planyx";
+  const pageName = title.replace(/\s*[|—-]\s*Sousa Murray Planeia\s*$/i, "").trim() || "Sousa Murray Planeia";
   const type = route === "/about/" ? "AboutPage" : route === "/contact/" ? "ContactPage" : "WebPage";
   const breadcrumbs = buildBreadcrumbs(canonicalRoute, pageName);
   const seo = renderSeoHead({

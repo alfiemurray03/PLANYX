@@ -4,7 +4,7 @@ const DEFAULT_CONFIG = {
   subtext: "We are shaping a smarter, calmer way to turn ideas into experiences worth remembering.",
   launchDate: "",
   countdownEnabled: false,
-  platformName: "Planyx",
+  platformName: "Sousa Murray Planeia",
   description: "Build plans around the people, places and moments that matter—then keep everything together in one beautifully organised space.",
   features: [
     "Guided experience planning",
@@ -46,7 +46,7 @@ async function readSiteSetting(env, key) {
 const LEGACY_COPY = {
   "Coming Soon": DEFAULT_CONFIG.headline,
   "We are putting the finishing touches on something great.": DEFAULT_CONFIG.subtext,
-  "Planyx is a self-service experience planning platform that helps you build, save and manage everyday, travel and support planning outputs.": DEFAULT_CONFIG.description
+  "Sousa Murray Planeia is a self-service experience planning platform that helps you build, save and manage everyday, travel and support planning outputs.": DEFAULT_CONFIG.description
 };
 
 function refreshLegacyCopy(value, fallback) {

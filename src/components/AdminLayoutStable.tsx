@@ -203,8 +203,8 @@ export default function AdminLayoutStable({ children, title }: AdminLayoutProps)
     <div className="admin-portal flex min-h-screen flex-col bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white text-slate-900 shadow-xl backdrop-blur-xl transition-colors dark:border-slate-800 dark:bg-slate-950 dark:text-white">
         <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-8">
-          <Link to="/admin/dashboard" className="flex shrink-0 items-center gap-3" aria-label="Planyx Admin Centre dashboard">
-            <img src={branding.platform_logo_url} alt="Planyx" className="h-9 w-auto max-w-[148px] object-contain sm:h-10 sm:max-w-[176px]" />
+          <Link to="/admin/dashboard" className="flex shrink-0 items-center gap-3" aria-label="Sousa Murray Planeia Admin Centre dashboard">
+            <span className="text-base font-black tracking-tight text-slate-950 dark:text-white sm:text-lg">{branding.platform_name || 'Sousa Murray Planeia'}</span>
             <span className="hidden rounded-full border border-blue-300 bg-blue-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-700 sm:inline dark:border-blue-400/35 dark:bg-blue-500/20 dark:text-blue-200">Admin Centre</span>
           </Link>
 
@@ -259,7 +259,7 @@ export default function AdminLayoutStable({ children, title }: AdminLayoutProps)
 
       <footer className="mt-auto border-t border-slate-200 bg-white text-slate-700 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-4 py-7 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <div><img src={branding.platform_logo_url} alt="Planyx" className="h-8 w-auto max-w-[150px] object-contain" /><p className="mt-2 text-slate-500 dark:text-slate-400">Secure administration for the Planyx planning platform.</p></div>
+          <div><span className="text-base font-black tracking-tight text-slate-950 dark:text-white">{branding.platform_name || 'Sousa Murray Planeia'}</span><p className="mt-2 text-slate-500 dark:text-slate-400">Secure administration for the Sousa Murray Planeia planning platform.</p></div>
           <div className="text-slate-500 dark:text-slate-400"><p>Signed in as {admin.name}</p><p>{admin.email}</p></div>
         </div>
       </footer>

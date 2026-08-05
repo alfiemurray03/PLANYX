@@ -2,7 +2,7 @@
  * SiteSettingsContext — global, cached public site settings.
  *
  * Provides three distinct naming fields:
- *   siteName    — product/platform name  (e.g. "Planyx")
+ *   siteName    — product/platform name  (e.g. "Sousa Murray Planeia")
  *   brandName   — public-facing brand    (e.g. "JA Group Services")
  *   companyName — legal entity name      (e.g. "JA Group Services Ltd")
  *
@@ -16,7 +16,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export interface SiteSettings {
-  siteName:    string;   // product name  — "Planyx"
+  siteName:    string;   // product name  — "Sousa Murray Planeia"
   brandName:   string;   // public brand  — "JA Group Services"
   companyName: string;   // legal entity  — "JA Group Services Ltd"
   tagline:     string;
@@ -28,11 +28,11 @@ export interface SiteSettings {
 }
 
 const DEFAULTS: SiteSettings = {
-  siteName:    'Planyx',
+  siteName:    'Sousa Murray Planeia',
   brandName:   'JA Group Services',
   companyName: 'JA Group Services Ltd',
   tagline:     'Personalised Plans, Generated in Minutes',
-  supportEmail: 'planyx@jagroupservices.co.uk',
+  supportEmail: 'contact@jagroupservices.co.uk',
   logoUrl:     '',
   googleAnalyticsId: 'G-50QJHHL7H7',
   navLinks: [],

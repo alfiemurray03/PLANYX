@@ -8,17 +8,17 @@ import { db } from '../../../db/client.js';
 import { ja_site_settings } from '../../../db/schema.js';
 
 const DEFAULTS: Record<string, string> = {
-  site_name:    'Planyx',
+  site_name:    'Sousa Murray Planeia',
   brand_name:   'JA Group Services',
   tagline:      'Personalised Plans, Generated in Minutes',
-  support_email: 'planyx@jagroupservices.co.uk',
+  support_email: 'contact@jagroupservices.co.uk',
   company_name: 'JA Group Services Ltd',
   primary_color: '#1B4F8A',
   accent_color:  '#8a561b',
   logo_url:      '',
-  browser_tab_name: 'Planyx',
-  admin_tab_name: 'Planyx Admin Portal',
-  favicon_url: '/favicon.svg?v=20260718-4',
+  browser_tab_name: 'Sousa Murray Planeia',
+  admin_tab_name: 'Sousa Murray Planeia Admin Portal',
+  favicon_url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E',
   admin_theme_mode: 'light',
   google_analytics_id: '',
   nav_links: JSON.stringify([

@@ -1,4 +1,4 @@
-export const PLANYX_EMAIL = 'planyx@jagroupservices.co.uk';
+export const PLANYX_EMAIL = 'contact@jagroupservices.co.uk';
 export const DATA_PROTECTION_EMAIL = 'dpo@jagroupservices.co.uk';
 export const GROUP_CONTACT_EMAIL = 'hello@jagroupservices.co.uk';
 export const GROUP_PHONE_DISPLAY = '020 3834 2790';

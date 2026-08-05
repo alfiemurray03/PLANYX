@@ -43,9 +43,9 @@ const CookieBanner = lazy(() =>
 );
 
 const SpinnerFallback = () => (
-  <div className="flex justify-center py-8 h-screen items-center" role="status" aria-live="polite" aria-label="Loading Planyx">
+  <div className="flex justify-center py-8 h-screen items-center" role="status" aria-live="polite" aria-label="Loading Sousa Murray Planeia">
     <Spinner />
-    <span className="sr-only">Loading Planyx…</span>
+    <span className="sr-only">Loading Sousa Murray Planeia…</span>
   </div>
 );
 
@@ -58,10 +58,10 @@ function AdminDashboardEntry() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8 text-slate-950 dark:bg-slate-950 dark:text-white">
       <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-xl font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">P</div>
+        <p className="mb-5 text-sm font-extrabold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">Sousa Murray Planeia</p>
         <h1 className="text-2xl font-bold">Confirming Microsoft administrator session</h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-          Planyx is checking the secure Microsoft session. This page will not remain on an unexplained loading spinner.
+          Sousa Murray Planeia is checking the secure Microsoft session. This page will not remain on an unexplained loading spinner.
         </p>
         <a
           href="/admin/login?return_to=%2Fadmin%2Fdashboard%2F"

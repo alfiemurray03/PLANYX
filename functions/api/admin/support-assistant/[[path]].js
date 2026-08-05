@@ -46,7 +46,7 @@ async function testWebhook(slot) {
           version: "1.4",
           $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
           body: [
-            { type: "TextBlock", size: "Large", weight: "Bolder", text: "Planyx webhook test", wrap: true },
+            { type: "TextBlock", size: "Large", weight: "Bolder", text: "Sousa Murray Planeia webhook test", wrap: true },
             { type: "TextBlock", text: `${slot.label} is connected to the AI Chatbot Control Centre.`, wrap: true },
             { type: "TextBlock", text: new Date().toISOString(), size: "Small", isSubtle: true }
           ]

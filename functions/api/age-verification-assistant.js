@@ -3,7 +3,7 @@ import { getAgeVerificationSettings, recordAgeVerificationEvent } from "../_shar
 
 const KNOWLEDGE_VERSION = "2026-07-25";
 const CUSTOMER_SUGGESTIONS = [
-  "Why is Planyx 16+?",
+  "Why is Sousa Murray Planeia 16+?",
   "What happens to my date of birth?",
   "Is this independent age verification?",
   "What safeguards apply at 16–17?",
@@ -48,7 +48,7 @@ function ageAiConfig(record) {
     failureSupportEnabled: bool(record.age_ai_failure_support_enabled, true),
     contactHandoverEnabled: bool(record.age_ai_contact_handover_enabled, false),
     debugEnabled: bool(record.age_ai_debug_enabled, false),
-    welcomeMessage: clean(record.age_ai_welcome_message || "Hello. I can explain Planyx’s 16+ account check, privacy safeguards, stronger verification methods and what to do if the process is not working. Do not send me your date of birth or identity documents.", 600),
+    welcomeMessage: clean(record.age_ai_welcome_message || "Hello. I can explain Sousa Murray Planeia’s 16+ account check, privacy safeguards, stronger verification methods and what to do if the process is not working. Do not send me your date of birth or identity documents.", 600),
     inputPlaceholder: clean(record.age_ai_input_placeholder || "Ask about the 16+ age check…", 120),
     guardrailMessage: clean(record.age_ai_guardrail_message || "I cannot guess, estimate, approve, reject or override anyone’s age. Enter personal information only in the secure age-check field or an approved provider journey.", 700),
     maxTurns: integer(record.age_ai_max_turns, 6, 1, 12),
@@ -78,11 +78,11 @@ function offersSensitiveMaterial(message) {
 const KNOWLEDGE = [
   {
     terms: ["why", "16", "minimum", "age", "need"],
-    answer: "Planyx accounts are restricted to people aged 16 or over. The age journey enforces that account rule and applies enhanced privacy and safeguarding defaults to customers aged 16–17. Public information can still be viewed without creating an account.",
+    answer: "Sousa Murray Planeia accounts are restricted to people aged 16 or over. The age journey enforces that account rule and applies enhanced privacy and safeguarding defaults to customers aged 16–17. Public information can still be viewed without creating an account.",
   },
   {
     terms: ["self declaration", "independent", "highly effective", "heaa", "ofcom", "compliant"],
-    answer: "The current Planyx date-of-birth form is a signed self-declaration used to decide account eligibility. It is not independent proof of age and must not be described as Ofcom ‘highly effective age assurance’. Under the Online Safety Act, self-declaration on its own does not count as age verification or age estimation where the Act requires those measures. The ICO also says self-declaration should not be relied on alone for higher-risk services. Whether a stronger check is required depends on the service’s legal scope and documented risk assessment.",
+    answer: "The current Sousa Murray Planeia date-of-birth form is a signed self-declaration used to decide account eligibility. It is not independent proof of age and must not be described as Ofcom ‘highly effective age assurance’. Under the Online Safety Act, self-declaration on its own does not count as age verification or age estimation where the Act requires those measures. The ICO also says self-declaration should not be relied on alone for higher-risk services. Whether a stronger check is required depends on the service’s legal scope and documented risk assessment.",
   },
   {
     terms: ["method", "stronger", "provider", "open banking", "mobile", "mno", "facial", "photo id", "digital identity", "credit card", "email estimation"],
@@ -90,23 +90,23 @@ const KNOWLEDGE = [
   },
   {
     terms: ["open banking", "bank", "bank account"],
-    answer: "An approved open-banking age-check service can use verified banking information to return an age-threshold result. Planyx should receive only the minimum result needed, such as whether the person meets the required age, rather than bank balances, transaction history or a full date of birth.",
+    answer: "An approved open-banking age-check service can use verified banking information to return an age-threshold result. Sousa Murray Planeia should receive only the minimum result needed, such as whether the person meets the required age, rather than bank balances, transaction history or a full date of birth.",
   },
   {
     terms: ["mobile network", "mno", "phone", "adult content block"],
-    answer: "A mobile-network-operator age check may confirm that the network has completed an adult-status check for the mobile account, for example where an adult-content restriction has been removed. It is a provider result, not permission for Planyx to access calls, messages or ordinary mobile-account data.",
+    answer: "A mobile-network-operator age check may confirm that the network has completed an adult-status check for the mobile account, for example where an adult-content restriction has been removed. It is a provider result, not permission for Sousa Murray Planeia to access calls, messages or ordinary mobile-account data.",
   },
   {
     terms: ["face", "facial", "selfie", "photo", "passport", "licence", "document", "digital id"],
-    answer: "A stronger provider may offer facial age estimation, photo-ID matching or a reusable digital identity. Use only the provider’s secure journey. Never send a selfie, passport, driving licence or identity-document image to the Planyx AI guide or ordinary Contact Us form. Planyx should receive a minimal result, reference and expiry rather than retaining provider images.",
+    answer: "A stronger provider may offer facial age estimation, photo-ID matching or a reusable digital identity. Use only the provider’s secure journey. Never send a selfie, passport, driving licence or identity-document image to the Sousa Murray Planeia AI guide or ordinary Contact Us form. Sousa Murray Planeia should receive a minimal result, reference and expiry rather than retaining provider images.",
   },
   {
     terms: ["card", "payment", "debit", "credit"],
-    answer: "Making a payment, holding a debit card or ticking a box is not independent proof of age. Ofcom does not treat payment methods that do not require the user to be over 18, such as ordinary debit-card payments, as highly effective age assurance. A regulated credit-card age check may be suitable for confirming 18+, but it cannot fairly cover eligible Planyx customers aged 16–17.",
+    answer: "Making a payment, holding a debit card or ticking a box is not independent proof of age. Ofcom does not treat payment methods that do not require the user to be over 18, such as ordinary debit-card payments, as highly effective age assurance. A regulated credit-card age check may be suitable for confirming 18+, but it cannot fairly cover eligible Sousa Murray Planeia customers aged 16–17.",
   },
   {
     terms: ["privacy", "store", "data", "birth", "dob", "encrypted", "crm", "retention"],
-    answer: "Enter your date of birth only in the secure field. In the current Planyx process it is encrypted in a restricted age-verification record, masked by default and subject to audited administrator access. The ordinary customer profile uses only the eligibility result, age band and safeguarding status. Provider documents, selfies and secrets should not be stored by Planyx unless strictly necessary and lawfully justified.",
+    answer: "Enter your date of birth only in the secure field. In the current Sousa Murray Planeia process it is encrypted in a restricted age-verification record, masked by default and subject to audited administrator access. The ordinary customer profile uses only the eligibility result, age band and safeguarding status. Provider documents, selfies and secrets should not be stored by Sousa Murray Planeia unless strictly necessary and lawfully justified.",
   },
   {
     terms: ["16", "17", "young", "safeguards", "privacy defaults"],
@@ -114,23 +114,23 @@ const KNOWLEDGE = [
   },
   {
     terms: ["under 16", "15", "14", "child", "too young"],
-    answer: "Nobody under 16 may register for or use a Planyx customer account. The account journey is stopped and any temporary age token is cleared. Do not enter a false date of birth or use another person’s details. Public pages and safety information remain available without an account.",
+    answer: "Nobody under 16 may register for or use a Sousa Murray Planeia customer account. The account journey is stopped and any temporary age token is cleared. Do not enter a false date of birth or use another person’s details. Public pages and safety information remain available without an account.",
   },
   {
     terms: ["failed", "not working", "error", "maintenance", "paused", "retry"],
-    answer: "Read the message shown on the secure age-check page. During maintenance or a registration pause, Planyx blocks new registrations rather than allowing an unverified account through. Refresh once, check that the date is complete and accurate, and try again later. Do not repeatedly submit different dates. If support is available, contact Planyx without attaching identity documents.",
+    answer: "Read the message shown on the secure age-check page. During maintenance or a registration pause, Sousa Murray Planeia blocks new registrations rather than allowing an unverified account through. Refresh once, check that the date is complete and accurate, and try again later. Do not repeatedly submit different dates. If support is available, contact Sousa Murray Planeia without attaching identity documents.",
   },
   {
     terms: ["wrong", "mistake", "correct", "change", "appeal", "review"],
-    answer: "If you entered the wrong date, stop and use the secure process again only with accurate information. Where an eligibility decision appears wrong or an independent provider fails, request a review through the published support route. Do not send identity documents through ordinary email or AI chat; Planyx should provide a secure verification route if evidence is genuinely required.",
+    answer: "If you entered the wrong date, stop and use the secure process again only with accurate information. Where an eligibility decision appears wrong or an independent provider fails, request a review through the published support route. Do not send identity documents through ordinary email or AI chat; Sousa Murray Planeia should provide a secure verification route if evidence is genuinely required.",
   },
   {
     terms: ["microsoft", "sign in", "signup", "account", "email"],
-    answer: "The age check normally happens before Microsoft customer sign-in. Microsoft verifies the customer account identity and email address. The Planyx eligibility declaration or an approved independent provider supplies the separate age result. Microsoft sign-in by itself does not prove age.",
+    answer: "The age check normally happens before Microsoft customer sign-in. Microsoft verifies the customer account identity and email address. The Sousa Murray Planeia eligibility declaration or an approved independent provider supplies the separate age result. Microsoft sign-in by itself does not prove age.",
   },
   {
     terms: ["bypass", "circumvention", "cookies", "inspect", "fake", "false date"],
-    answer: "Do not attempt to bypass the age gate, alter browser data, submit changing dates or use somebody else’s details. Planyx uses server-side signed results and may require a fresh or stronger check where information is inconsistent. False information may lead to registration being refused, access being suspended or an account being closed under the applicable terms.",
+    answer: "Do not attempt to bypass the age gate, alter browser data, submit changing dates or use somebody else’s details. Sousa Murray Planeia uses server-side signed results and may require a fresh or stronger check where information is inconsistent. False information may lead to registration being refused, access being suspended or an account being closed under the applicable terms.",
   },
   {
     terms: ["ai", "chatbot", "guide", "decide", "guess"],
@@ -148,23 +148,23 @@ function builtInAnswer(message, settings, ageAi) {
     .map((item) => ({ item, score: item.terms.reduce((sum, term) => sum + (lower.includes(term) ? 2 : 0), 0) }))
     .sort((a, b) => b.score - a.score)[0];
   const state = settings.serviceStatus === "live"
-    ? `The Planyx age-check service is currently live. The configured method is ${settings.verificationMethod === "independent_provider" ? "an independent provider" : "a signed self-declaration"}.`
+    ? `The Sousa Murray Planeia age-check service is currently live. The configured method is ${settings.verificationMethod === "independent_provider" ? "an independent provider" : "a signed self-declaration"}.`
     : `The age-check service is currently ${settings.serviceStatus}; new registration remains safely blocked.`;
-  const defaultAnswer = "I can explain the Planyx 16+ rule, the current self-declaration, stronger provider methods, privacy, safeguards, maintenance and review routes. I cannot determine or guess anyone’s age.";
+  const defaultAnswer = "I can explain the Sousa Murray Planeia 16+ rule, the current self-declaration, stronger provider methods, privacy, safeguards, maintenance and review routes. I cannot determine or guess anyone’s age.";
   return `${best?.score ? best.item.answer : defaultAnswer}\n\n${state}\n\n${ageAi.guardrailMessage}`;
 }
 
 function systemKnowledge(settings, ageAi) {
-  return `You are the Planyx Age Verification Guide, part of the shared Planyx AI systems. Use clear British English and concise paragraphs.
+  return `You are the Sousa Murray Planeia Age Verification Guide, part of the shared Sousa Murray Planeia AI systems. Use clear British English and concise paragraphs.
 
-Planyx facts:
-- Planyx customer accounts are 16+.
+Sousa Murray Planeia facts:
+- Sousa Murray Planeia customer accounts are 16+.
 - Under-16 registration and account use are prohibited.
 - Ages 16-17 receive mandatory high-privacy and safeguarding defaults.
-- The current signed date-of-birth form is a self-declaration used for Planyx account eligibility. It is not independent proof of age and must not be called Ofcom highly effective age assurance.
+- The current signed date-of-birth form is a self-declaration used for Sousa Murray Planeia account eligibility. It is not independent proof of age and must not be called Ofcom highly effective age assurance.
 - If a stronger check is required, approved methods may include open banking, photo-ID matching, facial age estimation, mobile-network-operator checks, credit-card checks for 18+, email-based age estimation or digital identity services. Explain that effectiveness depends on accurate, robust, reliable and fair implementation.
 - A debit-card payment, ordinary online payment or tick-box is not independent proof of age.
-- Planyx should receive and retain the minimum result needed. Never invite uploads of passports, driving licences, selfies, bank data or payment details into AI chat or Contact Us.
+- Sousa Murray Planeia should receive and retain the minimum result needed. Never invite uploads of passports, driving licences, selfies, bank data or payment details into AI chat or Contact Us.
 - The current secure field encrypts the date of birth in a restricted verification record; the ordinary profile uses eligibility, age band and safeguard status.
 - Microsoft sign-in verifies account identity and email, not age.
 - Do not help users bypass, evade or falsify the age check.
@@ -230,15 +230,15 @@ export async function onRequest(context) {
   let reply = "";
   let source = "age_guard";
   if (containsPersonalBirthDate(message)) {
-    reply = "Please do not send a full date of birth in this guide. Enter it only in the secure Planyx age-check field. The guide does not need and cannot verify that personal information.";
+    reply = "Please do not send a full date of birth in this guide. Enter it only in the secure Sousa Murray Planeia age-check field. The guide does not need and cannot verify that personal information.";
   } else if (offersSensitiveMaterial(message)) {
-    reply = "Do not upload or send identity documents, selfies, bank information or payment details through this guide or the ordinary Contact Us service. Use only a secure approved-provider journey if Planyx specifically requires stronger evidence.";
+    reply = "Do not upload or send identity documents, selfies, bank information or payment details through this guide or the ordinary Contact Us service. Use only a secure approved-provider journey if Sousa Murray Planeia specifically requires stronger evidence.";
   } else if (asksToBypass(message)) {
-    reply = "I cannot help bypass or falsify the Planyx age check. Enter accurate information through the secure journey. Attempts to evade the gate may result in registration being refused, a fresh independent check or account action under the applicable terms.";
+    reply = "I cannot help bypass or falsify the Sousa Murray Planeia age check. Enter accurate information through the secure journey. Attempts to evade the gate may result in registration being refused, a fresh independent check or account action under the applicable terms.";
   } else if (asksAiToDecideAge(message)) {
     reply = ageAi.guardrailMessage;
   } else if (saysUnderSixteen(message)) {
-    reply = "Planyx accounts are strictly for people aged 16 or over. Nobody under 16 may register or use a customer account. Do not enter a false date of birth. Public information and the 16+ safety page remain available without an account.";
+    reply = "Sousa Murray Planeia accounts are strictly for people aged 16 or over. Nobody under 16 may register or use a customer account. Do not enter a false date of birth. Public information and the 16+ safety page remain available without an account.";
   } else {
     reply = await workersAnswer(env, shared, message, history, settings, ageAi);
     source = reply ? "shared_workers_ai" : "age_built_in";

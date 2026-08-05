@@ -160,7 +160,7 @@ export default function DocumentsPage() {
   return (
     <>
       <Helmet>
-        <title>My Documents — Planyx</title>
+        <title>My Documents — Sousa Murray Planeia</title>
       </Helmet>
       <DashboardLayout>
         <div className="p-6 max-w-5xl mx-auto space-y-6">

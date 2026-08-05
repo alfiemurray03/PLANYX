@@ -43,7 +43,7 @@ export default function NotFoundPage() {
     return (
       <>
         <Helmet>
-          <title>{page.seo_title || `${page.title} — Planyx`}</title>
+          <title>{page.seo_title || `${page.title} — Sousa Murray Planeia`}</title>
           {page.seo_description && <meta name="description" content={page.seo_description} />}
           <meta name="robots" content={page.noindex ? 'noindex, nofollow' : 'index, follow'} />
           {page.css && <style>{page.css}</style>}
@@ -56,7 +56,7 @@ export default function NotFoundPage() {
   return (
     <>
       <Helmet>
-        <title>Page Not Found — Planyx</title>
+        <title>Page Not Found — Sousa Murray Planeia</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <div className="flex flex-col items-center justify-center py-24 px-4 text-center">

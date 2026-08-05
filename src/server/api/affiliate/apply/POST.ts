@@ -53,7 +53,7 @@ export default async function handler(req: Request, res: Response) {
     try {
       await sendEmail({
         to: 'hello@jagroupservices.co.uk',
-        subject: 'New Affiliate Application — Planyx',
+        subject: 'New Affiliate Application — Sousa Murray Planeia',
         html: `
           <h2>New Affiliate Application</h2>
           <p><strong>Name:</strong> ${fullName}</p>
@@ -61,7 +61,7 @@ export default async function handler(req: Request, res: Response) {
           ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
           ${website ? `<p><strong>Website:</strong> ${website}</p>` : ''}
           ${referralMethod ? `<p><strong>Referral method:</strong> ${referralMethod}</p>` : ''}
-          <p>Review this application in the <a href="https://planyx.jagroupservices.co.uk/admin/affiliate">Admin Portal</a>.</p>
+          <p>Review this application in the <a href="https://sousamurrayplaneia.jagroupservices.co.uk/admin/affiliate">Admin Portal</a>.</p>
         `,
       });
     } catch { /* non-fatal */ }
@@ -70,10 +70,10 @@ export default async function handler(req: Request, res: Response) {
     try {
       await sendEmail({
         to: email,
-        subject: 'Affiliate Application Received — Planyx',
+        subject: 'Affiliate Application Received — Sousa Murray Planeia',
         html: `
           <h2>Thank you for applying, ${fullName}!</h2>
-          <p>We've received your affiliate application for Planyx.</p>
+          <p>We've received your affiliate application for Sousa Murray Planeia.</p>
           <p>Our team will review your application and get back to you within 3–5 business days.</p>
           <p>If you have any questions in the meantime, please contact us at <a href="mailto:hello@jagroupservices.co.uk">hello@jagroupservices.co.uk</a>.</p>
           <br/>

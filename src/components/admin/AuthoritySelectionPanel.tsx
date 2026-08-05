@@ -195,7 +195,7 @@ export default function AuthoritySelectionPanel({ reportType, onSelect }: {
     const emailInput = document.getElementById('user-email');
     const email = emailInput instanceof HTMLInputElement ? emailInput.value.trim() : '';
     if (!email) {
-      setError('Link or enter a Planyx user in Section 2 before using the account-address fallback.');
+      setError('Link or enter a Sousa Murray Planeia user in Section 2 before using the account-address fallback.');
       return;
     }
     setLoadingLinkedAddress(true);
@@ -209,8 +209,8 @@ export default function AuthoritySelectionPanel({ reportType, onSelect }: {
       const linkedPostcode = normalisePostcode(payload.user.address?.postcode || '');
       if (!linkedPostcode) throw new Error('The linked user does not have a billing or account postcode. Enter and verify the relevant person’s postcode manually.');
       setPostcode(linkedPostcode);
-      setPostcodeSource(`${payload.user.addressSource || 'Linked Planyx account address'} for ${payload.user.name}`);
-      setMessage(`Loaded ${linkedPostcode} from ${payload.user.addressSource || 'the linked Planyx account'}. Verify that this is the relevant person’s address before resolving an authority.`);
+      setPostcodeSource(`${payload.user.addressSource || 'Linked Sousa Murray Planeia account address'} for ${payload.user.name}`);
+      setMessage(`Loaded ${linkedPostcode} from ${payload.user.addressSource || 'the linked Sousa Murray Planeia account'}. Verify that this is the relevant person’s address before resolving an authority.`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'The linked user postcode could not be loaded.');
     } finally {

@@ -258,8 +258,8 @@ function fallbackPlan(prompt, targetPath) {
       warnings: ["Workers AI was unavailable, so a safe starter page was prepared. Review the HTML and CSS before publishing."],
       operations: [{
         type: "create_page", path, title, status: "published", noindex: false,
-        seoTitle: `${title} — Planyx`, seoDescription: "",
-        html: `<main class="managed-page"><section class="managed-page__hero"><p class="managed-page__eyebrow">Planyx</p><h1>${title.replace(/[<>&]/g, "")}</h1><p>Edit this page in the AI Website Builder.</p></section></main>`,
+        seoTitle: `${title} — Sousa Murray Planeia`, seoDescription: "",
+        html: `<main class="managed-page"><section class="managed-page__hero"><p class="managed-page__eyebrow">Sousa Murray Planeia</p><h1>${title.replace(/[<>&]/g, "")}</h1><p>Edit this page in the AI Website Builder.</p></section></main>`,
         css: ".managed-page{max-width:72rem;margin:0 auto;padding:4rem 1.5rem}.managed-page__hero{padding:3rem;border-radius:1.5rem;background:#eff6ff}.managed-page__eyebrow{font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#2563eb}",
       }],
     };
@@ -271,7 +271,7 @@ async function generateWithAi(env, prompt, targetPath, currentInventory) {
   if (!env.AI?.run) return fallbackPlan(prompt, targetPath);
   const model = clean(env.WEBSITE_BUILDER_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast", 180);
   const pages = currentInventory.pages.map((page) => ({ path: page.path, title: page.title, status: page.status }));
-  const system = `You are the Planyx AI Website Builder for JA Group Services Ltd. Convert an administrator request into a precise JSON change plan. British English. Output JSON only.
+  const system = `You are the Sousa Murray Planeia AI Website Builder for JA Group Services Ltd. Convert an administrator request into a precise JSON change plan. British English. Output JSON only.
 
 Allowed operations: create_page, update_page, delete_page, set_global_css, set_page_css, replace_text, replace_html, append_html, hide, set_attribute, add_class.
 

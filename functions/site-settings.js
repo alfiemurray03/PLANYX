@@ -24,9 +24,9 @@ async function settingMap(DB, keys, defaults = {}) {
 }
 
 const browserDefaults = {
-  browser_tab_name: "Planyx",
-  admin_tab_name: "Planyx Admin Portal",
-  favicon_url: "/favicon.svg?v=20260718-4",
+  browser_tab_name: "Sousa Murray Planeia",
+  admin_tab_name: "Sousa Murray Planeia Admin Portal",
+  favicon_url: "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E",
   admin_theme_mode: "light"
 };
 

@@ -388,7 +388,7 @@ async function providerSettings(DB, env) {
     provider: (stored.email_provider || env.EMAIL_PROVIDER || "resend").toLowerCase(),
     apiKey: stored.email_api_key || env.EMAIL_API_TOKEN || env.RESEND_API_KEY || env.SENDGRID_API_KEY || env.POSTMARK_API_KEY || env.BREVO_API_KEY || "",
     endpoint: stored.email_api_endpoint || env.EMAIL_API_ENDPOINT || "",
-    fromName: stored.smtp_from_name || "Planyx",
+    fromName: stored.smtp_from_name || "Sousa Murray Planeia",
     fromEmail: stored.smtp_from_email || env.ENQUIRY_FROM_EMAIL || "noreply@jagroupservices.co.uk",
     adminEmail: stored.admin_notification_email || env.ADMIN_NOTIFICATION_EMAIL || env.ENQUIRY_TO_EMAIL || ""
   };
@@ -431,7 +431,7 @@ async function sendProviderEmail(DB, env, message) {
 
 function brandedEmail(title, paragraphs, details = []) {
   const detailHtml = details.length ? `<table role="presentation" style="border-collapse:collapse;width:100%;margin:20px 0">${details.map(([label, value]) => `<tr><th style="padding:9px;text-align:left;vertical-align:top;background:#f1f5f9;border:1px solid #cbd5e1">${escapeHtml(label)}</th><td style="padding:9px;white-space:pre-wrap;border:1px solid #cbd5e1">${escapeHtml(value || "Not provided")}</td></tr>`).join("")}</table>` : "";
-  return `<!doctype html><html lang="en-GB"><body style="margin:0;background:#f8fafc;color:#0f172a;font-family:Arial,sans-serif"><div style="max-width:720px;margin:0 auto;padding:28px"><div style="background:#1d4ed8;color:#fff;padding:20px;border-radius:12px 12px 0 0"><strong>Planyx</strong></div><main style="background:#fff;border:1px solid #cbd5e1;border-top:0;padding:24px;border-radius:0 0 12px 12px"><h1 style="font-size:24px">${escapeHtml(title)}</h1>${paragraphs.map((paragraph) => `<p style="line-height:1.6">${escapeHtml(paragraph)}</p>`).join("")}${detailHtml}<p style="line-height:1.6">Kind regards,<br>Planyx<br>JA Group Services Ltd</p></main></div></body></html>`;
+  return `<!doctype html><html lang="en-GB"><body style="margin:0;background:#f8fafc;color:#0f172a;font-family:Arial,sans-serif"><div style="max-width:720px;margin:0 auto;padding:28px"><div style="background:#1d4ed8;color:#fff;padding:20px;border-radius:12px 12px 0 0"><strong>Sousa Murray Planeia</strong></div><main style="background:#fff;border:1px solid #cbd5e1;border-top:0;padding:24px;border-radius:0 0 12px 12px"><h1 style="font-size:24px">${escapeHtml(title)}</h1>${paragraphs.map((paragraph) => `<p style="line-height:1.6">${escapeHtml(paragraph)}</p>`).join("")}${detailHtml}<p style="line-height:1.6">Kind regards,<br>Sousa Murray Planeia<br>JA Group Services Ltd</p></main></div></body></html>`;
 }
 
 async function deliverNotification(DB, env, notification) {
@@ -463,14 +463,14 @@ export async function sendNewEnquiryNotifications(DB, env, reference) {
   const adminOk = await deliverNotification(DB, env, {
     reference, type: "new_admin_notification", to: adminSettings.adminEmail, replyTo: enquiry.email,
     subject: `${reference}: New ${enquiry.category} enquiry from ${enquiry.name}`,
-    text: `A new enquiry has been received.\n\nReference: ${reference}\nCustomer: ${enquiry.name}\nEmail: ${enquiry.email}\nTelephone: ${enquiry.telephone || "Not provided"}\nSubject: ${enquiry.subject}\nCategory: ${enquiry.category}\nBooking reference: ${enquiry.booking_reference || "Not provided"}\nOrder reference: ${enquiry.order_reference || "Not provided"}\n\n${enquiry.message}\n\nAdministrator: https://planyx.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`,
-    html: brandedEmail("New customer enquiry", ["A new customer enquiry has been received.", `Open it in the Administrator Control Centre: https://planyx.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`], adminDetails)
+    text: `A new enquiry has been received.\n\nReference: ${reference}\nCustomer: ${enquiry.name}\nEmail: ${enquiry.email}\nTelephone: ${enquiry.telephone || "Not provided"}\nSubject: ${enquiry.subject}\nCategory: ${enquiry.category}\nBooking reference: ${enquiry.booking_reference || "Not provided"}\nOrder reference: ${enquiry.order_reference || "Not provided"}\n\n${enquiry.message}\n\nAdministrator: https://sousamurrayplaneia.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`,
+    html: brandedEmail("New customer enquiry", ["A new customer enquiry has been received.", `Open it in the Administrator Control Centre: https://sousamurrayplaneia.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`], adminDetails)
   });
   const customerOk = await deliverNotification(DB, env, {
     reference, type: "customer_confirmation", to: enquiry.email,
     subject: `${reference}: We have received your enquiry`,
-    text: `Hello ${enquiry.name},\n\nThank you for contacting Planyx. We have received your enquiry.\n\nReference: ${reference}\nExpected response time: within 2 working days.\n\nView My Enquiries: https://planyx.jagroupservices.co.uk/account/enquiries/`,
-    html: brandedEmail("We have received your enquiry", [`Hello ${enquiry.name},`, "Thank you for contacting us. We have received your enquiry and normally respond within 2 working days.", `Your reference is ${reference}.`, "View My Enquiries: https://planyx.jagroupservices.co.uk/account/enquiries/"])
+    text: `Hello ${enquiry.name},\n\nThank you for contacting Sousa Murray Planeia. We have received your enquiry.\n\nReference: ${reference}\nExpected response time: within 2 working days.\n\nView My Enquiries: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/`,
+    html: brandedEmail("We have received your enquiry", [`Hello ${enquiry.name},`, "Thank you for contacting us. We have received your enquiry and normally respond within 2 working days.", `Your reference is ${reference}.`, "View My Enquiries: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/"])
   });
   const status = adminOk && customerOk ? "Sent" : adminOk || customerOk ? "Partially failed" : "Failed";
   await DB.prepare(`UPDATE enquiries SET notification_status = ?, updated_at = CURRENT_TIMESTAMP WHERE reference = ?`).bind(status, reference).run();
@@ -524,17 +524,17 @@ export async function updateEnquiryAsAdmin(DB, env, body, identity) {
     await DB.prepare(`INSERT INTO enquiry_messages (id, enquiry_reference, author_type, author_email, message, is_internal, notification_status) VALUES (?, ?, 'administrator', ?, ?, 0, 'Pending')`).bind(messageId, reference, identity.email, reply).run();
     const ok = await deliverNotification(DB, env, {
       reference, messageId, type: status === "Awaiting Customer" ? "additional_information_requested" : "administrator_reply", to: current.email,
-      subject: `${reference}: Reply from Planyx`,
-      text: `Hello ${current.name},\n\n${reply}\n\nStatus: ${status}\nReference: ${reference}\n\nContinue the conversation: https://planyx.jagroupservices.co.uk/account/enquiries/`,
-      html: brandedEmail("We have replied to your enquiry", [`Hello ${current.name},`, reply, `Status: ${status}`, `Reference: ${reference}`, "Continue the conversation: https://planyx.jagroupservices.co.uk/account/enquiries/"])
+      subject: `${reference}: Reply from Sousa Murray Planeia`,
+      text: `Hello ${current.name},\n\n${reply}\n\nStatus: ${status}\nReference: ${reference}\n\nContinue the conversation: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/`,
+      html: brandedEmail("We have replied to your enquiry", [`Hello ${current.name},`, reply, `Status: ${status}`, `Reference: ${reference}`, "Continue the conversation: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/"])
     });
     await DB.prepare(`UPDATE enquiry_messages SET notification_status = ? WHERE id = ?`).bind(ok ? "Sent" : "Failed", messageId).run();
   } else if (status !== current.status) {
     await deliverNotification(DB, env, {
       reference, type: status === "Resolved" ? "enquiry_resolved" : status === "Closed" ? "enquiry_closed" : status === "Awaiting Customer" ? "additional_information_requested" : "status_change", to: current.email,
       subject: `${reference}: Enquiry status updated to ${status}`,
-      text: `Hello ${current.name},\n\nThe status of your enquiry is now ${status}.\n\nReference: ${reference}\n\nView My Enquiries: https://planyx.jagroupservices.co.uk/account/enquiries/`,
-      html: brandedEmail("Your enquiry status has changed", [`Hello ${current.name},`, `The status of your enquiry is now ${status}.`, `Reference: ${reference}`, "View My Enquiries: https://planyx.jagroupservices.co.uk/account/enquiries/"])
+      text: `Hello ${current.name},\n\nThe status of your enquiry is now ${status}.\n\nReference: ${reference}\n\nView My Enquiries: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/`,
+      html: brandedEmail("Your enquiry status has changed", [`Hello ${current.name},`, `The status of your enquiry is now ${status}.`, `Reference: ${reference}`, "View My Enquiries: https://sousamurrayplaneia.jagroupservices.co.uk/account/enquiries/"])
     });
   }
   return getEnquiryThread(DB, reference, true);
@@ -564,8 +564,8 @@ export async function addCustomerReply(DB, env, reference, email, message) {
   const ok = await deliverNotification(DB, env, {
     reference, messageId, type: "customer_reply", to: settings.adminEmail, replyTo: email,
     subject: `${reference}: Customer reply from ${thread.enquiry.name}`,
-    text: `${thread.enquiry.name} replied to enquiry ${reference}:\n\n${reply}\n\nAdministrator: https://planyx.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`,
-    html: brandedEmail("Customer reply received", [`${thread.enquiry.name} replied to enquiry ${reference}.`, reply, `Open in the Administrator Control Centre: https://planyx.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`])
+    text: `${thread.enquiry.name} replied to enquiry ${reference}:\n\n${reply}\n\nAdministrator: https://sousamurrayplaneia.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`,
+    html: brandedEmail("Customer reply received", [`${thread.enquiry.name} replied to enquiry ${reference}.`, reply, `Open in the Administrator Control Centre: https://sousamurrayplaneia.jagroupservices.co.uk/admin/?section=enquiries&reference=${encodeURIComponent(reference)}`])
   });
   await DB.prepare(`UPDATE enquiry_messages SET notification_status = ? WHERE id = ?`).bind(ok ? "Sent" : "Failed", messageId).run();
   return getCustomerEnquiry(DB, reference, email);

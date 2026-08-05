@@ -12,7 +12,7 @@ export const DEFAULT_AGE_VERIFICATION_SETTINGS = Object.freeze({
   allowExistingVerifiedAccess: true,
   designVariant: "standard",
   publicHeading: "Confirm you are aged 16 or over",
-  publicDescription: "Planyx is a 16+ planning service. Complete the age check before creating or using an account.",
+  publicDescription: "Sousa Murray Planeia is a 16+ planning service. Complete the age check before creating or using an account.",
   buttonLabel: "Confirm age and continue",
   maintenanceHeading: "Age verification is temporarily unavailable",
   maintenanceMessage: "New registrations are paused while the age-verification service is maintained. Existing verified customers may continue to sign in.",

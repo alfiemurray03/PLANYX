@@ -355,7 +355,7 @@ export default function EmailBuilder() {
   return (
     <>
       <Helmet>
-        <title>Email Builder — Planyx</title>
+        <title>Email Builder — Sousa Murray Planeia</title>
         <meta name="description" content="Create professional emails with structured sections, variable placeholders, and email-style preview." />
       </Helmet>
       <DashboardLayout noPadding>

@@ -29,7 +29,7 @@ function readSettings(): PreviewSettings {
   return {
     designVariant: design === 'compact' || design === 'assurance' ? design : 'standard',
     publicHeading: fieldValue('age-heading', 'Confirm you are aged 16 or over'),
-    publicDescription: fieldValue('age-description', 'Enter your date of birth so Planyx can apply the correct account access and privacy settings.'),
+    publicDescription: fieldValue('age-description', 'Enter your date of birth so Sousa Murray Planeia can apply the correct account access and privacy settings.'),
     buttonLabel: fieldValue('age-button', 'Confirm age and continue'),
     maintenanceHeading: fieldValue('maintenance-heading', 'Age verification is temporarily unavailable'),
     maintenanceMessage: fieldValue('maintenance-message', 'New registrations are paused while the age-verification service is maintained.'),
@@ -143,7 +143,7 @@ function ActualCustomerPreview() {
         <iframe
           ref={frameRef}
           src="/age-check?return_to=%2Fdashboard&admin_preview=1"
-          title="Actual Planyx customer age-check page preview"
+          title="Actual Sousa Murray Planeia customer age-check page preview"
           className="block h-[720px] w-full border-0 bg-transparent"
           onLoad={syncPreview}
         />

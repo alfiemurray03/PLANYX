@@ -34,7 +34,7 @@ export default async function handler(req: Request, res: Response) {
       tenantId:          ADMIN_OIDC_TENANT_ID,
       clientId:          ADMIN_OIDC_CLIENT_ID,
       clientSecretSet:   hasSecret,
-      redirectUri:       'https://planyx.jagroupservices.co.uk/auth/admin/oidc/callback',
+      redirectUri:       'https://sousamurrayplaneia.jagroupservices.co.uk/auth/admin/oidc/callback',
       discoveryEndpoint: `https://login.microsoftonline.com/${ADMIN_OIDC_TENANT_ID}/v2.0/.well-known/openid-configuration`,
       tenantName:        'JA Group Services Ltd',
     },

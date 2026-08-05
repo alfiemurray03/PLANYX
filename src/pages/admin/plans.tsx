@@ -367,7 +367,7 @@ export default function AdminPlansPage() {
   return (
     <>
       <Helmet>
-        <title>Subscription Plans - Planyx Admin Centre</title>
+        <title>Subscription Plans - Sousa Murray Planeia Admin Centre</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <AdminLayout title="Subscription Plans" subtitle="Edit Standard and Business plan catalogues, availability and Stripe billing references">

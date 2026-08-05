@@ -5,13 +5,13 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
 
-test('new customer age decisions are owned by Head Office and do not create Planyx DOB records', async () => {
+test('new customer age decisions are owned by Head Office and do not create Sousa Murray Planeia DOB records', async () => {
   const ageCheck = await read('functions/age-check.js');
   const callback = await read('functions/account/auth/callback.js');
   const central = await read('functions/_shared/customerops-central.js');
   const bridge = await read('functions/api/head-office-age-assurance.js');
 
-  assert.match(ageCheck, /retired Planyx self-declaration token/);
+  assert.match(ageCheck, /retired Sousa Murray Planeia self-declaration token/);
   assert.doesNotMatch(ageCheck, /createAgeVerificationRecord|dateOfBirth|createAgeAssurance/);
   assert.match(callback, /syncCustomerWithHeadOffice/);
   assert.match(callback, /issueCustomerAgeChallenge/);
@@ -49,7 +49,7 @@ test('Customer CRM masks retained legacy DOB records and requires an audited Adm
 
 test('customer-facing central journey explains data minimisation and staff separation', async () => {
   const page = await read('public/account/verification-required/index.html');
-  assert.match(page, /Planyx does not receive Didit’s API key, identity documents or biometric evidence/);
+  assert.match(page, /Sousa Murray Planeia does not receive Didit’s API key, identity documents or biometric evidence/);
   assert.match(page, /customer account and Unique Customer Number/);
   assert.match(page, /does not affect staff accounts, staff numbers, Microsoft staff sign-in or Head Office staff access/);
   assert.match(page, /Only the signed Didit webhook received by Head Office can approve/);

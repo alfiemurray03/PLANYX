@@ -43,9 +43,9 @@ const DEFAULTS: AgeAiSettings = {
   failureSupportEnabled: true,
   contactHandoverEnabled: false,
   debugEnabled: false,
-  welcomeMessage: 'Hello. I can explain Planyx’s 16+ age check, privacy safeguards and what to do if verification is not working. I cannot guess or approve anyone’s age.',
+  welcomeMessage: 'Hello. I can explain Sousa Murray Planeia’s 16+ age check, privacy safeguards and what to do if verification is not working. I cannot guess or approve anyone’s age.',
   inputPlaceholder: 'Ask about the 16+ age check…',
-  guardrailMessage: 'Only the secure Planyx age check or an approved independent provider can decide account eligibility. The AI assistant cannot estimate, approve or override age verification.',
+  guardrailMessage: 'Only the secure Sousa Murray Planeia age check or an approved independent provider can decide account eligibility. The AI assistant cannot estimate, approve or override age verification.',
   maxTurns: 6,
 };
 
@@ -103,7 +103,7 @@ export default function AgeVerificationAIControl() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
-  const [testQuestion, setTestQuestion] = useState('Why does Planyx need an age check?');
+  const [testQuestion, setTestQuestion] = useState('Why does Sousa Murray Planeia need an age check?');
   const [testReply, setTestReply] = useState('');
   const [testing, setTesting] = useState(false);
 
@@ -172,7 +172,7 @@ export default function AgeVerificationAIControl() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white"><Sparkles className="h-5 w-5" /></span>
-          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-black text-foreground">Age Verification AI</h2><Badge className={settings.enabled ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-700'}>{settings.enabled ? 'Enabled' : 'Off'}</Badge><Badge variant="outline">{statusLabel}</Badge></div><p className="mt-1 text-sm leading-6 text-muted-foreground">AI guidance for the 16+ journey, powered by the shared Planyx AI engine. The AI explains and supports; it never decides age eligibility.</p></div>
+          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-black text-foreground">Age Verification AI</h2><Badge className={settings.enabled ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-700'}>{settings.enabled ? 'Enabled' : 'Off'}</Badge><Badge variant="outline">{statusLabel}</Badge></div><p className="mt-1 text-sm leading-6 text-muted-foreground">AI guidance for the 16+ journey, powered by the shared Sousa Murray Planeia AI engine. The AI explains and supports; it never decides age eligibility.</p></div>
         </div>
         <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" onClick={() => void load()} disabled={loading}><RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Refresh</Button><Button type="button" size="sm" onClick={() => void save()} disabled={saving || loading}>{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}Save Age AI</Button><Button asChild type="button" variant="outline" size="sm"><Link to="/admin/age-verification">Full age controls<ExternalLink className="ml-2 h-4 w-4" /></Link></Button></div>
       </div>

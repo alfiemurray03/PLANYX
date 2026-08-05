@@ -216,8 +216,8 @@ function deterministicFaqPlan(body) {
   const selector = likelyFaqSelector(body.pageSnapshot);
   const css = `.planyx-ai-faq{position:relative;max-width:76rem;margin-inline:auto;padding:clamp(2rem,5vw,4.5rem) clamp(1rem,3vw,2rem);color:#0b172d}.planyx-ai-faq>h2,.planyx-ai-faq>header,.planyx-ai-faq>[class*="heading"]{grid-column:1/-1}.planyx-ai-faq>div:last-child,.planyx-ai-faq [class*="faq-list"],.planyx-ai-faq [class*="faq-grid"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}.planyx-ai-faq details{overflow:hidden;border:1px solid #dbe5f3;border-radius:1.125rem;background:#fff;box-shadow:0 10px 30px rgba(11,23,45,.06);transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}.planyx-ai-faq details:hover{border-color:#9dbcf8;box-shadow:0 16px 38px rgba(40,100,232,.10);transform:translateY(-1px)}.planyx-ai-faq summary{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:4.5rem;padding:1.15rem 3.4rem 1.15rem 1.25rem;cursor:pointer;list-style:none;font-weight:750;line-height:1.35;color:#0b172d}.planyx-ai-faq summary::-webkit-details-marker{display:none}.planyx-ai-faq summary::after{content:"+";position:absolute;right:1.2rem;top:50%;display:grid;width:1.8rem;height:1.8rem;translate:0 -50%;place-items:center;border-radius:999px;background:#eef4ff;color:#2864e8;font-size:1.25rem;font-weight:500;transition:rotate .2s ease,background .2s ease}.planyx-ai-faq details[open] summary::after{content:"−";background:#2864e8;color:#fff}.planyx-ai-faq details[open] summary{border-bottom:1px solid #e7edf6}.planyx-ai-faq details>:not(summary){margin:0;padding:1rem 1.25rem 1.3rem;color:#475569;line-height:1.75}.planyx-ai-faq summary:focus-visible{outline:3px solid rgba(34,199,217,.45);outline-offset:-3px}.planyx-ai-faq a{color:#2864e8;text-underline-offset:3px}@media(max-width:760px){.planyx-ai-faq{padding-block:2.5rem}.planyx-ai-faq>div:last-child,.planyx-ai-faq [class*="faq-list"],.planyx-ai-faq [class*="faq-grid"]{grid-template-columns:1fr}.planyx-ai-faq summary{min-height:4rem;padding:1rem 3.1rem 1rem 1rem}.planyx-ai-faq details>:not(summary){padding:1rem}}`;
   return {
-    reply: "I have applied a polished Planyx FAQ treatment to the existing questions without replacing their content. The draft now uses responsive boxed accordion cards, a two-column desktop layout and a single-column mobile layout.",
-    summary: "Restyle the existing FAQ as polished responsive Planyx accordion cards.",
+    reply: "I have applied a polished Sousa Murray Planeia FAQ treatment to the existing questions without replacing their content. The draft now uses responsive boxed accordion cards, a two-column desktop layout and a single-column mobile layout.",
+    summary: "Restyle the existing FAQ as polished responsive Sousa Murray Planeia accordion cards.",
     warnings: ["The selector was chosen from the available preview structure. Check the desktop and mobile preview before publishing."],
     operations: [
       { type: "add_class", path: targetPath, selector, value: "planyx-ai-faq" },
@@ -250,7 +250,7 @@ async function requestFullCapabilityPlan(env, body, payload, attempt = 1) {
   const snapshot = clean(body.pageSnapshot, 22000) || "No preview snapshot supplied.";
   const model = COMPLEX_MODEL;
   const sourceRequest = sourceLevelIntent(message);
-  const system = `You are the senior AI website engineer and product designer for Planyx, operated by JA Group Services Ltd. Carry out the administrator's website request as completely as possible.
+  const system = `You are the senior AI website engineer and product designer for Sousa Murray Planeia, operated by JA Group Services Ltd. Carry out the administrator's website request as completely as possible.
 
 Return exactly one JSON object and nothing else.
 Schema: {"reply":"Natural concise acknowledgement","summary":"Complete draft summary","warnings":[],"operations":[...]}
@@ -260,7 +260,7 @@ CAPABILITY RULES:
 - You can rewrite content, redesign sections, add/remove/move visible content by replacing the relevant parent block, create and delete managed pages, change responsive styling, navigation presentation, calls to action, forms' presentation, metadata on managed pages and customer-portal presentation.
 - Preserve valid earlier draft operations unless the administrator asks to replace or remove them.
 - Use selectors evidenced by the snapshot. If moving an element, replace the smallest stable parent container with the complete reordered accessible markup.
-- For visual work, return substantial route CSS with a mobile @media rule. Use semantic HTML, reusable planyx-/px- classes, clear spacing, restrained borders/shadows and the Planyx palette (#0b172d, #2864e8, #22c7d9, #7c3aed, white and slate).
+- For visual work, return substantial route CSS with a mobile @media rule. Use semantic HTML, reusable planyx-/px- classes, clear spacing, restrained borders/shadows and the Sousa Murray Planeia palette (#0b172d, #2864e8, #22c7d9, #7c3aed, white and slate).
 - FAQ work must preserve existing factual content where possible and use accessible details/summary cards or an equivalently accessible pattern.
 - Never produce loose text as a finished visual component.
 - Do not alter unrelated sections.

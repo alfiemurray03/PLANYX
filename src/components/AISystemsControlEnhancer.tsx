@@ -120,7 +120,7 @@ export default function AISystemsControlEnhancer() {
       const headingContainer = pageHeading?.parentElement?.parentElement;
       const subtitle = headingContainer?.querySelector('p');
       if (subtitle && /Manage the assistant, published content and customer conversations/i.test(text(subtitle))) {
-        subtitle.textContent = 'Manage Planyx support, contact, age-verification and future AI systems from one governed control centre.';
+        subtitle.textContent = 'Manage Sousa Murray Planeia support, contact, age-verification and future AI systems from one governed control centre.';
       }
 
       const nav = document.querySelector<HTMLElement>('nav[aria-label="Chatbot settings sections"], nav[aria-label="AI systems settings sections"]');

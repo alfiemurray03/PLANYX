@@ -30,7 +30,7 @@ async function redirectToCentralJourney(request) {
     "Referrer-Policy": "no-referrer",
     "X-Robots-Tag": "noindex, nofollow"
   });
-  // Clear the retired Planyx self-declaration token. Head Office is now the
+  // Clear the retired Sousa Murray Planeia self-declaration token. Head Office is now the
   // sole customer age-assurance authority.
   headers.append("Set-Cookie", expireAgeAssuranceCookie());
   return new Response(null, { status: 303, headers });

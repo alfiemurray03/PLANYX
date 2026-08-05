@@ -5,7 +5,7 @@ export async function onRequestGet(context) {
   try {
     // Customer age assurance is now governed centrally by Head Office after
     // Microsoft has resolved the customer identity and UCN. Do not put the
-    // retired Planyx self-declaration page in front of customer sign-in.
+    // retired Sousa Murray Planeia self-declaration page in front of customer sign-in.
     const response = await beginLogin(context, "customer");
 
     try {
