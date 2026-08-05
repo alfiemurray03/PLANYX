@@ -1,46 +1,35 @@
-name: Sousa Murray Planeia rebrand snapshot
+name: Apply Sousa Murray Planeia rebrand
 
 on:
   pull_request:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  snapshot:
+  apply-rebrand:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Audit current public branding
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+      - name: Apply approved Planeia rebrand
         shell: bash
         run: |
-          echo "=== PLANYX REFERENCES ==="
-          grep -RInE \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules \
-            --exclude-dir=dist \
-            --exclude='package-lock.json' \
-            --exclude='planeia-rebrand-snapshot.yml' \
-            'Planyx|PLANYX|planyx\.jagroupservices\.co\.uk|planyx@jagroupservices\.co\.uk' \
-            src static public functions scripts index.html package.json README.md docs 2>/dev/null || true
-          echo "=== END REFERENCES ==="
-      - name: Upload source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: planyx-source
-          path: |
-            src
-            static
-            public
-            functions
-            scripts
-            docs
-            index.html
-            package.json
-            package-lock.json
-            tsconfig*.json
-            vite.config.*
-            tailwind.config.*
-            wrangler.toml
-            README.md
-          if-no-files-found: error
-          retention-days: 1
+          set -euo pipefail
+          python .github/apply-planeia-rebrand.py
+          find functions scripts static -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Commit rebranded website
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/apply-planeia-rebrand.py
+          rm .github/workflows/planeia-rebrand-snapshot.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Rebrand Planyx as Sousa Murray Planeia"
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
