@@ -48,7 +48,7 @@ assert.match(runtime, /headerBackground/);
 assert.match(runtime, /panelWidth/);
 assert.match(runtime, /assistantEnabled/);
 assert.doesNotMatch(runtime, /return <AtlassianCustomerServiceWidget/);
-assert.match(client, /Planyx Support Assistant/);
+assert.match(client, /Sousa Murray Planeia Support Assistant/);
 assert.match(client, /Head Office/);
 
-console.log('Planyx Head Office Customer Service connection diagnostics and controls checks passed.');
+console.log('Sousa Murray Planeia Head Office Customer Service connection diagnostics and controls checks passed.');
