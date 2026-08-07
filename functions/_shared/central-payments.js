@@ -99,7 +99,7 @@ export async function createPlaneiaCentralCheckout(env, DB, identity, planId, ac
       priceCode: plan.priceCode,
       orderReference,
       serviceReference: `${accountType || "individual"}:${planId}`,
-      successUrl: `${siteUrl}/payment-success/?central_payment={CHECKOUT_SESSION_ID}`,
+      successUrl: `${siteUrl}/payment-success/?central_payment=success`,
       cancelUrl: `${siteUrl}/pricing/?payment=cancelled`,
     },
   });
