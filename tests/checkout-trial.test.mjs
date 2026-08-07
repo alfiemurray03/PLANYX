@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { onRequestGet } from '../functions/create-checkout-session.js';
 
 const PLAN_DETAILS = {
-  personal: ['Explore Plan', 599, 'individual'],
-  standard: ['Plan Plan', 799, 'individual'],
-  professional: ['Complete Plan', 1499, 'individual'],
-  org_starter: ['Together Plan', 3999, 'individual'],
-  business_personal: ['Explore Plan', 599, 'organisation'],
-  business_standard: ['Plan Plan', 799, 'organisation'],
-  business_professional: ['Complete Plan', 1499, 'organisation'],
-  business_org_starter: ['Together Plan', 3999, 'organisation'],
+  personal: ['PLANEIA_EXPLORE', 'PLANEIA_EXPLORE_MONTHLY', 'individual'],
+  standard: ['PLANEIA_PLAN', 'PLANEIA_PLAN_MONTHLY', 'individual'],
+  professional: ['PLANEIA_COMPLETE', 'PLANEIA_COMPLETE_MONTHLY', 'individual'],
+  org_starter: ['PLANEIA_TOGETHER', 'PLANEIA_TOGETHER_MONTHLY', 'individual'],
+  business_personal: ['PLANEIA_BUSINESS_EXPLORE', 'PLANEIA_BUSINESS_EXPLORE_MONTHLY', 'organisation'],
+  business_standard: ['PLANEIA_BUSINESS_PLAN', 'PLANEIA_BUSINESS_PLAN_MONTHLY', 'organisation'],
+  business_professional: ['PLANEIA_BUSINESS_COMPLETE', 'PLANEIA_BUSINESS_COMPLETE_MONTHLY', 'organisation'],
+  business_org_starter: ['PLANEIA_BUSINESS_TOGETHER', 'PLANEIA_BUSINESS_TOGETHER_MONTHLY', 'organisation'],
 };
 
 const OIDC_ENV = {
@@ -18,7 +18,8 @@ const OIDC_ENV = {
   CUSTOMER_OIDC_CLIENT_ID: 'client',
   CUSTOMER_OIDC_CLIENT_SECRET: 'secret',
   CUSTOMEROPS_BASE_URL: 'https://customerops.example.test',
-  CUSTOMEROPS_API_KEY: 'platform-test-key',
+  CUSTOMEROPS_API_KEY: 'platform-test-key-for-central-payments',
+  SITE_URL: 'https://sousamurrayplaneia.jagroupservices.co.uk',
 };
 
 const VERIFIED_ADULT_PROFILE = {
@@ -54,19 +55,7 @@ function database(overrides = {}) {
             };
           }
           if (sql.includes('FROM profiles')) return { ...VERIFIED_ADULT_PROFILE };
-          const id = this.values[0];
-          const details = PLAN_DETAILS[id];
-          if (!details || !sql.includes('FROM service_plans')) return null;
-          return {
-            id,
-            plan_name: details[0],
-            plan_type: details[2] === 'organisation' ? 'Business monthly subscription' : 'Standard monthly subscription',
-            price_label: `£${(details[1] / 100).toFixed(2)}`,
-            price_pence: details[1],
-            stripe_product_id: `prod_${id}`,
-            stripe_price_id: `price_${id}`,
-            is_active: 1,
-          };
+          return null;
         },
       };
       return statement;
@@ -74,7 +63,7 @@ function database(overrides = {}) {
   };
 }
 
-function installFetchMock(captureCheckout) {
+function installFetchMock(onCentralCheckout) {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options) => {
     const address = String(url);
@@ -105,61 +94,77 @@ function installFetchMock(captureCheckout) {
         },
       });
     }
-    captureCheckout(String(options?.body || ''));
-    return new Response(JSON.stringify({ url: 'https://checkout.stripe.test/session' }), { status: 200 });
+    if (address.includes('/api/v1/payments/checkout')) {
+      const payload = JSON.parse(String(options?.body || '{}'));
+      onCentralCheckout(payload, options?.headers || {});
+      return Response.json({
+        checkout: {
+          reference: 'cp-test-1',
+          sessionId: 'cs_test_central',
+          url: 'https://checkout.stripe.test/session',
+          mode: 'subscription',
+          trialPeriodDays: 30,
+        },
+      }, { status: 201 });
+    }
+    throw new Error(`Unexpected request in checkout regression: ${address}`);
   };
   return () => { globalThis.fetch = originalFetch; };
 }
 
-test('Admin-edited service plan Price ID takes priority over a legacy Explore override', async () => {
-  let checkoutBody = '';
-  const restore = installFetchMock(value => { checkoutBody = value; });
-  try {
-    const response = await onRequestGet({
-      request: signedInRequest('https://planyx.example/create-checkout-session?plan=personal'),
-      env: {
-        DB: database({ toggle_payments: 'true', stripe_price_personal_override: 'price_legacy_explore' }),
-        STRIPE_SECRET_KEY: 'sk_test',
-        STRIPE_PRICE_EXPLORE: 'price_secret_explore',
-        ...OIDC_ENV,
-      },
-    });
-    assert.equal(response.status, 303);
-    assert.equal(new URLSearchParams(checkoutBody).get('line_items[0][price]'), 'price_personal');
-  } finally {
-    restore();
-  }
-});
-
 for (const [plan, details] of Object.entries(PLAN_DETAILS)) {
-  test(`${plan} checkout includes trial, Head Office age assurance and correct account catalogue metadata`, async () => {
-    let checkoutBody = '';
-    const restore = installFetchMock(value => { checkoutBody = value; });
+  test(`${plan} checkout is delegated to Head Office Central Payments with the governed catalogue code`, async () => {
+    let checkoutPayload = null;
+    let checkoutHeaders = null;
+    const restore = installFetchMock((payload, headers) => {
+      checkoutPayload = payload;
+      checkoutHeaders = headers;
+    });
     try {
       const response = await onRequestGet({
-        request: signedInRequest(`https://planyx.example/create-checkout-session?plan=${plan}&accountType=${details[2]}`),
+        request: signedInRequest(`https://sousamurrayplaneia.jagroupservices.co.uk/create-checkout-session?plan=${plan}&accountType=${details[2]}`),
         env: {
           DB: database({ toggle_payments: 'true' }),
-          STRIPE_SECRET_KEY: 'sk_test',
           ...OIDC_ENV,
         },
       });
       assert.equal(response.status, 303);
-      const params = new URLSearchParams(checkoutBody);
-      assert.equal(params.get('mode'), 'subscription');
-      assert.equal(params.get('line_items[0][price]'), `price_${plan}`);
-      assert.equal(params.get('subscription_data[trial_period_days]'), '30');
-      assert.equal(params.get('subscription_data[metadata][plan_code]'), plan);
-      assert.equal(params.get('subscription_data[metadata][account_type]'), details[2]);
-      assert.equal(params.get('subscription_data[metadata][catalogue]'), details[2] === 'organisation' ? 'business' : 'standard');
-      assert.equal(params.get('subscription_data[metadata][age_band]'), '18+');
-      assert.equal(params.get('subscription_data[metadata][age_assurance_authority]'), 'HEAD_OFFICE');
-      assert.equal(params.get('subscription_data[metadata][age_assurance_threshold]'), '16');
+      assert.equal(response.headers.get('location'), 'https://checkout.stripe.test/session');
+      assert.ok(checkoutPayload, 'The site must call Head Office Central Payments.');
+      assert.equal(checkoutPayload.brand, 'SOUSA_MURRAY_PLANEIA');
+      assert.equal(checkoutPayload.customerNumber, '1000000001');
+      assert.equal(checkoutPayload.productCode, details[0]);
+      assert.equal(checkoutPayload.priceCode, details[1]);
+      assert.match(checkoutPayload.orderReference, /^PLANEIA-/);
+      assert.equal(checkoutPayload.serviceReference, `${details[2]}:${plan}`);
+      assert.equal(checkoutPayload.successUrl, 'https://sousamurrayplaneia.jagroupservices.co.uk/payment-success/?central_payment=success');
+      assert.equal(checkoutPayload.cancelUrl, 'https://sousamurrayplaneia.jagroupservices.co.uk/pricing/?payment=cancelled');
+      assert.match(String(checkoutHeaders.Authorization || checkoutHeaders.authorization || ''), /^Bearer platform-test-key-for-central-payments$/);
+      assert.equal('stripePriceId' in checkoutPayload, false, 'The website must never submit an arbitrary Stripe Price ID.');
     } finally {
       restore();
     }
   });
 }
+
+test('Planeia checkout no longer requires a site-level Stripe secret or Price ID override', async () => {
+  let checkoutPayload = null;
+  const restore = installFetchMock(payload => { checkoutPayload = payload; });
+  try {
+    const response = await onRequestGet({
+      request: signedInRequest('https://sousamurrayplaneia.jagroupservices.co.uk/create-checkout-session?plan=personal'),
+      env: {
+        DB: database({ toggle_payments: 'true', stripe_price_personal_override: 'price_legacy_must_not_be_used' }),
+        ...OIDC_ENV,
+      },
+    });
+    assert.equal(response.status, 303);
+    assert.equal(checkoutPayload.priceCode, 'PLANEIA_EXPLORE_MONTHLY');
+    assert.doesNotMatch(JSON.stringify(checkoutPayload), /price_legacy_must_not_be_used|sk_(?:test|live)/);
+  } finally {
+    restore();
+  }
+});
 
 function signedInRequest(url) {
   return new Request(url, { headers: { cookie: 'ja_customer_oidc_session=test-session' } });
